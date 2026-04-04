@@ -1,0 +1,141 @@
+<section class="content-wrapper">
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <form id="pettycashForm" method="post" class="card px-3 pb-3">
+            <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pt-3 pb-3 sticky-head flex-wrap gap-3">
+                <div class="d-flex gap-2 align-items-center">
+                    <?php if($branchId && $month) { ?>
+                    <a href="<?php echo base_url() . 'bill/pettycash-view/' . $year . '/' . $branchId . '/' . $month; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                    <?php } else { ?>
+                    <a href="<?php echo base_url(); ?>bill/pettycash-list/<?php echo $year; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                    <?php } ?>
+                    <h4 class="fw-bold mb-0 text-black"><?php echo $formTitle; ?></h4>
+                </div>
+                <div class="d-flex gap-3 justify-content-end">
+                    <?php if($branchId && $month) { ?>
+                    <a href="<?php echo base_url() . 'bill/pettycash-view/' . $year . '/' . $branchId . '/' . $month; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
+                    <?php } else { ?>
+                    <a href="<?php echo base_url(); ?>bill/pettycash-list/<?php echo $year; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
+                    <?php } ?>
+                    <button type="submit" class="btn btn-success px-4 py-2 rounded border-0 fw-bold text-white">Save</button>
+                </div>
+            </div>
+            <input name="pettycash_id" id="pettycash_id" type="hidden" value="<?php echo $pettycashId; ?>">
+            <div class="row g-3">
+                <div class="col-lg-3 col-md-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Paid Date <span class="text-danger">*</span></label>
+                    <input name="pettycash_date" id="pettycash_date" type="date" class="form-control date-picker" placeholder="YYYY - MM - DD" value="<?php echo $paidDate; ?>">
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Branch <span class="text-danger">*</span></label>
+                    <select name="branch" id="branch" class="form-select select2">
+                        <option value="">Select Branch</option>
+                        <?php foreach ($branchDropdown as $row) { ?>
+                            <option value="<?php echo $row->id; ?>" <?php if($branchId == $row->id) { echo 'selected'; } ?>><?php echo $row->branch; ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Pettycash Title <span class="text-danger">*</span></label>
+                    <select name="pettycash_title" id="pettycash_title" class="form-select select2">
+                        <option value="">Select Pettycash Title</option>
+                        <?php foreach ($pettycashTitleDropdown as $row) { ?>
+                            <option value="<?php echo $row->id; ?>" <?php if($titleId == $row->id) { echo 'selected'; } ?>><?php echo $row->title; ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Pettycash Amount <span class="text-danger">*</span></label>
+                    <input name="pettycash_amount" id="pettycash_amount" type="text" class="form-control number-only" placeholder="Enter Pettycash Amount" value="<?php echo $amount; ?>">
+                </div>
+                <div class="col-lg-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Remarks</label>
+                    <textarea name="remarks" id="remarks" type="text" class="form-control" placeholder="Remarks" rows="3"><?php echo $remarks; ?></textarea>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+
+<script>
+    // Pettycash Save Function
+    $("#pettycashForm").validate({
+        rules: {
+            pettycash_date: {
+                required: true
+            },
+            branch: {
+                required: true
+            },
+            pettycash_title: {
+                required: true
+            },
+            pettycash_amount: {
+                required: true
+            }
+        },
+        messages: {
+            pettycash_date: {
+                required: "Please Select Date"
+            },
+            branch: {
+                required: "Please Select Branch"
+            },
+            pettycash_title: {
+                required: "Please Enter Pettycash Title"
+            },
+            pettycash_amount: {
+                required: "Please Enter Pettycash Amount"
+            }
+        },
+        submitHandler: function (form) {
+            var data = new FormData($('#pettycashForm').get(0));
+            $.ajax({
+                url: '<?php echo base_url(); ?>bill/pettycashFormSave',
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                method: 'POST',
+                dataType: 'json',
+                beforeSend: function () {
+                    $(".loader").show();
+                },
+                success: function (data) {
+                    toastr.options = {
+                        'closeButton': true,
+                        'debug': false,
+                        'newestOnTop': false,
+                        'progressBar': false,
+                        'positionClass': 'toast-top-right',
+                        'preventDuplicates': false,
+                        'showDuration': '1000',
+                        'hideDuration': '1000',
+                        'timeOut': '5000',
+                        'extendedTimeOut': '1000',
+                        'showEasing': 'swing',
+                        'hideEasing': 'linear',
+                        'showMethod': 'fadeIn',
+                        'hideMethod': 'fadeOut',
+                    }
+                    $(".loader").hide();
+                    if (data['isError']) {
+                        toastr.error(data['message']);
+                    }
+                    else {
+                        oneClickSubmitBtn();
+                        toastr.success(data['message']);
+                        setTimeout(function () {
+                            <?php if($branchId && $month) { ?>
+                                window.location.href = "<?php echo base_url() . 'bill/pettycash-view/' . $year . '/' . $branchId . '/' . $month; ?>";
+                            <?php } else { ?>
+                                window.location.href = "<?php echo base_url(); ?>bill/pettycash-list/<?php echo $year; ?>";
+                            <?php } ?>
+                        }, 1500);
+                    }
+                }
+            });
+            return false;
+        }
+    });
+</script>

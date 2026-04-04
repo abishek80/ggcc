@@ -1,0 +1,64 @@
+utf8mb4_0900_ai_ci     ->>    utf8mb4_general_ci
+
+--------------------------------------------------
+
+stock day and total stock report
+complaint private job - multiple day review
+notification count reminder all menu - list
+month and date default value
+
+sql remove * call the particular value 
+reduce the for loop condition
+page speed increase most important work
+
+multisheet excel export option
+
+report and current stock list
+    inwade
+    outwade
+    transfer in
+    transfer out
+    total balance
+
+stock report
+
+vehicle fule - order by date
+material filter - order by date
+material - tranfer value not needed
+
+
+
+
+
+
+Announcement and leave list
+
+
+
+
+Report Date --> Reported submitted on
+report date format change
+    i assign work to the employee reporting date 
+    submiting date
+
+
+month list
+    branch list | employee name | reporting date | status
+employee work
+    branch | employee name | work type | submitted date | next submitted date | report | status
+master work type
+    work name | date | details (description) | status
+
+
+
+
+
+
+reminder
+    Payslip
+    employee work
+    vehicle
+    retention money
+    security amount
+    yearly plan
+    
