@@ -1,5 +1,14 @@
 <section class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
+        <div class="d-flex flex-wrap gap-2 gap-md-3 mb-3">
+            <?php 
+                $years = [ date('Y').'-'.(date('Y')+1), (date('Y')-1).'-'.date('Y') ];
+                foreach($years as $fy) {
+                    $activeClass = ($financialYear == $fy) ? 'bg-primary text-white' : 'bg-white text-primary';
+            ?>
+                <a href="<?= base_url('vehicle/fuel_view/'.$vehicleId.'/'.$fy) ?>" class="px-4 py-2 px-lg-5 shadow shadow-sm fw-bold lh-1 rounded-2 border-primary border border-3 border-end-0 border-start-0 border-top-0 <?= $activeClass ?>"><?= $fy ?></a>
+            <?php } ?>
+        </div>
         <div class="row g-3 mb-3">
             <div class="col-lg-3 col-6">
                 <div class="card p-3 text-center">
@@ -29,7 +38,7 @@
         <div class="card p-3">
             <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pb-3 flex-wrap gap-3">
                 <div class="d-flex gap-2 align-items-center">
-                    <a href="<?php echo base_url() . 'vehicle/fuel-list'; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                    <a href="<?php echo base_url() . 'vehicle/fuel-list/' . $financialYear; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                     <h4 class="fw-bold mb-0 text-black">Fuel List</h4>
                 </div>
                 <div class="d-flex gap-3">
@@ -67,7 +76,7 @@
                                 <td class="px-2">
                                     <div class="d-flex gap-1 justify-content-center">
                                         <a href="<?php echo base_url() . 'vehicle/fuel-edit/' . $row->id; ?>" class="box-hover" data-toggle="tooltip" data-placement="top" title="Edit"> <i class="bx bx-edit-alt"></i> </a>
-                                        <a href="javascript:void(0);" data-rowid="<?php echo $row->id; ?>" data-tablename="vehicle_fuel" data-link="<?php echo base_url() . 'vehicle/fuel-view/' . $row->vehicle_id; ?>" class="box-hover trashItem" data-toggle="tooltip" data-placement="top" title="Delete"> <i class="bx bx-trash"></i> </a>
+                                        <a href="javascript:void(0);" data-rowid="<?php echo $row->id; ?>" data-tablename="vehicle_fuel" data-link="<?php echo base_url() . 'vehicle/fuel-view/' . $row->vehicle_id . '/' . $financialYear; ?>" class="box-hover trashItem" data-toggle="tooltip" data-placement="top" title="Delete"> <i class="bx bx-trash"></i> </a>
                                     </div>
                                 </td>
                             </tr>

@@ -587,4 +587,4 @@ class Complaint extends CI_Controller {
         $data = $this->complaintmodel->get_complaints_server_side($postData, $pageStatus, $activeYear); 
         echo json_encode($data);
     }
-}
+}

@@ -4,17 +4,17 @@
             <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pt-3 pb-3 sticky-head flex-wrap gap-3">
                 <div class="d-flex gap-2 align-items-center">
                     <?php if($vehicleId) { ?>
-                    <a href="<?php echo base_url() . 'vehicle/fuel-view/' . $vehicleId; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                    <a href="<?php echo base_url() . 'vehicle/fuel-view/' . $vehicleId . '/' . $financialYear; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                     <?php } else { ?>
-                    <a href="<?php echo base_url(); ?>vehicle/fuel-list" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                    <a href="<?php echo base_url() . 'vehicle/fuel-list/' . $financialYear; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                     <?php } ?>
                     <h4 class="fw-bold mb-0 text-black"><?php echo $formTitle; ?></h4>
                 </div>
                 <div class="d-flex gap-3 justify-content-end">
                     <?php if($vehicleId) { ?>
-                    <a href="<?php echo base_url() . 'vehicle/fuel-view/' . $vehicleId; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
+                    <a href="<?php echo base_url() . 'vehicle/fuel-view/' . $vehicleId . '/' . $financialYear; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
                     <?php } else { ?>
-                    <a href="<?php echo base_url(); ?>vehicle/fuel-list" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
+                    <a href="<?php echo base_url() . 'vehicle/fuel-list/' . $financialYear; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
                     <?php } ?>
                     <button type="submit" class="btn btn-success px-4 py-2 rounded border-0 fw-bold text-white">Save</button>
                 </div>
@@ -191,10 +191,11 @@
                         oneClickSubmitBtn();
                         toastr.success(data['message']);
                         setTimeout(function () {
+                            var fy = '<?php echo $financialYear; ?>';
                             <?php if($vehicleId) { ?>
-                                window.location.href = "<?php echo base_url() . 'vehicle/fuel-view/' . $vehicleId; ?>";
+                                window.location.href = "<?php echo base_url() . 'vehicle/fuel-view/' . $vehicleId; ?>/" + fy;
                             <?php } else { ?>
-                                window.location.href = "<?php echo base_url(); ?>vehicle/fuel-list";
+                                window.location.href = "<?php echo base_url() . 'vehicle/fuel-list/'; ?>" + fy;
                             <?php } ?>
                         }, 1500);
                     }

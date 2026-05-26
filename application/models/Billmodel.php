@@ -31,92 +31,141 @@ class Billmodel extends CI_Model
     }
 
     //All Party Payment Total Value List
-    public function getPartyPaymentTotalValue($companyName = '')
+    public function getPartyPaymentTotalValue($companyName = '', $fyStartDate = '', $fyEndDate = '', $financialYear = '')
     {
+        $where = "PP.delete_status = 0";
         if (!empty($companyName)) { 
-            $where = "PP.company_name = '$companyName' AND ";
-        } else {
-            $where = '';
+            $where .= " AND PP.company_name = '$companyName'";
         }
-        $sql = "SELECT COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) AS purchase_amount, COALESCE(ROUND(SUM(PPR.total_payment_amount), 2), 0.00) AS paid_amount, COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) - COALESCE(ROUND(SUM(PPR.total_payment_amount), 2), 0.00) AS balance_amount FROM party_payment PP LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS total_payment_amount FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id WHERE $where PP.delete_status = 0";
+        
+        if ($this->isCurrentFY($financialYear)) {
+            $where .= " AND (
+                (PP.purchase_date BETWEEN '$fyStartDate' AND '$fyEndDate')
+                OR
+                (PP.purchase_date < '$fyStartDate' AND PP.status = 'unpaid')
+            )";
+        } else {
+            $where .= " AND PP.purchase_date BETWEEN '$fyStartDate' AND '$fyEndDate'";
+        }
+
+        $sql = "SELECT COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) AS purchase_amount, COALESCE(ROUND(SUM(PPR.total_payment_amount), 2), 0.00) AS paid_amount, COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) - COALESCE(ROUND(SUM(PPR.total_payment_amount), 2), 0.00) AS balance_amount FROM party_payment PP LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS total_payment_amount FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id WHERE $where";
 
         $res = $this->db->query($sql);
         return $res->result();
     }
     
     //All Party Purchase List
-    public function getAllPartyPaymentList($companyName = '')
+    public function getAllPartyPaymentList($companyName = '', $fyStartDate = '', $fyEndDate = '', $financialYear = '')
     {
-        $where = ($companyName != '') ? "AND PP.company_name = '$companyName'" : '';
-        $where1 = ($companyName != '') ? "AND MP.company_name = '$companyName'" : '';
-        $sql = "SELECT MP.*, MP.msme as party_type, MP.party_name, MP.msme_number, COALESCE(SUM(PP.purchase_amount), 0.00) AS purchase_amount, COALESCE(SUM(PPR.total_payment_amount), 0.00) AS paid_amount, COALESCE(SUM(PP.purchase_amount), 0.00) - COALESCE(SUM(PPR.total_payment_amount), 0.00) AS balance_amount FROM master_party MP LEFT JOIN (SELECT * FROM party_payment WHERE delete_status = 0) PP ON PP.party_name = MP.party_name $where LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS total_payment_amount  FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id WHERE MP.status = 'active' AND MP.delete_status = 0 $where1 GROUP BY MP.party_name ORDER BY MP.party_name ASC";
+        $wherePP = "WHERE delete_status = 0";
+        if ($companyName != '') {
+            $wherePP .= " AND company_name = '$companyName'";
+        }
+
+        if ($this->isCurrentFY($financialYear)) {
+            $wherePP .= " AND (
+                (purchase_date BETWEEN '$fyStartDate' AND '$fyEndDate')
+                OR
+                (purchase_date < '$fyStartDate' AND status = 'unpaid')
+            )";
+        } else {
+            $wherePP .= " AND purchase_date BETWEEN '$fyStartDate' AND '$fyEndDate'";
+        }
+
+        $whereMP = ($companyName != '') ? "AND MP.company_name = '$companyName'" : '';
+        
+        $sql = "SELECT MP.*, MP.msme as party_type, MP.party_name, MP.msme_number, COALESCE(SUM(PP.purchase_amount), 0.00) AS purchase_amount, COALESCE(SUM(PPR.total_payment_amount), 0.00) AS paid_amount, COALESCE(SUM(PP.purchase_amount), 0.00) - COALESCE(SUM(PPR.total_payment_amount), 0.00) AS balance_amount FROM master_party MP LEFT JOIN (SELECT * FROM party_payment $wherePP) PP ON PP.party_name = MP.party_name LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS total_payment_amount  FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id WHERE MP.status = 'active' AND MP.delete_status = 0 $whereMP GROUP BY MP.party_name ORDER BY MP.party_name ASC";
 
         $res = $this->db->query($sql);
         return $res->result();
     }
     
     //All Party Detail
-    public function getPartyDetail($companyName = '', $partyId = '', $partyZone='', $status = '')
+    public function getPartyDetail($companyName = '', $partyId = '', $partyZone='', $status = '', $fyStartDate='', $fyEndDate='', $financialYear='')
     {
-        $where = ($partyId != '') ? "PP.party_id = '$partyId' AND " : '';
-        $where1 = ($companyName != '') ? "PP.company_name = '$companyName' AND " : '';
-        $where2 = ($partyZone != '') ? "PP.purchase_zone = '$partyZone' AND " : '';
-        $where3 = ($status != '') ? "PP.status = '$status' AND " : '';
+        $where = "PP.delete_status = 0";
+        if ($partyId) $where .= " AND PP.party_id = '$partyId'";
+        if ($companyName) $where .= " AND PP.company_name = '$companyName'";
+        if ($partyZone) $where .= " AND PP.purchase_zone = '$partyZone'";
+        if ($status) $where .= " AND PP.status = '$status'";
 
-        $sql = "SELECT COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) AS purchase_amount, COALESCE(ROUND(SUM(PPR.payment_amount), 2), 0.00) AS paid_amount, COALESCE(SUM(PP.purchase_amount), 0.00) - COALESCE(SUM(PPR.payment_amount), 0.00) AS balance_amount FROM party_payment PP LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS payment_amount FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id WHERE $where $where1 $where2 $where3 PP.delete_status = 0 GROUP BY PP.party_id, PP.company_name";
+        if ($this->isCurrentFY($financialYear)) {
+            $where .= " AND (
+                (PP.purchase_date BETWEEN '$fyStartDate' AND '$fyEndDate')
+                OR
+                (PP.purchase_date < '$fyStartDate' AND PP.status = 'unpaid')
+            )";
+        } else {
+            $where .= " AND PP.purchase_date BETWEEN '$fyStartDate' AND '$fyEndDate'";
+        }
+
+        $sql = "SELECT COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) AS purchase_amount, COALESCE(ROUND(SUM(PPR.payment_amount), 2), 0.00) AS paid_amount, COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) - COALESCE(ROUND(SUM(PPR.payment_amount), 2), 0.00) AS balance_amount FROM party_payment PP LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS payment_amount FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id WHERE $where GROUP BY PP.party_id, PP.company_name";
         
         $res = $this->db->query($sql);
         return $res->result();
     }
     
     //Taxinvoice List
-    public function getUnpaidBillList($companyName='', $partyId='', $partyZone='')
+    public function getUnpaidBillList($companyName='', $partyId='', $partyZone='', $fyStartDate='', $fyEndDate='', $financialYear='')
     {
-        if ($companyName) {
-            $where = "PP.company_name = '$companyName' AND"; 
+        $where = "PP.delete_status = 0 AND PP.status = 'unpaid'";
+
+        if ($companyName) $where .= " AND PP.company_name = '$companyName'";
+        if ($partyId) $where .= " AND PP.party_id = $partyId";
+        if ($partyZone) $where .= " AND PP.purchase_zone = '$partyZone'";
+
+        // CURRENT FY → include carry forward
+        if ($this->isCurrentFY($financialYear)) {
+            $where .= " AND (
+                (PP.purchase_date BETWEEN '$fyStartDate' AND '$fyEndDate')
+                OR
+                (PP.purchase_date < '$fyStartDate' AND PP.status = 'unpaid')
+            )";
         } else {
-            $where = "";
-        }
-        if ($partyId) {
-            $where1 = "PP.party_id = $partyId AND"; 
-        } else {
-            $where1 = "";
-        }
-        if ($partyZone) {
-            $where2 = "PP.purchase_zone = '$partyZone' AND"; 
-        } else {
-            $where2 = "";
+            // PREVIOUS FY
+            $where .= " AND PP.purchase_date BETWEEN '$fyStartDate' AND '$fyEndDate'";
         }
 
-        $sql = "SELECT PP.*, COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) AS purchase_amount, COALESCE(ROUND(SUM(PPR.payment_amount), 2), 0.00) AS paid_amount, COALESCE(ROUND(PP.purchase_amount - COALESCE(PPR.payment_amount, 0.00), 2), 0.00) AS balance_amount, DATE_FORMAT(PP.purchase_date, '%d - %m - %Y') AS purchase_dateFormat, DATE_FORMAT(validityend_date, '%d - %m - %Y') AS validityend_dateFormat FROM party_payment PP LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS payment_amount FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id WHERE $where $where1 $where2 PP.delete_status = 0 AND PP.status = 'unpaid' GROUP BY PP.id ORDER BY PP.purchase_date DESC";
+        $sql = "SELECT PP.*, 
+            COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) AS purchase_amount, 
+            COALESCE(ROUND(SUM(PPR.payment_amount), 2), 0.00) AS paid_amount, 
+            COALESCE(ROUND(PP.purchase_amount - COALESCE(PPR.payment_amount, 0.00), 2), 0.00) AS balance_amount,
+            DATE_FORMAT(PP.purchase_date, '%d - %m - %Y') AS purchase_dateFormat,
+            DATE_FORMAT(validityend_date, '%d - %m - %Y') AS validityend_dateFormat
+            FROM party_payment PP
+            LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS payment_amount FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id
+            WHERE $where
+            GROUP BY PP.id
+            ORDER BY PP.purchase_date DESC";
 
-        $res = $this->db->query($sql);
-        return $res->result();
+        return $this->db->query($sql)->result();
     }
     
     //Paid Bill List
-    public function getPaidBillList($companyName='', $partyId='', $partyZone='')
+    public function getPaidBillList($companyName='', $partyId='', $partyZone='', $fyStartDate='', $fyEndDate='', $financialYear='')
     {
-        if ($companyName) {
-            $where = "PP.company_name = '$companyName' AND"; 
-        } else {
-            $where = "";
-        }
-        if ($partyId) {
-            $where1 = "PP.party_id = $partyId AND"; 
-        } else {
-            $where1 = "";
-        }
-        if ($partyZone) {
-            $where2 = "PP.purchase_zone = '$partyZone' AND"; 
-        } else {
-            $where2 = "";
-        }
+        $where = "PP.delete_status = 0 AND PP.status = 'paid'";
 
-        $sql = "SELECT PP.*, COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) AS purchase_amount, COALESCE(ROUND(SUM(PPR.payment_amount), 2), 0.00) AS paid_amount, COALESCE(ROUND(PP.purchase_amount - COALESCE(PPR.payment_amount, 0.00), 2), 0.00) AS balance_amount, DATE_FORMAT(PP.purchase_date, '%d - %m - %Y') AS purchase_dateFormat, DATE_FORMAT(validityend_date, '%d - %m - %Y') AS validityend_dateFormat FROM party_payment PP LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS payment_amount FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id WHERE $where $where1 $where2 PP.delete_status = 0 AND PP.status = 'paid' GROUP BY PP.id ORDER BY PP.purchase_date DESC";
+        if ($companyName) $where .= " AND PP.company_name = '$companyName'";
+        if ($partyId) $where .= " AND PP.party_id = $partyId";
+        if ($partyZone) $where .= " AND PP.purchase_zone = '$partyZone'";
 
-        $res = $this->db->query($sql);
-        return $res->result();
+        // ONLY within FY (NO carry forward)
+        $where .= " AND PP.purchase_date BETWEEN '$fyStartDate' AND '$fyEndDate'";
+
+        $sql = "SELECT PP.*, 
+            COALESCE(ROUND(SUM(PP.purchase_amount), 2), 0.00) AS purchase_amount, 
+            COALESCE(ROUND(SUM(PPR.payment_amount), 2), 0.00) AS paid_amount, 
+            COALESCE(ROUND(PP.purchase_amount - COALESCE(PPR.payment_amount, 0.00), 2), 0.00) AS balance_amount,
+            DATE_FORMAT(PP.purchase_date, '%d - %m - %Y') AS purchase_dateFormat,
+            DATE_FORMAT(validityend_date, '%d - %m - %Y') AS validityend_dateFormat
+            FROM party_payment PP
+            LEFT JOIN (SELECT party_payment_id, SUM(payment_amount) AS payment_amount FROM party_payment_received WHERE delete_status = 0 GROUP BY party_payment_id) PPR ON PPR.party_payment_id = PP.id
+            WHERE $where
+            GROUP BY PP.id
+            ORDER BY PP.purchase_date DESC";
+
+        return $this->db->query($sql)->result();
     }
 
     // Party Payment Report List
@@ -296,6 +345,24 @@ class Billmodel extends CI_Model
             $this->db->insert('branch_pettycash', $data);
             $this->db->insert_id();
         }
+    }
+
+    private function isCurrentFY($financialYear)
+    {
+        $currentMonth = date('m');
+        $currentYear = date('Y');
+
+        if ($currentMonth >= 4) {
+            $startYear = $currentYear;
+            $endYear = $currentYear + 1;
+        } else {
+            $startYear = $currentYear - 1;
+            $endYear = $currentYear;
+        }
+
+        $currentFY = $startYear . '-' . $endYear;
+
+        return $financialYear == $currentFY;
     }
 }
 ?>

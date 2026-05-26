@@ -107,59 +107,44 @@
 
 <script>
     function numberToWords(num) {
+        if (num === 0 || num === '0') return 'Zero Rupees';
+        if (!num) return '';
+
         const a = [
-            '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
-            'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
+            '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+            'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
         ];
         const b = [
-            '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
-        ];
-        const g = [
-            '', 'thousand', 'million', 'billion', 'trillion', 'quadrillion', 'quintillion', 'sextillion',
-            'septillion', 'octillion', 'nonillion', 'decillion', 'undecillion', 'duodecillion', 'tredecillion',
-            'quattuordecillion', 'quindecillion', 'sexdecillion', 'septendecillion', 'octodecillion', 'novemdecillion', 'vigintillion'
+            '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'
         ];
 
-        let makeGroup = ([ones, tens, huns]) => {
-            let hundreds = parseNum(huns) === 0 ? '' : a[parseNum(huns)] + ' hundred ';
-            let remainder = parseNum(tens) * 10 + parseNum(ones);
-            let tensAndOnes = remainder < 20 ? a[remainder] : b[parseNum(tens)] + (parseNum(ones) > 0 ? ' ' + a[parseNum(ones)] : '');
-            return (hundreds + tensAndOnes).trim();
+        const convert = (n) => {
+            if (n < 20) return a[n];
+            if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + a[n % 10] : '');
+            if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' ' + convert(n % 100) : '');
+            return '';
         };
 
-        let thousand = (group, i) => group === '' ? group : `${group} ${g[i]}`;
+        let n = Math.floor(Math.abs(num));
+        let str = '';
 
-        if (typeof num === 'number') return numberToWords(String(num));
-        if (num === '0') return 'zero';
+        if (n >= 10000000) {
+            str += convert(Math.floor(n / 10000000)) + ' Crore ';
+            n %= 10000000;
+        }
+        if (n >= 100000) {
+            str += convert(Math.floor(n / 100000)) + ' Lakh ';
+            n %= 100000;
+        }
+        if (n >= 1000) {
+            str += convert(Math.floor(n / 1000)) + ' Thousand ';
+            n %= 1000;
+        }
+        if (n > 0) {
+            str += convert(n);
+        }
 
-        return chunk(3)(reverse(str(num)))
-            .map(makeGroup)
-            .map(thousand)
-            .filter(compact)
-            .reverse()
-            .join(' ');
-    }
-
-    function str(x) {
-        return x.toString();
-    }
-
-    function parseNum(x) {
-        return parseFloat(x) || 0;
-    }
-
-    function reverse(xs) {
-        return xs.split('').reverse().join('');
-    }
-
-    function chunk(n) {
-        return function(xs) {
-            return xs.match(new RegExp(`.{1,${n}}`, 'g'));
-        };
-    }
-
-    function compact(x) {
-        return !!x;
+        return str.trim() + ' Rupees';
     }
 
     $(document).ready(function() {

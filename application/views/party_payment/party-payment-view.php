@@ -1,5 +1,15 @@
 <section class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
+        <div class="d-flex flex-wrap gap-2 gap-md-3 mb-3">
+            <?php 
+                $years = [ date('Y').'-'.(date('Y')+1), (date('Y')-1).'-'.date('Y') ];
+                foreach($years as $fy) {
+                    $activeClass = ($financialYear == $fy) ? 'bg-primary text-white' : 'bg-white text-primary';
+                    $zoneParam = $partyZone ? $partyZone : '0';
+            ?>
+                <a href="<?= base_url('bill/party-payment-view/'.$companyName.'/'.$partyId.'/'.$zoneParam.'/'.$fy) ?>" class="px-4 py-2 px-lg-5 shadow shadow-sm fw-bold lh-1 rounded-2 border-primary border border-3 border-end-0 border-start-0 border-top-0 <?= $activeClass ?>"><?= $fy ?></a>
+            <?php } ?>
+        </div>
         <div class="row g-3 mb-3">
             <div class="col-lg-3 col-6">
                 <div class="card p-3 text-center">
@@ -10,29 +20,29 @@
             <div class="col-lg-3 col-6">
                 <div class="card p-3 text-center">
                     <p class="mb-2">Bill Amount</p>
-                    <h5 class="mb-0 fw-semibold amount-format"><?php echo $purchaseUnpaidAmount; ?></h5>
+                    <h5 class="mb-0 fw-semibold amount-format"><?php echo $purchaseAmountOverall; ?></h5>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="card p-3 text-center">
                     <p class="mb-2">Paid Amount</p>
-                    <h5 class="mb-0 fw-semibold amount-format"><?php echo $paidUnpaidAmount; ?></h5>
+                    <h5 class="mb-0 fw-semibold amount-format"><?php echo $paidAmountOverall; ?></h5>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="card p-3 text-center">
                     <p class="mb-2">Balance Amount</p>
-                    <h5 class="mb-0 fw-semibold amount-format"><?php echo $balanceUnpaidAmount; ?></h5>
+                    <h5 class="mb-0 fw-semibold amount-format"><?php echo $balanceAmountOverall; ?></h5>
                 </div>
             </div>
         </div>
         <div class="nav-align-top mt-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="d-flex gap-2 align-items-center">
-                    <a href="<?php echo base_url() . 'bill/party-payment-list/' . $companyName; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                    <a href="<?php echo base_url() . 'bill/party-payment-list/' . $companyName . '/' . $financialYear; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                     <h4 class="fw-bold mb-0 text-black text-capitalize"><?php echo $companyName . ' - ' . $partyName; ?></h4>
                 </div>
-                <div class="d-flex gap-3">
+                <div class="d-flex gap-3 align-items-center">
                     <div class="d-flex gap-3">
                         <select class="form-select w-min-250" id="zoneSelect">
                             <option value="">Select Zone</option>
@@ -89,27 +99,7 @@
                     </table>
                 </div>
             </div>
-            <h4 class="fw-bold mb-4 text-center text-black text-capitalize">Completed Bill List</h4>
-            <div class="row g-3 mb-3">
-                <div class="col-lg-4 col-6">
-                    <div class="card p-3 text-center">
-                        <p class="mb-2">Bill Amount</p>
-                        <h5 class="mb-0 fw-semibold amount-format"><?php echo $purchasePaidAmount; ?></h5>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-6">
-                    <div class="card p-3 text-center">
-                        <p class="mb-2">Paid Amount</p>
-                        <h5 class="mb-0 fw-semibold amount-format"><?php echo $paidPaidAmount; ?></h5>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-6">
-                    <div class="card p-3 text-center">
-                        <p class="mb-2">Balance Amount</p>
-                        <h5 class="mb-0 fw-semibold amount-format"><?php echo $balancePaidAmount; ?></h5>
-                    </div>
-                </div>
-            </div>
+            <h4 class="fw-bold mb-4 text-black text-capitalize">Paid Bill List</h4>
             <div class="card card-body">
                 <div class="table-responsive">
                     <table class="zero_config table table-striped table-bordered">
@@ -249,25 +239,13 @@
 <script>
     $(document).ready(function() {
         $('#searchButton').on('click', function() {
-            // Get selected values from dropdowns
             var zone = $('#zoneSelect').val();
-
-            // Base URL
+            var fy = '<?php echo $financialYear; ?>';
+            
             var baseUrl = '<?php echo base_url() . 'bill/party-payment-view/' . $companyName . '/' . $partyId; ?>';
-
-            if (zone !== '') {
-
-                // Construct new URL with selected values
-                var newUrl = baseUrl;
-                if (zone) {
-                    newUrl += '/' + encodeURIComponent(zone);
-                }
-
-                // Redirect to the new URL
-                window.location.href = newUrl;
-            } else {
-                window.location.href = baseUrl;
-            }
+            var zoneParam = zone ? encodeURIComponent(zone) : '0';
+            
+            window.location.href = baseUrl + '/' + zoneParam + '/' + fy;
         });
     });
 
@@ -386,7 +364,9 @@
                         oneClickSubmitBtn();
                         toastr.success(data['message']);
                         setTimeout(function () {
-                            window.location.href = "<?php echo base_url() . 'bill/party-payment-view/' . $companyName . '/' . $partyId; ?>";
+                            var zone = '<?php echo $partyZone ? $partyZone : "0"; ?>';
+                            var fy = '<?php echo $financialYear; ?>';
+                            window.location.href = "<?php echo base_url() . 'bill/party-payment-view/' . $companyName . '/' . $partyId; ?>/" + zone + "/" + fy;
                         }, 1500);
                     }
                 }

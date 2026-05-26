@@ -26,7 +26,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $config['base_url'] = 'http://localhost/ggcc/';
 $projectname = "GGCC"; 
 $config['sitename'] = "GGCC"; 
-$config['websiteaddress'] = "https://ggcc.com/";
+$config['websiteaddress'] = "https://ggcc.org.in/";
 $config['mailid'] = "";
 $config['country'] = "India";
 

@@ -17,16 +17,30 @@ class Bill extends CI_Controller {
     error_reporting(E_ALL ^ (E_NOTICE | E_WARNING | E_DEPRECATED));
   }
   
-  public function index($companyName = '')
+  public function index($companyName = '', $financialYear = '')
   {
     $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
     if (in_array('admin', $userPermission) || in_array('account_management', $userPermission)) {
       $data["menu_open"] = 'party_payment';
       $data["menu_status"] = 'party_' . $companyName;
 
-      $data['allPartyPaymentList'] = $this->billmodel->getAllPartyPaymentList($companyName);
+      if (empty($financialYear)) {
+          $currentMonth = date('m');
+          $currentYear = date('Y');
+          if ($currentMonth >= 4) { $startYear = $currentYear; $endYear = $currentYear + 1; } 
+          else { $startYear = $currentYear - 1; $endYear = $currentYear; }
+          $financialYear = $startYear . '-' . $endYear;
+      }
+      list($startYear, $endYear) = explode('-', $financialYear);
+      $fyStartDate = $startYear . '-04-01';
+      $fyEndDate   = $endYear . '-03-31';
 
-      $partyPaymentTotalValue = $this->billmodel->getPartyPaymentTotalValue($companyName);
+      $data['financialYear'] = $financialYear;
+      $data['companyName'] = $companyName;
+
+      $data['allPartyPaymentList'] = $this->billmodel->getAllPartyPaymentList($companyName, $fyStartDate, $fyEndDate, $financialYear);
+
+      $partyPaymentTotalValue = $this->billmodel->getPartyPaymentTotalValue($companyName, $fyStartDate, $fyEndDate, $financialYear);
       foreach ($partyPaymentTotalValue as $row) {
         $data['purchaseAmount'] = $row->purchase_amount;
         $data['paidAmount'] = $row->paid_amount;
@@ -43,7 +57,7 @@ class Bill extends CI_Controller {
     }
   }
   
-  public function party_payment_list($companyName = '')
+  public function party_payment_list($companyName = '', $financialYear = '')
   {
     $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
     if (in_array('admin', $userPermission) || in_array('account_management', $userPermission)) {
@@ -51,9 +65,23 @@ class Bill extends CI_Controller {
       $data["menu_status"] = 'party_' . $companyName;
       
       $data["companyName"] = $companyName;
-      $data['allPartyPaymentList'] = $this->billmodel->getAllPartyPaymentList($companyName);
 
-      $partyPaymentTotalValue = $this->billmodel->getPartyPaymentTotalValue($companyName);
+      if (empty($financialYear)) {
+          $currentMonth = date('m');
+          $currentYear = date('Y');
+          if ($currentMonth >= 4) { $startYear = $currentYear; $endYear = $currentYear + 1; } 
+          else { $startYear = $currentYear - 1; $endYear = $currentYear; }
+          $financialYear = $startYear . '-' . $endYear;
+      }
+      list($startYear, $endYear) = explode('-', $financialYear);
+      $fyStartDate = $startYear . '-04-01';
+      $fyEndDate   = $endYear . '-03-31';
+
+      $data['financialYear'] = $financialYear;
+
+      $data['allPartyPaymentList'] = $this->billmodel->getAllPartyPaymentList($companyName, $fyStartDate, $fyEndDate, $financialYear);
+
+      $partyPaymentTotalValue = $this->billmodel->getPartyPaymentTotalValue($companyName, $fyStartDate, $fyEndDate, $financialYear);
       foreach ($partyPaymentTotalValue as $row) {
         $data['purchaseAmount'] = $row->purchase_amount;
         $data['paidAmount'] = $row->paid_amount;
@@ -70,15 +98,40 @@ class Bill extends CI_Controller {
     }
   }
 
-  public function party_payment_view($companyName='', $partyId='', $partyZone='')
+  public function party_payment_view($companyName='', $partyId='', $partyZone='', $financialYear='')
   {
     $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
     if (in_array('admin', $userPermission) || in_array('account_management', $userPermission)) {
+      if ($partyZone == '0') {
+          $partyZone = '';
+      }
       $data["menu_open"] = 'party_payment';
       $data["menu_status"] = 'party_' . $companyName;
 
-      $data['unpaidBillList'] = $this->billmodel->getUnpaidBillList($companyName, $partyId, $partyZone);
-      $data['paidBillList'] = $this->billmodel->getPaidBillList($companyName, $partyId, $partyZone);
+      if (empty($financialYear)) {
+          $currentMonth = date('m');
+          $currentYear = date('Y');
+      
+          if ($currentMonth >= 4) {
+              $startYear = $currentYear;
+              $endYear = $currentYear + 1;
+          } else {
+              $startYear = $currentYear - 1;
+              $endYear = $currentYear;
+          }
+      
+          $financialYear = $startYear . '-' . $endYear;
+      }
+
+      list($startYear, $endYear) = explode('-', $financialYear);
+
+      $fyStartDate = $startYear . '-04-01';
+      $fyEndDate   = $endYear . '-03-31';
+
+      $data['financialYear'] = $financialYear;
+
+      $data['unpaidBillList'] = $this->billmodel->getUnpaidBillList($companyName, $partyId, $partyZone, $fyStartDate, $fyEndDate, $financialYear);
+      $data['paidBillList'] = $this->billmodel->getPaidBillList($companyName, $partyId, $partyZone, $fyStartDate, $fyEndDate, $financialYear);
 
       $partyNameDetail = $this->billmodel->partyNameListData($partyId);
       foreach ($partyNameDetail as $row) {
@@ -89,18 +142,15 @@ class Bill extends CI_Controller {
         $data['partyZone'] = $partyZone;
       }
 
-      $partyPaymentDetail = $this->billmodel->getPartyDetail($companyName, $partyId, $partyZone, 'unpaid');
-      foreach ($partyPaymentDetail as $row) {
-        $data['purchaseUnpaidAmount'] = $row->purchase_amount;
-        $data['paidUnpaidAmount'] = $row->paid_amount;
-        $data['balanceUnpaidAmount'] = $row->balance_amount;
-      }
+      $data['purchaseAmountOverall'] = '0.00';
+      $data['paidAmountOverall'] = '0.00';
+      $data['balanceAmountOverall'] = '0.00';
 
-      $partyPaymentDetail = $this->billmodel->getPartyDetail($companyName, $partyId, $partyZone, 'paid');
-      foreach ($partyPaymentDetail as $row) {
-        $data['purchasePaidAmount'] = $row->purchase_amount;
-        $data['paidPaidAmount'] = $row->paid_amount;
-        $data['balancePaidAmount'] = $row->balance_amount;
+      $partyPaymentDetailOverall = $this->billmodel->getPartyDetail($companyName, $partyId, $partyZone, '', $fyStartDate, $fyEndDate, $financialYear);
+      foreach ($partyPaymentDetailOverall as $row) {
+        $data['purchaseAmountOverall'] = $row->purchase_amount;
+        $data['paidAmountOverall'] = $row->paid_amount;
+        $data['balanceAmountOverall'] = $row->balance_amount;
       }
 
       $this->load->view('settings/header', $data);

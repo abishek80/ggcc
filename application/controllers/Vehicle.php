@@ -458,13 +458,36 @@ class Vehicle extends CI_Controller {
         return;
     }
   
-    public function fuel_list()
+    public function fuel_list($financialYear = '')
     {
       $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
       if (in_array('admin', $userPermission) || in_array('vehicle_management', $userPermission)) {
         $data["menu_status"] = 'vehicle_fuel';
         
-        $data['vehicleFuelList'] = $this->vehiclemodel->getVehicleFuelList();
+        // Financial Year Detection
+        if (empty($financialYear) || $financialYear == '0') {
+            $currentMonth = date('m');
+            $currentYear = date('Y');
+            if ($currentMonth >= 4) {
+                $financialYear = $currentYear . '-' . ($currentYear + 1);
+            } else {
+                $financialYear = ($currentYear - 1) . '-' . $currentYear;
+            }
+        }
+        $data['financialYear'] = $financialYear;
+
+        // Date Range for FY
+        $yearArr = explode('-', $financialYear);
+        $fyStartDate = $yearArr[0] . '-04-01';
+        $fyEndDate = $yearArr[1] . '-03-31';
+
+        $data['vehicleFuelList'] = $this->vehiclemodel->getVehicleFuelList($fyStartDate, $fyEndDate);
+        
+        $fuelOverallTotal = $this->vehiclemodel->getVehicleFuelTotalValue($fyStartDate, $fyEndDate);
+        foreach ($fuelOverallTotal as $row) {
+            $data['totalFuelAmount'] = $row->total_fuel_amount;
+            $data['totalLiterQty'] = $row->total_liter_qty;
+        }
   
         $this->load->view('settings/header', $data);
         $this->load->view('vehicle_fuel/fuel_list', $data);
@@ -476,14 +499,31 @@ class Vehicle extends CI_Controller {
       }
     }
   
-    public function fuel_view($vehicleId='')
+    public function fuel_view($vehicleId='', $financialYear = '')
     {
       $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
       if (in_array('admin', $userPermission) || in_array('vehicle_management', $userPermission)) {
         $data["menu_status"] = 'vehicle_fuel';
+        
+        // Financial Year Detection
+        if (empty($financialYear) || $financialYear == '0') {
+            $currentMonth = date('m');
+            $currentYear = date('Y');
+            if ($currentMonth >= 4) {
+                $financialYear = $currentYear . '-' . ($currentYear + 1);
+            } else {
+                $financialYear = ($currentYear - 1) . '-' . $currentYear;
+            }
+        }
+        $data['financialYear'] = $financialYear;
+
+        // Date Range for FY
+        $yearArr = explode('-', $financialYear);
+        $fyStartDate = $yearArr[0] . '-04-01';
+        $fyEndDate = $yearArr[1] . '-03-31';
   
-        $data['fuelList'] = $this->vehiclemodel->getFuelList($vehicleId);
-        $vehicleFuelInfo = $this->vehiclemodel->getVehicleFuelInfo($vehicleId);
+        $data['fuelList'] = $this->vehiclemodel->getFuelList($vehicleId, $fyStartDate, $fyEndDate);
+        $vehicleFuelInfo = $this->vehiclemodel->getVehicleFuelInfo($vehicleId, $fyStartDate, $fyEndDate);
         foreach ($vehicleFuelInfo as $row) {
           $data['vehicleId'] = $row->id;
           $data['vehicleName'] = $row->vehicle_name;
@@ -502,7 +542,7 @@ class Vehicle extends CI_Controller {
       }
     }
   
-    public function fuel_add($vehicleId='')
+    public function fuel_add($vehicleId='', $financialYear = '')
     {
       $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
       if (in_array('admin', $userPermission) || in_array('vehicle_management', $userPermission)) {
@@ -510,6 +550,18 @@ class Vehicle extends CI_Controller {
   
         $data['formTitle'] = "Add Vehicle Fuel";
         
+        // Financial Year Detection
+        if (empty($financialYear) || $financialYear == '0') {
+            $currentMonth = date('m');
+            $currentYear = date('Y');
+            if ($currentMonth >= 4) {
+                $financialYear = $currentYear . '-' . ($currentYear + 1);
+            } else {
+                $financialYear = ($currentYear - 1) . '-' . $currentYear;
+            }
+        }
+        $data['financialYear'] = $financialYear;
+
         $data['vehicleDropdown'] = $this->mastermodel->getVehicleDropdown();
         $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
         $data['employeeDropdown'] = $this->mastermodel->getEmployeeDropdown();
@@ -530,13 +582,26 @@ class Vehicle extends CI_Controller {
       }
     }
 
-    public function fuel_edit($vehicleFuelId)
+    public function fuel_edit($vehicleFuelId, $financialYear = '')
     {
       $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
       if (in_array('admin', $userPermission) || in_array('vehicle_management', $userPermission)) {
         $data["menu_status"] = 'vehicle_fuel';
   
         $data['formTitle'] = "Edit Vehicle Fuel";
+        
+        // Financial Year Detection
+        if (empty($financialYear) || $financialYear == '0') {
+            $currentMonth = date('m');
+            $currentYear = date('Y');
+            if ($currentMonth >= 4) {
+                $financialYear = $currentYear . '-' . ($currentYear + 1);
+            } else {
+                $financialYear = ($currentYear - 1) . '-' . $currentYear;
+            }
+        }
+        $data['financialYear'] = $financialYear;
+
         $data['vehicleDropdown'] = $this->mastermodel->getVehicleDropdown();
         $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
         $data['employeeDropdown'] = $this->mastermodel->getEmployeeDropdown();

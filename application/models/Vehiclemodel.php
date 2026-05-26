@@ -201,31 +201,67 @@ class Vehiclemodel extends CI_Model
     }
 
     //Vehicle Fuel List
-    public function getVehicleFuelList()
+    public function getVehicleFuelList($fyStartDate = '', $fyEndDate = '')
     {
-        $sql = "SELECT V.vehicle_number, V.fuel_type, V.vehicle_name, V.id AS vehicle_id, (SELECT VF1.vehicle_km FROM vehicle_fuel VF1 WHERE VF1.vehicle_id = V.id AND VF1.delete_status = 0 ORDER BY VF1.id DESC LIMIT 1) AS vehicle_km, DATE_FORMAT(MAX(VF.filling_date), '%d - %m - %Y') AS filling_dateFormat, MAX(VF.filling_date) AS last_filling_date, ROUND(SUM(VF.amount), 2) AS overall_amount, ROUND(SUM(VF.liter_qty), 2) AS total_liter_qty, ROUND(SUM(VF.amount_per_liter), 2) AS total_fuel_amount FROM vehicle_fuel VF LEFT JOIN vehicle V ON V.id = VF.vehicle_id WHERE VF.delete_status = 0 GROUP BY V.vehicle_number, V.fuel_type, V.vehicle_name, V.id ORDER BY last_filling_date DESC";
+        $sql = "SELECT 
+                    V.vehicle_number, 
+                    V.fuel_type, 
+                    V.vehicle_name, 
+                    V.id AS vehicle_id, 
+                    (SELECT VF1.vehicle_km FROM vehicle_fuel VF1 WHERE VF1.vehicle_id = V.id AND VF1.delete_status = 0 ORDER BY VF1.filling_date DESC, VF1.id DESC LIMIT 1) AS vehicle_km, 
+                    (SELECT DATE_FORMAT(VF2.filling_date, '%d - %m - %Y') FROM vehicle_fuel VF2 WHERE VF2.vehicle_id = V.id AND VF2.delete_status = 0 ORDER BY VF2.filling_date DESC, VF2.id DESC LIMIT 1) AS filling_dateFormat,
+                    (SELECT VF3.filling_date FROM vehicle_fuel VF3 WHERE VF3.vehicle_id = V.id AND VF3.delete_status = 0 ORDER BY VF3.filling_date DESC, VF3.id DESC LIMIT 1) AS last_filling_date,
+                    ROUND(SUM(CASE WHEN VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate' THEN VF.amount ELSE 0 END), 2) AS overall_amount, 
+                    ROUND(SUM(CASE WHEN VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate' THEN VF.liter_qty ELSE 0 END), 2) AS total_liter_qty, 
+                    ROUND(SUM(CASE WHEN VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate' THEN VF.amount_per_liter ELSE 0 END), 2) AS total_fuel_amount 
+                FROM vehicle_fuel VF 
+                LEFT JOIN vehicle V ON V.id = VF.vehicle_id 
+                WHERE VF.delete_status = 0 
+                GROUP BY V.vehicle_number, V.fuel_type, V.vehicle_name, V.id 
+                ORDER BY last_filling_date DESC";
+
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+
+    //All Vehicle Fuel Total Value
+    public function getVehicleFuelTotalValue($fyStartDate = '', $fyEndDate = '')
+    {
+        $where = "VF.delete_status = 0";
+        if ($fyStartDate && $fyEndDate) {
+            $where .= " AND VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate'";
+        }
+        $sql = "SELECT COALESCE(ROUND(SUM(VF.amount), 2), 0.00) AS total_fuel_amount, COALESCE(ROUND(SUM(VF.liter_qty), 2), 0.00) AS total_liter_qty FROM vehicle_fuel VF WHERE $where";
 
         $res = $this->db->query($sql);
         return $res->result();
     }
 
     //Fuel List
-    public function getFuelList($vehicleId)
+    public function getFuelList($vehicleId, $fyStartDate = '', $fyEndDate = '')
     {
-        $sql = "SELECT VF.*, V.vehicle_name, V.id AS vehicle_id, DATE_FORMAT(VF.filling_date, '%d - %m - %Y') AS filling_dateFormat, E.employee_name AS driver_name, B.branch AS branch_name FROM vehicle_fuel VF LEFT JOIN vehicle V ON V.id = VF.vehicle_id LEFT JOIN employee E ON E.id = VF.driver_name LEFT JOIN master_branch B ON B.id = VF.branch WHERE VF.delete_status = 0 AND V.id=$vehicleId ORDER BY VF.id DESC";
+        $where = "VF.delete_status = 0 AND V.id=$vehicleId";
+        if ($fyStartDate && $fyEndDate) {
+            $where .= " AND VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate'";
+        }
+        $sql = "SELECT VF.*, V.vehicle_name, V.id AS vehicle_id, DATE_FORMAT(VF.filling_date, '%d - %m - %Y') AS filling_dateFormat, E.employee_name AS driver_name, B.branch AS branch_name FROM vehicle_fuel VF LEFT JOIN vehicle V ON V.id = VF.vehicle_id LEFT JOIN employee E ON E.id = VF.driver_name LEFT JOIN master_branch B ON B.id = VF.branch WHERE $where ORDER BY VF.id DESC";
 
         $res = $this->db->query($sql);
         return $res->result();
     }
 
     //Vehicle Fuel Info
-    public function getVehicleFuelInfo($vehicleId)
+    public function getVehicleFuelInfo($vehicleId, $fyStartDate = '', $fyEndDate = '')
     {
         if (!$vehicleId) {
             return [];
         }
+        $where = "VF.delete_status = 0 AND V.id = ?";
+        if ($fyStartDate && $fyEndDate) {
+            $where .= " AND VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate'";
+        }
 
-        $sql = "SELECT V.*, ROUND(SUM(VF.amount), 2) AS overall_amount FROM vehicle V LEFT JOIN vehicle_fuel VF ON VF.vehicle_id = V.id WHERE VF.delete_status = 0 AND V.id = ?";
+        $sql = "SELECT V.*, ROUND(SUM(VF.amount), 2) AS overall_amount FROM vehicle V LEFT JOIN vehicle_fuel VF ON VF.vehicle_id = V.id WHERE $where";
 
         $res = $this->db->query($sql, [$vehicleId]);
         return $res->result();
