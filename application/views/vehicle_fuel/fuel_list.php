@@ -25,7 +25,7 @@
         </div>
         <div class="card p-3">
             <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pb-3 flex-wrap gap-3">
-                <h4 class="fw-bold mb-0 text-black">Vehicle-wise Fuel List</h4>
+                <h4 class="fw-bold mb-0 text-black">Vehicle Fuel List</h4>
                 <a href="<?php echo base_url(); ?>vehicle/fuel-add" class="btn btn-primary px-4 py-2 rounded text-white">Add Vehicle Fuel</a>
             </div>
             <div class="table-responsive">

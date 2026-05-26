@@ -8,7 +8,7 @@ class Cron extends CI_Controller
         parent::__construct();
         $this->load->model('vehiclemodel');
         $this->load->model('purchasemodel');
-        $this->load->model('Common_model','common');
+        $this->load->library('common');
     }
 
     /**
@@ -17,7 +17,7 @@ class Cron extends CI_Controller
     public function monthlyTriggerEmail()
     {
         // Allow CLI OR secure URL access
-        if (!$this->input->is_cli_request()) {
+        if (!is_cli()) {
             $token = $this->input->get('token');
             if ($token !== '9aX7kP2LmQ8tR4Yw') {
                 show_error('Unauthorized Access', 403);
@@ -50,7 +50,7 @@ class Cron extends CI_Controller
         $subject = $data['monthText']." ".$year." - Upcoming Renewal List";
 
         $message = $this->load->view(
-            'email_template/renewal_email_template',
+            'email_template/vehicle_renewal_template',
             $data,
             TRUE
         );
@@ -73,7 +73,7 @@ class Cron extends CI_Controller
     public function dailyTriggerEmail()
     {
         // Allow CLI OR secure URL access
-        if (!$this->input->is_cli_request()) {
+        if (!is_cli()) {
             $token = $this->input->get('token');
             if ($token !== '9aX7kP2LmQ8tR4Yw') {
                 show_error('Unauthorized Access', 403);
@@ -89,66 +89,86 @@ class Cron extends CI_Controller
             return;
         }
 
+        // Initialize lists for each alert category
+        $data['poExpiry60'] = [];
+        $data['poExpiry30'] = [];
+        $data['poExpiry15'] = [];
+        $data['poExpiry3']  = [];
+
+        $data['poBalance10000'] = [];
+        $data['poBalance5000']  = [];
+        $data['poBalance1000']  = [];
+
         foreach ($purchaseOrderList as $row)
         {
-
-            $poDate             = $data['poDate']            = $row->po_date;
-            $validityEndDate    = $data['validityEndDate']   = $row->validity_end;
-            $poDateFormat       = $data['poDateFormat']      = $row->po_dateFormat;
-            $validityEndFormat  = $data['validityEndFormat'] = $row->validity_endFormat;
-            $poNumber           = $data['poNumber']          = $row->purchase_order_no;
-            $companyName        = $data['companyName']       = $row->company_name;
-            $branchName         = $data['branchName']        = $row->branch_name;
-            $zone               = $data['zone']              = $row->zone;
-            $poTitle            = $data['poTitle']           = $row->po_title;
-            $poAmount           = $data['poAmount']          = $row->po_amount;
-            $balanceAmount      = $data['balanceAmount']     = $row->balance_amount;
+            $validityEndDate = $row->validity_end;
+            $balanceAmount   = $row->balance_amount;
             
             $PoRemainingDate = floor((strtotime($validityEndDate) - strtotime($today)) / (60*60*24));
-            $data['PoRemainingDate'] = $PoRemainingDate;
-
-            $emails = [
-                'antonyabishek80@gmail.com'
-            ];
+            $row->PoRemainingDate = $PoRemainingDate;
 
             // =========================
-            // 📅 Purchase OrderDATE BASED (EXACT DAY)
+            // 📅 Purchase Order DATE BASED (EXACT DAY)
             // =========================
             if ($PoRemainingDate == 60) {
-                $this->sendBulkPOEmail($emails, "PO Expiry in 60 Days", $data);
+                $data['poExpiry60'][] = $row;
+            } elseif ($PoRemainingDate == 30) {
+                $data['poExpiry30'][] = $row;
+            } elseif ($PoRemainingDate == 15) {
+                $data['poExpiry15'][] = $row;
+            } elseif ($PoRemainingDate == 3) {
+                $data['poExpiry3'][] = $row;
             }
-            if ($PoRemainingDate == 30) {
-                $this->sendBulkPOEmail($emails, "PO Expiry in 30 Days", $data);
-            }
-            if ($PoRemainingDate == 15) {
-                $this->sendBulkPOEmail($emails, "PO Expiry in 15 Days", $data);
-            }
-            if ($PoRemainingDate == 3) {
-                $this->sendBulkPOEmail($emails, "PO Expiry in 3 Days", $data);
-            }
-
 
             // =========================
             // 💰 BALANCE AMOUNT BASED (SAFE RANGE)
             // =========================
-            if ($balanceAmount <= 10000 && $balanceAmount > 5000) {
-                $this->sendBulkPOEmail($emails, "Balance dropped below 10000", $data);
-            }
-            if ($balanceAmount <= 5000 && $balanceAmount > 1000) {
-                $this->sendBulkPOEmail($emails, "Balance dropped below 5000", $data);
-            }
             if ($balanceAmount <= 1000) {
-                $this->sendBulkPOEmail($emails, "Balance dropped below 1000", $data);
+                $data['poBalance1000'][] = $row;
+            } elseif ($balanceAmount <= 5000 && $balanceAmount > 1000) {
+                $data['poBalance5000'][] = $row;
+            } elseif ($balanceAmount <= 10000 && $balanceAmount > 5000) {
+                $data['poBalance10000'][] = $row;
             }
         }
 
-        echo "Daily PO alerts processed.";
+        // Check if there is anything to alert
+        if (
+            empty($data['poExpiry60']) &&
+            empty($data['poExpiry30']) &&
+            empty($data['poExpiry15']) &&
+            empty($data['poExpiry3']) &&
+            empty($data['poBalance10000']) &&
+            empty($data['poBalance5000']) &&
+            empty($data['poBalance1000'])
+        ) {
+            echo "No PO alerts to send today.";
+            return;
+        }
+
+        $emails = [
+            'antonyabishek80@gmail.com'
+        ];
+
+        $subject = "Daily Purchase Order Alerts - Expiries & Low Balances";
+
+        $message = $this->load->view(
+            'email_template/purchase_order_template',
+            $data,
+            TRUE
+        );
+
+        foreach ($emails as $email) {
+            $this->common->email_data($email, $subject, $message);
+        }
+
+        echo "Daily PO alerts processed and sent.";
     }
     
     public function sendBulkPOEmail($emails, $subject, $data)
     {
         $message = $this->load->view(
-            'email_template/purchase_order_email_template',
+            'email_template/purchase_order_template',
             $data,
             TRUE
         );

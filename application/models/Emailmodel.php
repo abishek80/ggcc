@@ -14,7 +14,7 @@ class Emailmodel extends CI_Model
         $data['designation']    =   $designation;
 
         $subject    = $month . ' ' . $year . ' - Payslip';
-        $message    = $this->load->view('email_template/payslip_email_template',$data, TRUE);
+        $message    = $this->load->view('email_template/employee_payslip_template',$data, TRUE);
         $this->common->email_data($email, $subject, $message);
     }
 }

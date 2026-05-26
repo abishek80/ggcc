@@ -208,15 +208,15 @@ class Vehiclemodel extends CI_Model
                     V.fuel_type, 
                     V.vehicle_name, 
                     V.id AS vehicle_id, 
-                    (SELECT VF1.vehicle_km FROM vehicle_fuel VF1 WHERE VF1.vehicle_id = V.id AND VF1.delete_status = 0 ORDER BY VF1.filling_date DESC, VF1.id DESC LIMIT 1) AS vehicle_km, 
-                    (SELECT DATE_FORMAT(VF2.filling_date, '%d - %m - %Y') FROM vehicle_fuel VF2 WHERE VF2.vehicle_id = V.id AND VF2.delete_status = 0 ORDER BY VF2.filling_date DESC, VF2.id DESC LIMIT 1) AS filling_dateFormat,
-                    (SELECT VF3.filling_date FROM vehicle_fuel VF3 WHERE VF3.vehicle_id = V.id AND VF3.delete_status = 0 ORDER BY VF3.filling_date DESC, VF3.id DESC LIMIT 1) AS last_filling_date,
-                    ROUND(SUM(CASE WHEN VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate' THEN VF.amount ELSE 0 END), 2) AS overall_amount, 
-                    ROUND(SUM(CASE WHEN VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate' THEN VF.liter_qty ELSE 0 END), 2) AS total_liter_qty, 
-                    ROUND(SUM(CASE WHEN VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate' THEN VF.amount_per_liter ELSE 0 END), 2) AS total_fuel_amount 
+                    (SELECT VF1.vehicle_km FROM vehicle_fuel VF1 WHERE VF1.vehicle_id = V.id AND VF1.delete_status = 0 AND VF1.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate' ORDER BY VF1.filling_date DESC, VF1.id DESC LIMIT 1) AS vehicle_km, 
+                    (SELECT DATE_FORMAT(VF2.filling_date, '%d - %m - %Y') FROM vehicle_fuel VF2 WHERE VF2.vehicle_id = V.id AND VF2.delete_status = 0 AND VF2.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate' ORDER BY VF2.filling_date DESC, VF2.id DESC LIMIT 1) AS filling_dateFormat,
+                    (SELECT VF3.filling_date FROM vehicle_fuel VF3 WHERE VF3.vehicle_id = V.id AND VF3.delete_status = 0 AND VF3.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate' ORDER BY VF3.filling_date DESC, VF3.id DESC LIMIT 1) AS last_filling_date,
+                    ROUND(SUM(VF.amount), 2) AS overall_amount, 
+                    ROUND(SUM(VF.liter_qty), 2) AS total_liter_qty, 
+                    ROUND(SUM(VF.amount_per_liter), 2) AS total_fuel_amount 
                 FROM vehicle_fuel VF 
                 LEFT JOIN vehicle V ON V.id = VF.vehicle_id 
-                WHERE VF.delete_status = 0 
+                WHERE VF.delete_status = 0 AND VF.filling_date BETWEEN '$fyStartDate' AND '$fyEndDate'
                 GROUP BY V.vehicle_number, V.fuel_type, V.vehicle_name, V.id 
                 ORDER BY last_filling_date DESC";
 
