@@ -1255,5 +1255,37 @@ class Employeemodel extends CI_Model
             $this->db->insert_id();
         }
     }
+
+    public function getPendingWorkReportsForReminder($targetDate)
+    {
+        $sql = "SELECT 
+                    ewr.id AS report_id,
+                    ewr.report_date,
+                    ew.id AS work_id,
+                    mwt.work_type AS work_type_name,
+                    e.id AS employee_id,
+                    e.employee_name,
+                    e.email AS employee_email
+                FROM employee_work_report ewr
+                INNER JOIN employee_work ew ON ew.id = ewr.employee_work_id
+                INNER JOIN master_work_type mwt ON mwt.id = ew.work_type
+                INNER JOIN employee e ON e.id = ew.employee_id
+                WHERE ewr.delete_status = 0
+                  AND ew.delete_status = 0
+                  AND e.delete_status = 0
+                  AND e.status = 'active'
+                  AND ewr.submission_date = '0000-00-00'
+                  AND ewr.reminder_sent = 0
+                  AND ewr.report_date = ?";
+
+        $res = $this->db->query($sql, array($targetDate));
+        return $res->result();
+    }
+
+    public function updateWorkReportReminderFlag($reportId, $sent)
+    {
+        $this->db->where('id', (int) $reportId);
+        $this->db->update('employee_work_report', array('reminder_sent' => (int) $sent));
+    }
 }
 ?>

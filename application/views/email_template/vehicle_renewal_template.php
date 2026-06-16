@@ -114,12 +114,72 @@
             font-weight: 700;
             color: #0f172a;
         }
+        .mobile-label {
+            display: none;
+        }
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px 0 !important;
+            }
+            .container {
+                border-radius: 8px !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .card {
+                border-radius: 8px !important;
+                margin-bottom: 20px !important;
+            }
+            .card-header {
+                padding: 12px 15px !important;
+                font-size: 14px !important;
+            }
+            .table-renewal, .table-renewal thead, .table-renewal tbody, .table-renewal tr, .table-renewal td {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .table-renewal thead {
+                display: none !important;
+            }
+            .table-renewal tr {
+                padding: 15px !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+                position: relative !important;
+                background-color: #ffffff !important;
+            }
+            .table-renewal tr:last-child {
+                border-bottom: none !important;
+            }
+            .table-renewal td {
+                padding: 6px 0 !important;
+                border-bottom: none !important;
+                text-align: left !important;
+                font-size: 13px !important;
+            }
+            .mobile-label {
+                display: inline-block !important;
+                font-size: 10px !important;
+                font-weight: 700 !important;
+                text-transform: uppercase !important;
+                color: #94a3b8 !important;
+                letter-spacing: 0.05em !important;
+                width: 100px !important;
+                vertical-align: top !important;
+            }
+            .mobile-value {
+                display: inline-block !important;
+                vertical-align: top !important;
+                width: calc(100% - 110px) !important;
+            }
+        }
     </style>
 </head>
 <body style="margin: 0; padding: 30px 0; background-color: #f1f5f9;">
     <table width="100%" border="0" cellpadding="0" cellspacing="0">
         <tr>
-            <td align="center" style="padding: 10px 0 30px 0;">
+            <td align="center" style="padding: 10px 10px 30px 10px;">
                 <div class="container">
                     
                     <!-- Header -->
@@ -147,7 +207,7 @@
                     </table>
 
                     <!-- Content -->
-                    <div style="padding: 30px;">
+                    <div style="padding: 20px;">
                         
                         <?php 
                         // Reusable Helper to Render Renewal Tables
@@ -173,20 +233,32 @@
                                         $sn = 1;
                                         foreach ($list as $row) { 
                                         ?>
-                                            <tr>
-                                                <td><?= $sn++; ?></td>
-                                                <td>
-                                                    <p class="vehicle-name"><?= htmlspecialchars($row->vehicle_number); ?></p>
-                                                    <p class="vehicle-subtext"><?= htmlspecialchars($row->vehicle_name); ?></p>
-                                                </td>
-                                                <td>
-                                                    <p style="margin: 0; font-weight: 500; color: #1e293b; font-size: 13px; text-transform: capitalize;"><?= htmlspecialchars($row->zone); ?></p>
-                                                    <p class="vehicle-subtext" style="text-transform: capitalize;"><?= htmlspecialchars($row->branch_name); ?></p>
-                                                </td>
-                                                <td>
-                                                    <span class="renewal-date"><?= htmlspecialchars($row->renewal_date); ?></span>
-                                                </td>
-                                            </tr>
+                                             <tr>
+                                                 <td>
+                                                     <span class="mobile-label">S. No:</span>
+                                                     <span class="mobile-value" style="font-weight: 700; color: #475569;">#<?= $sn++; ?></span>
+                                                 </td>
+                                                 <td>
+                                                     <span class="mobile-label">Vehicle:</span>
+                                                     <div class="mobile-value">
+                                                         <p class="vehicle-name"><?= htmlspecialchars($row->vehicle_number); ?></p>
+                                                         <p class="vehicle-subtext"><?= htmlspecialchars($row->vehicle_name); ?></p>
+                                                     </div>
+                                                 </td>
+                                                 <td>
+                                                     <span class="mobile-label">Branch:</span>
+                                                     <div class="mobile-value">
+                                                         <p style="margin: 0; font-weight: 500; color: #1e293b; font-size: 13px; text-transform: capitalize;"><?= htmlspecialchars($row->zone); ?></p>
+                                                         <p class="vehicle-subtext" style="text-transform: capitalize;"><?= htmlspecialchars($row->branch_name); ?></p>
+                                                     </div>
+                                                 </td>
+                                                 <td>
+                                                     <span class="mobile-label"><?= htmlspecialchars($dateLabel); ?>:</span>
+                                                     <div class="mobile-value">
+                                                         <span class="renewal-date"><?= htmlspecialchars($row->renewal_date); ?></span>
+                                                     </div>
+                                                 </td>
+                                             </tr>
                                         <?php } ?>
                                     </tbody>
                                 </table>

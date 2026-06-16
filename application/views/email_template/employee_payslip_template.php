@@ -93,7 +93,7 @@
                     </table>
 
                     <!-- Content -->
-                    <div style="padding: 30px;">
+                    <div style="padding: 20px;">
                         
                         <div class="card">
                             <h2 style="font-family: 'Outfit', sans-serif; font-size: 20px; color: #0f172a; margin: 0 0 10px 0; font-weight: 700; text-transform: capitalize;">Hi <?= htmlspecialchars($employeeName); ?>,</h2>

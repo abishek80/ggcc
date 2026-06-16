@@ -721,5 +721,11 @@ class Purchasemodel extends CI_Model
         $res = $this->db->query($sql);
         return $res->result();
     }
+
+    public function updateBalanceAlertFlags($poId, $data)
+    {
+        $this->db->where('id', (int) $poId);
+        $this->db->update('purchase_order', $data);
+    }
 }
 ?>

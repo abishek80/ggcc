@@ -126,12 +126,75 @@
             font-weight: 700;
             color: #2563eb;
         }
+        .mobile-label {
+            display: none;
+        }
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px 0 !important;
+            }
+            .container {
+                border-radius: 8px !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .card {
+                border-radius: 8px !important;
+                margin-bottom: 20px !important;
+            }
+            .card-header {
+                padding: 12px 15px !important;
+                font-size: 14px !important;
+            }
+            .table-po, .table-po thead, .table-po tbody, .table-po tr, .table-po td {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .table-po thead {
+                display: none !important;
+            }
+            .table-po tr {
+                padding: 15px !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+                position: relative !important;
+                background-color: #ffffff !important;
+            }
+            .table-po tr:last-child {
+                border-bottom: none !important;
+            }
+            .table-po td {
+                padding: 6px 0 !important;
+                border-bottom: none !important;
+                text-align: left !important;
+                font-size: 13px !important;
+            }
+            .mobile-label {
+                display: inline-block !important;
+                font-size: 10px !important;
+                font-weight: 700 !important;
+                text-transform: uppercase !important;
+                color: #94a3b8 !important;
+                letter-spacing: 0.05em !important;
+                width: 100px !important;
+                vertical-align: top !important;
+            }
+            .mobile-value {
+                display: inline-block !important;
+                vertical-align: top !important;
+                width: calc(100% - 110px) !important;
+            }
+            .desktop-only-label {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body style="margin: 0; padding: 30px 0; background-color: #f1f5f9;">
     <table width="100%" border="0" cellpadding="0" cellspacing="0">
         <tr>
-            <td align="center" style="padding: 10px 0 30px 0;">
+            <td align="center" style="padding: 10px 10px 30px 10px;">
                 <div class="container">
                     
                     <!-- Header -->
@@ -139,8 +202,8 @@
                         <tr>
                             <td style="padding: 40px 30px; text-align: center;">
                                 <img style="height: 65px; margin-bottom: 15px;" src="https://ggcc.org.in/themes/images/ggcc-logo-white.png" alt="GGCC & Bright Logo">
-                                <h1 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.02em;">Daily Purchase Order Alerts</h1>
-                                <p style="color: #c7d2fe; font-size: 14px; margin: 0; font-weight: 500;">Consolidated Expiries &amp; Low Balance Reminders</p>
+                                <h1 style="color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: -0.02em;"><?= isset($emailTitle) ? $emailTitle : 'Daily Purchase Order Alerts'; ?></h1>
+                                <p style="color: #c7d2fe; font-size: 14px; margin: 0; font-weight: 500;"><?= isset($emailSubtext) ? $emailSubtext : 'Consolidated Expiries &amp; Low Balance Reminders'; ?></p>
                             </td>
                         </tr>
                     </table>
@@ -150,16 +213,16 @@
                         <tr>
                             <td style="padding: 24px 30px; font-size: 14px; color: #475569;">
                                 <strong style="color: #0f172a;">Hi Admin,</strong><br>
-                                Below is the daily consolidated report of active Purchase Orders requiring immediate attention. Please review the details below.
+                                <?= isset($introText) ? $introText : 'Below is the daily consolidated report of active Purchase Orders requiring immediate attention. Please review the details below.'; ?>
                             </td>
                             <td style="padding: 24px 30px; text-align: right; font-size: 13px; color: #64748b; font-weight: 600; vertical-align: top;">
-                                Date: <?= date('d F, Y'); ?>
+                                Date: <?= isset($currentDate) ? $currentDate : date('d F, Y'); ?>
                             </td>
                         </tr>
                     </table>
 
                     <!-- Content -->
-                    <div style="padding: 30px;">
+                    <div style="padding: 20px;">
                         
                         <?php 
                         // Reusable Helper to Render PO Tables
@@ -175,10 +238,10 @@
                                     <thead>
                                         <tr>
                                             <th style="width: 8%">S. No</th>
-                                            <th style="width: 32%">PO Details</th>
-                                            <th style="width: 30%">Zone &amp; Branch</th>
-                                            <th style="width: 15%">PO Amount</th>
-                                            <th style="width: 15%"><?= $isExpiry ? 'Expiry' : 'Balance'; ?></th>
+                                            <th style="width: 35%">PO Details</th>
+                                            <th style="width: 20%">Po Timeline</th>
+                                            <th style="width: 20%">PO Amount & Balance</th>
+                                            <th style="width: 20%"><?= $isExpiry ? 'Expiry' : 'Balance'; ?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -194,28 +257,58 @@
                                                 $balStyle = 'po-balance-info';
                                             }
                                         ?>
-                                            <tr>
-                                                <td><?= $sn++; ?></td>
-                                                <td>
-                                                    <p class="po-title"><?= htmlspecialchars($row->purchase_order_no); ?></p>
-                                                    <p class="po-subtext"><?= htmlspecialchars($row->po_title); ?></p>
-                                                </td>
-                                                <td>
-                                                    <p style="margin: 0; font-weight: 500; color: #1e293b; font-size: 13px; text-transform: capitalize;"><?= htmlspecialchars($row->company_name); ?></p>
-                                                    <p class="po-subtext" style="text-transform: capitalize;"><?= htmlspecialchars($row->zone); ?> &bull; <?= htmlspecialchars($row->branch_name); ?></p>
-                                                </td>
-                                                <td>
-                                                    <span class="po-amount">₹<?= number_format($row->po_amount, 2); ?></span>
-                                                </td>
-                                                <td>
-                                                    <?php if ($isExpiry) { ?>
-                                                        <span style="font-weight: 700; color: #991b1b;"><?= htmlspecialchars($row->validity_endFormat); ?></span>
-                                                        <p class="po-subtext" style="color: #b91c1c; font-weight: 600;"><?= $row->PoRemainingDate; ?> Days left</p>
-                                                    <?php } else { ?>
-                                                        <span class="<?= $balStyle; ?>">₹<?= number_format($row->balance_amount, 2); ?></span>
-                                                    <?php } ?>
-                                                </td>
-                                            </tr>
+                                             <tr>
+                                                 <td>
+                                                     <span class="mobile-label">S. No:</span>
+                                                     <span class="mobile-value" style="font-weight: 700; color: #475569;">#<?= $sn++; ?></span>
+                                                 </td>
+                                                 <td>
+                                                     <span class="mobile-label">PO Details:</span>
+                                                     <div class="mobile-value">
+                                                         <p class="po-title"><?= htmlspecialchars($row->purchase_order_no); ?></p>
+                                                         <p class="po-subtext" style="font-weight: 600; color: #475569;"><?= htmlspecialchars($row->po_title); ?></p>
+                                                         <p class="po-subtext" style="margin-top: 4px; text-transform: capitalize; color: #64748b;">
+                                                             <?= htmlspecialchars($row->company_name); ?><br> &bull; <?= htmlspecialchars($row->zone); ?> &bull; <?= htmlspecialchars($row->branch_name); ?>
+                                                         </p>
+                                                     </div>
+                                                 </td>
+                                                 <td>
+                                                     <span class="mobile-label">Po Timeline:</span>
+                                                     <div class="mobile-value">
+                                                         <p style="margin: 0; font-size: 13px; font-weight: 600; color: #1e293b;">
+                                                             <?= htmlspecialchars($row->po_dateFormat); ?> <span style="font-weight: 400; color: #64748b;"><br> to<br></span> <?= htmlspecialchars($row->validity_endFormat); ?>
+                                                         </p>
+                                                     </div>
+                                                 </td>
+                                                 <td>
+                                                     <span class="mobile-label"><?= $isExpiry ? 'PO Amt & Bal' : 'PO Amt'; ?>:</span>
+                                                     <div class="mobile-value">
+                                                         <p style="margin: 0; font-size: 13px; color: #475569;">
+                                                             <?php if ($isExpiry) { ?>
+                                                                 <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">PO Amt:</span><br>
+                                                             <?php } ?>
+                                                             <span style="font-weight: 600; color: #0f172a;">₹<?= number_format($row->po_amount, 2); ?></span>
+                                                         </p>
+                                                         <?php if ($isExpiry) { ?>
+                                                             <p style="margin: 6px 0 0 0; font-size: 13px; color: #475569;">
+                                                                 <span style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Bal:</span><br>
+                                                                 <span class="<?= $balStyle; ?>">₹<?= number_format($row->balance_amount, 2); ?></span>
+                                                             </p>
+                                                         <?php } ?>
+                                                     </div>
+                                                 </td>
+                                                 <td>
+                                                     <span class="mobile-label"><?= $isExpiry ? 'Expiry' : 'Balance'; ?>:</span>
+                                                     <div class="mobile-value">
+                                                         <?php if ($isExpiry) { ?>
+                                                             <span style="font-weight: 700; color: #991b1b;"><?= htmlspecialchars($row->validity_endFormat); ?></span>
+                                                             <p class="po-subtext" style="color: #b91c1c; font-weight: 600; margin: 2px 0 0 0;"><?= $row->PoRemainingDate; ?> Days left</p>
+                                                         <?php } else { ?>
+                                                             <span class="<?= $balStyle; ?>">₹<?= number_format($row->balance_amount, 2); ?></span>
+                                                         <?php } ?>
+                                                     </div>
+                                                 </td>
+                                             </tr>
                                         <?php } ?>
                                     </tbody>
                                 </table>
