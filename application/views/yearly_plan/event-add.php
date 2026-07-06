@@ -21,22 +21,29 @@
             </div>
             <input name="event_id" id="event_id" type="hidden" value="<?php echo $eventId; ?>">
             <div class="row g-3">
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-3 col-md-6">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Date <span class="text-danger">*</span></label>
                     <input name="date" id="date" type="date" class="form-control date-picker" placeholder="YYYY - MM - DD" value="<?php echo $date; ?>">
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-3 col-md-6">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Title <span class="text-danger">*</span></label>
                     <input name="title" id="title" type="text" class="form-control" placeholder="Enter Title" value="<?php echo $title; ?>">
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-3 col-md-6">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Status <span class="text-danger">*</span></label>
                     <select name="status" id="status" class="form-select">
                         <option value="not_completed" <?php if($status == 'not_completed') { echo 'selected'; } ?>>Not Completed</option>
                         <option value="completed" <?php if($status == 'completed') { echo 'selected'; } ?>>Completed</option>
                     </select>
                 </div>
-                <div class="col-lg-6 col-12">
+                <div class="col-lg-3 col-md-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Plan Type <span class="text-danger">*</span></label>
+                    <select name="plan_type" id="plan_type" class="form-select">
+                        <option value="once" <?php if(isset($plan_type) && $plan_type == 'once') { echo 'selected'; } ?>>Once</option>
+                        <option value="repeated" <?php if(isset($plan_type) && $plan_type == 'repeated') { echo 'selected'; } ?>>Repeated</option>
+                    </select>
+                </div>
+                <div class="col-12">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Description</label>
                     <textarea name="description" id="description" type="text" class="form-control" placeholder="Description" rows="5"><?php echo $description; ?></textarea>
                 </div>
@@ -61,6 +68,9 @@
             },
             title: {
                 required: true
+            },
+            plan_type: {
+                required: true
             }
         },
         messages: {
@@ -75,6 +85,9 @@
             },
             title: {
                 required: "Please Enter Title",
+            },
+            plan_type: {
+                required: "Please Select Plan Type",
             }
         },
         submitHandler: function(form) {

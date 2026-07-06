@@ -18,6 +18,7 @@
                             <th>Date</th>
                             <th>Title</th>
                             <th>Description</th>
+                            <th>Plan Type</th>
                             <th class="w-min-40">Action</th>
                         </tr>
                     </thead>
@@ -30,6 +31,7 @@
                                 <td><?php echo $row->dateFormat; ?></td>
                                 <td><?php echo $row->title; ?></td>
                                 <td><?php echo $row->description; ?></td>
+                                <td class="text-capitalize <?php echo $row->plan_type == 'repeated' ? 'text-primary fw-bold' : ''; ?>"><?php echo $row->plan_type; ?></td>
                                 <td class="px-2">
                                     <div class="d-flex gap-1 justify-content-center">
                                         <a href="<?php echo base_url() . 'event-edit/' . $row->id; ?>" class="box-hover" data-toggle="tooltip" data-placement="top" title="Edit"> <i class="bx bx-edit-alt"></i> </a>

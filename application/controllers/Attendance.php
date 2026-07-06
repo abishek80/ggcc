@@ -28,7 +28,8 @@ class Attendance extends CI_Controller {
       $data["month"] = $month;
 
       $data['presentMonthList'] = $this->attendancemodel->getPresentMonthList($year);
-      $data['employeeAttendanceList'] = $this->attendancemodel->getEmployeeAttendanceList($year, $month);
+      $data['employeeAttendanceList'] = $this->attendancemodel->getEmployeeAttendanceGrid($year, $month);
+      $data['daysInMonth'] = ($year && $month) ? date('t', strtotime("1 $month $year")) : 0;
 
       $this->load->view('settings/header', $data);
       $this->load->view('employee_attendance/attendance-list', $data);
@@ -50,7 +51,8 @@ class Attendance extends CI_Controller {
       $data["month"] = $month;
 
       $data['presentMonthList'] = $this->attendancemodel->getPresentMonthList($year);
-      $data['employeeAttendanceList'] = $this->attendancemodel->getEmployeeAttendanceList($year, $month);
+      $data['employeeAttendanceList'] = $this->attendancemodel->getEmployeeAttendanceGrid($year, $month);
+      $data['daysInMonth'] = ($year && $month) ? date('t', strtotime("1 $month $year")) : 0;
 
       $this->load->view('settings/header', $data);
       $this->load->view('employee_attendance/attendance-list', $data);
@@ -78,7 +80,7 @@ class Attendance extends CI_Controller {
       $data['checkEmployeeExpensesList'] = $this->employeemodel->getCheckEmployeeExpensesList($empId);
       $data['checkEmployeeAttendanceList'] = $this->attendancemodel->getCheckEmployeeAttendanceList($empId);
 
-      $data['attendanceMonthList'] = $this->attendancemodel->getAttendanceMonthList($year, $employeeId);
+      $data['presentMonthList'] = $this->attendancemodel->getPresentMonthList($year);
       $data['employeePresentList'] = $this->attendancemodel->getEmployeePresentList($year, $month, $employeeId);
       $data['employeeLeaveList'] = $this->attendancemodel->getEmployeeLeaveList($pageStatus, $year, $month, $employeeId);
       $data['employeeOTList'] = $this->attendancemodel->getEmployeeOTList($pageStatus, $year, $month, $employeeId);
@@ -585,6 +587,69 @@ class Attendance extends CI_Controller {
 
     echo json_encode($data);
     return;
+  }
+
+  public function getMonthlyAttendanceGrid()
+  {
+      $year = $this->input->post('year');
+      $month = $this->input->post('month');
+      $zone = $this->input->post('zone');
+
+      $gridData = $this->attendancemodel->getMonthlyAttendanceGridData($zone, $month, $year);
+      $daysInMonth = date('t', strtotime("$year-$month-01"));
+      
+      $thead = "<tr><th>Employee Name</th>";
+      for($i = 1; $i <= $daysInMonth; $i++) {
+          $thead .= "<th>$i</th>";
+      }
+      $thead .= "</tr>";
+      
+      $tbody = "";
+      if(empty($gridData)) {
+          $tbody = "<tr><td colspan='".($daysInMonth + 1)."'>No employees found for this zone</td></tr>";
+      } else {
+          foreach($gridData as $empId => $data) {
+              $tbody .= "<tr>";
+              $tbody .= "<td class='text-start fw-bold'>".$data['employee_name']."<br><small class='text-muted'>".$data['designation']."</small></td>";
+              
+              for($i = 1; $i <= $daysInMonth; $i++) {
+                  $status = isset($data['attendance'][$i]) ? $data['attendance'][$i] : '';
+                  $class = '';
+                  if($status == 'present') $class = 'att-P';
+                  else if($status == 'absent') $class = 'att-A';
+                  
+                  $tbody .= "<td>
+                      <select name='attendance[$empId][$i]' class='att-select $class'>
+                          <option value=''>-</option>
+                          <option value='present' ".($status=='present' ? 'selected' : '').">P</option>
+                          <option value='absent' ".($status=='absent' ? 'selected' : '').">A</option>
+                      </select>
+                  </td>";
+              }
+              $tbody .= "</tr>";
+          }
+      }
+      
+      echo json_encode([
+          'status' => 'success',
+          'thead' => $thead,
+          'tbody' => $tbody
+      ]);
+  }
+  
+  public function saveMonthlyAttendanceGrid()
+  {
+      $year = $this->input->post('year');
+      $month = $this->input->post('month');
+      $zone = $this->input->post('zone');
+      $attendance = $this->input->post('attendance');
+      
+      if(!empty($attendance)) {
+          $this->attendancemodel->saveMonthlyAttendanceGrid($year, $month, $zone, $attendance);
+          echo json_encode(['isError' => false, 'message' => 'Attendance saved successfully']);
+      } else {
+          echo json_encode(['isError' => true, 'message' => 'No attendance data found to save']);
+      }
   }
 }
 ?>

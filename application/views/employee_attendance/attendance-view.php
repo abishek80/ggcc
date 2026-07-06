@@ -1,7 +1,7 @@
 <section class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
         <div class="d-flex gap-3 flex-wrap mb-3">
-            <?php foreach ($attendanceMonthList as $row) { ?>
+            <?php foreach ($presentMonthList as $row) { ?>
                 <a href="<?php echo base_url() . 'attendance/attendance-view/' . $year . '/' . $row->month . '/' . $employeeId; ?>" class="d-block card px-5 py-2 text-center <?php echo ($month == $row->month) ? 'bg-primary' : 'bg-white'; ?> shadow shadow-sm lh-1 rounded-2 border-primary border border-3 border-end-0 border-start-0 border-top-0">
                     <p class="mb-0 text-capitalize <?php echo ($month == $row->month) ? 'text-white' : 'text-black'; ?>"><?php echo $row->month?></p>
                 </a>

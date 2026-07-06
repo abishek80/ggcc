@@ -289,6 +289,14 @@ class Webmodel extends CI_Model
         return $res->result();
     }
     
+    // Get Active Yearly Plans for a specific year
+    public function getActiveYearlyPlans($year)
+    {
+        $sql = "SELECT *, DATE_FORMAT(date, '%d - %m - %Y') AS dateFormat FROM yearly_plan WHERE LOWER(DATE_FORMAT(date, '%Y')) = '$year' AND delete_status = 0 AND status != 'inactive' ORDER BY date ASC";
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+    
     // Yearly Plan Info
     public function getYearlyPlanInfo($eventId)
     {
@@ -299,7 +307,7 @@ class Webmodel extends CI_Model
     }
 
     //Save Yearly Plan Data Form
-    public function saveYearlyPlanData($eventId, $date, $title, $description, $status)
+    public function saveYearlyPlanData($eventId, $date, $title, $description, $status, $planType)
     {
         $userId = $this->session->userdata('userid');
 
@@ -309,6 +317,7 @@ class Webmodel extends CI_Model
                 'title' => $title,
                 'description' => $description,
                 'status' => $status,
+                'plan_type' => $planType,
                 'updated_by' => $userId,
                 'updated_at' => date('Y-m-d H:i:s')
             );
@@ -320,12 +329,48 @@ class Webmodel extends CI_Model
                 'title' => $title,
                 'description' => $description,
                 'status' => $status,
+                'plan_type' => $planType,
                 'created_by' => $userId,
                 'created_at' => date('Y-m-d H:i:s')
             );
             $this->db->insert('yearly_plan', $data);
             $this->db->insert_id();
         }
+    }
+
+    // Duplicate repeated events from previous year to target year
+    public function duplicateRepeatedEventsForYear($targetYear)
+    {
+        $previousYear = (int)$targetYear - 1;
+        
+        // Find all repeated events from previous year
+        $sql = "SELECT * FROM yearly_plan WHERE plan_type = 'repeated' AND delete_status = 0 AND LOWER(DATE_FORMAT(date, '%Y')) = '$previousYear'";
+        $events = $this->db->query($sql)->result();
+        
+        $count = 0;
+        foreach ($events as $event) {
+            // Calculate new date
+            $newDate = date('Y-m-d', strtotime('+1 year', strtotime($event->date)));
+            
+            // Check if already exists to prevent duplicate runs
+            $checkSql = "SELECT id FROM yearly_plan WHERE title = ? AND date = ? AND delete_status = 0";
+            $exists = $this->db->query($checkSql, array($event->title, $newDate))->num_rows();
+            
+            if ($exists == 0) {
+                $data = array(
+                    'date' => $newDate,
+                    'title' => $event->title,
+                    'description' => $event->description,
+                    'status' => 'not_completed', // reset status
+                    'plan_type' => 'repeated',
+                    'created_by' => $event->created_by,
+                    'created_at' => date('Y-m-d H:i:s')
+                );
+                $this->db->insert('yearly_plan', $data);
+                $count++;
+            }
+        }
+        return $count;
     }
     
     // Branch List

@@ -48,7 +48,7 @@
                     <input name="work_place" id="work_place" type="text" class="form-control" placeholder="Enter Work Place" value="<?php echo $workPlace; ?>">
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Time Zone <span class="text-danger">*</span></label>
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Time Zone</label>
                     <select name="time_zone" id="time_zone" class="form-select">
                         <option value="">Select Time Zone</option>
                         <option value="night" <?php if($timeZone == 'night') { echo 'selected'; } ?>>Night</option>
@@ -348,9 +348,6 @@
             work_place: {
                 required: true
             },
-            time_zone: {
-                required: true
-            },
             ot_type: {
                 required: true
             }
@@ -367,9 +364,6 @@
             },
             work_place: {
                 required: "Please Enter Work Place",
-            },
-            time_zone: {
-                required: "Please Select Time Zone",
             },
             ot_type: {
                 required: "Please Select OT Type",

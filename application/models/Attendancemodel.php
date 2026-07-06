@@ -35,12 +35,67 @@
                 $whereOT .= " AND MONTHNAME(EOT.ot_date) = '$month'";
             }
 
-            $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, COUNT(DISTINCT EA.id) AS present_count, COUNT(DISTINCT ELD.id) AS leave_count, COUNT(DISTINCT EOT.id) AS ot_count FROM employee E LEFT JOIN employee_attendance EA ON EA.employee_id = E.id AND EA.delete_status = 0 $wherePresent LEFT JOIN employee_leave_detail ELD ON ELD.employee_id = E.id AND ELD.delete_status = 0 $whereLeave LEFT JOIN employee_ot EOT ON EOT.employee_id = E.id AND EOT.delete_status = 0 $whereOT INNER JOIN master_designation MD ON MD.id = E.designation WHERE E.delete_status = 0 GROUP BY E.id ORDER BY E.employee_name ASC";
+            $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, 
+                    COUNT(DISTINCT EA.id) AS present_count, 
+                    COUNT(DISTINCT ELD.id) AS leave_count, 
+                    (SELECT COALESCE(SUM(CASE 
+                        WHEN ot_type = 'Half Day' THEN 0.5 
+                        WHEN ot_type = 'Full Day' THEN 1 
+                        ELSE 1 
+                    END), 0) FROM employee_ot WHERE employee_id = E.id AND delete_status = 0 " . str_replace('EOT.', '', $whereOT) . ") AS ot_count 
+                    FROM employee E 
+                    LEFT JOIN employee_attendance EA ON EA.employee_id = E.id AND EA.delete_status = 0 $wherePresent 
+                    LEFT JOIN employee_leave_detail ELD ON ELD.employee_id = E.id AND ELD.delete_status = 0 $whereLeave 
+                    INNER JOIN master_designation MD ON MD.id = E.designation 
+                    WHERE E.delete_status = 0 
+                    GROUP BY E.id 
+                    ORDER BY E.employee_name ASC";
 
             $res = $this->db->query($sql);
             return $res->result();
         }
 
+        public function getEmployeeAttendanceGrid($year = '', $month = '')
+        {
+            $employees = $this->getEmployeeAttendanceList($year, $month);
+
+            if (!$year || !$month) {
+                return $employees;
+            }
+
+            $monthNum = date('m', strtotime("1 $month $year"));
+            $startDate = "$year-$monthNum-01";
+            $endDate = date('Y-m-t', strtotime($startDate));
+
+            $attSql = "SELECT employee_id, present_date, 'P' as status FROM employee_attendance WHERE delete_status = 0 AND present_date BETWEEN ? AND ?";
+            $attendanceData = $this->db->query($attSql, [$startDate, $endDate])->result();
+
+            $leaveSql = "SELECT employee_id, leave_date as present_date, 'A' as status FROM employee_leave_detail WHERE delete_status = 0 AND leave_date BETWEEN ? AND ?";
+            $leaveData = $this->db->query($leaveSql, [$startDate, $endDate])->result();
+
+            $otSql = "SELECT employee_id, ot_date as present_date, CASE WHEN ot_type = 'Half Day' THEN 'Half OT' WHEN ot_type = 'Full Day' THEN 'Full OT' ELSE 'OT' END as status FROM employee_ot WHERE delete_status = 0 AND ot_date BETWEEN ? AND ?";
+            $otData = $this->db->query($otSql, [$startDate, $endDate])->result();
+
+            $mergedData = array_merge($attendanceData, $leaveData, $otData);
+
+            $dailyData = [];
+            foreach ($mergedData as $att) {
+                $day = date('j', strtotime($att->present_date));
+                if (isset($dailyData[$att->employee_id][$day])) {
+                    if (strpos($dailyData[$att->employee_id][$day], $att->status) === false) {
+                        $dailyData[$att->employee_id][$day] .= '/' . $att->status;
+                    }
+                } else {
+                    $dailyData[$att->employee_id][$day] = $att->status;
+                }
+            }
+
+            foreach ($employees as &$emp) {
+                $emp->daily_attendance = isset($dailyData[$emp->employee_id]) ? $dailyData[$emp->employee_id] : [];
+            }
+
+            return $employees;
+        }
 
         //Employee Present List
         public function getEmployeePresentList($year = '', $month = '', $employeeId = '')
@@ -580,6 +635,136 @@
                 $this->db->insert('attendance_employee', $data);
                 $this->db->insert_id();
             }
+        }
+        // Get employees by zone and their attendance for a specific month
+        public function getMonthlyAttendanceGridData($zone, $month, $year)
+        {
+            // First get all employees for the zone
+            $sql = "SELECT AE.employee_id, AE.employee_name, MD.designation 
+                    FROM attendance_employee AE 
+                    INNER JOIN employee E ON E.id = AE.employee_id 
+                    INNER JOIN master_designation MD ON MD.id = E.designation 
+                    WHERE AE.delete_status = 0 AND AE.status = 'active' AND AE.zone = ? 
+                    ORDER BY AE.employee_name ASC";
+            $res = $this->db->query($sql, [$zone]);
+            $employees = $res->result();
+
+            // Then get attendance for this month
+            $startDate = "$year-$month-01";
+            $endDate = date('Y-m-t', strtotime($startDate));
+
+            // Present days
+            $attSql = "SELECT employee_id, present_date, 'present' as status 
+                       FROM employee_attendance 
+                       WHERE delete_status = 0 
+                       AND present_date BETWEEN ? AND ?";
+            $attRes = $this->db->query($attSql, [$startDate, $endDate]);
+            $attendanceData = $attRes->result();
+
+            // Leave days (which covers absent as well)
+            $leaveSql = "SELECT employee_id, leave_date as present_date, 'absent' as status 
+                         FROM employee_leave_detail 
+                         WHERE delete_status = 0 
+                         AND leave_date BETWEEN ? AND ?";
+            $leaveRes = $this->db->query($leaveSql, [$startDate, $endDate]);
+            $leaveData = $leaveRes->result();
+
+            $mergedData = array_merge($attendanceData, $leaveData);
+
+            // Group by employee and date
+            $gridData = [];
+            foreach ($employees as $emp) {
+                $gridData[$emp->employee_id] = [
+                    'employee_name' => $emp->employee_name,
+                    'designation' => $emp->designation,
+                    'attendance' => []
+                ];
+            }
+
+            foreach ($mergedData as $att) {
+                if (isset($gridData[$att->employee_id])) {
+                    $day = date('j', strtotime($att->present_date));
+                    $gridData[$att->employee_id]['attendance'][$day] = $att->status;
+                }
+            }
+
+            return $gridData;
+        }
+
+        // Save mass attendance grid data
+        public function saveMonthlyAttendanceGrid($year, $month, $zone, $attendanceData)
+        {
+            $userId = $this->session->userdata('userid');
+            $currentDateTime = date('Y-m-d H:i:s');
+            
+            $startDate = "$year-$month-01";
+            $daysInMonth = date('t', strtotime($startDate));
+
+            $this->db->trans_start();
+
+            // We iterate through all employees and days.
+            foreach ($attendanceData as $empId => $days) {
+                for ($d = 1; $d <= $daysInMonth; $d++) {
+                    $dateStr = sprintf("%04d-%02d-%02d", $year, $month, $d);
+                    $status = isset($days[$d]) ? $days[$d] : '';
+
+                    // Delete existing present and leave for this date and employee
+                    $this->db->where('employee_id', (int) $empId);
+                    $this->db->where('present_date', $dateStr);
+                    $this->db->delete('employee_attendance');
+
+                    $this->db->where('employee_id', (int) $empId);
+                    $this->db->where('leave_date', $dateStr);
+                    $this->db->delete('employee_leave_detail');
+
+                    // Delete from employee_leave where leave_date matches and employee_id matches
+                    $this->db->where('employee_id', (int) $empId);
+                    $this->db->where('leave_date', $dateStr);
+                    $this->db->delete('employee_leave');
+
+                    // If present, insert into employee_attendance
+                    if ($status === 'present') {
+                        $this->db->insert('employee_attendance', [
+                            'present_date' => $dateStr,
+                            'employee_id' => $empId,
+                            'created_by' => $userId,
+                            'created_at' => $currentDateTime,
+                            'updated_by' => $userId,
+                            'updated_at' => $currentDateTime
+                        ]);
+                    } 
+                    // If absent or leave, insert into employee_leave and detail
+                    else if ($status === 'absent' || $status === 'leave') {
+                        $leaveData = array(
+                            'branch_id' => '13', // Default branch id fallback, matching their original code logic
+                            'employee_id' => $empId,
+                            'leave_date' => $dateStr,
+                            'joining_date' => $dateStr,
+                            'reason' => 'Personal Leave',
+                            'leave_count' => '1',
+                            'status' => 'approved',
+                            'join_status' => 'not_join',
+                            'created_by' => $userId,
+                            'created_at' => $currentDateTime
+                        );
+                        $this->db->insert('employee_leave', $leaveData);
+                        $leaveEntryId = $this->db->insert_id();
+
+                        $leaveDetailData = array(
+                            'leave_id' => $leaveEntryId,
+                            'employee_id' => $empId,
+                            'leave_date' => $dateStr,
+                            'reason' => 'Personal Leave',
+                            'created_by' => $userId,
+                            'created_at' => $currentDateTime
+                        );
+                        $this->db->insert('employee_leave_detail', $leaveDetailData);
+                    }
+                }
+            }
+
+            $this->db->trans_complete();
+            return $this->db->trans_status();
         }
     }
 ?>

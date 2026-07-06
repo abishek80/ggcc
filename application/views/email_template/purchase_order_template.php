@@ -249,9 +249,9 @@
                                         $sn = 1;
                                         foreach ($list as $row) { 
                                             $bal = (float)$row->balance_amount;
-                                            if ($bal <= 1000) {
+                                            if ($bal <= 100000) {
                                                 $balStyle = 'po-balance-critical';
-                                            } elseif ($bal <= 5000) {
+                                            } elseif ($bal <= 300000) {
                                                 $balStyle = 'po-balance-warning';
                                             } else {
                                                 $balStyle = 'po-balance-info';
@@ -317,17 +317,16 @@
 
                         <!-- SECTION 1: EXPIRY ALERTS -->
                         <?php 
-                        renderPOTable("PO Expiry in 3 Days", $poExpiry3, "badge-critical", "Critical Expiry", "5px solid #dc2626", true);
-                        renderPOTable("PO Expiry in 15 Days", $poExpiry15, "badge-warning", "Urgent Expiry", "5px solid #ea580c", true);
-                        renderPOTable("PO Expiry in 30 Days", $poExpiry30, "badge-info", "Upcoming Expiry", "5px solid #6366f1", true);
-                        renderPOTable("PO Expiry in 60 Days", $poExpiry60, "badge-info", "Notice Period", "5px solid #818cf8", true);
+                        renderPOTable("PO Expiry in 1 Month (30 Days)", $poExpiry30, "badge-critical", "Critical Expiry", "5px solid #dc2626", true);
+                        renderPOTable("PO Expiry in 3 Months (90 Days)", $poExpiry90, "badge-warning", "Urgent Expiry", "5px solid #ea580c", true);
+                        renderPOTable("PO Expiry in 5 Months (150 Days)", $poExpiry150, "badge-info", "Upcoming Expiry", "5px solid #6366f1", true);
                         ?>
 
                         <!-- SECTION 2: LOW BALANCE ALERTS -->
                         <?php 
-                        renderPOTable("PO Balance Below ₹1,000", $poBalance1000, "badge-critical", "Critical Balance", "5px solid #dc2626", false);
-                        renderPOTable("PO Balance Below ₹5,000", $poBalance5000, "badge-warning", "Low Balance", "5px solid #ea580c", false);
-                        renderPOTable("PO Balance Below ₹10,000", $poBalance10000, "badge-info", "Warning Balance", "5px solid #3b82f6", false);
+                        renderPOTable("PO Balance Below ₹1,00,000", $poBalance100000, "badge-critical", "Critical Balance", "5px solid #dc2626", false);
+                        renderPOTable("PO Balance Below ₹3,00,000", $poBalance300000, "badge-warning", "Low Balance", "5px solid #ea580c", false);
+                        renderPOTable("PO Balance Below ₹5,00,000", $poBalance500000, "badge-info", "Warning Balance", "5px solid #3b82f6", false);
                         ?>
 
                     </div>

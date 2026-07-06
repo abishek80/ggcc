@@ -379,6 +379,12 @@
                         <li class="px-3 py-2 mt-2 border-top w-100">
                             <p class="mb-0 fw-semibold text-dark">Admin Management</p>
                         </li>
+                        <li class="menu-item <?php echo $menu_status == 'notification' ? 'active' : ''; ?>">
+                            <a href="<?php echo base_url() . 'notification'; ?>" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-bell"></i>
+                                <div data-i18n="Notification">Notification</div>
+                            </a>
+                        </li>
                         <li class="menu-item <?php echo $menu_status == 'thirdparty_loan' ? 'active' : ''; ?>">
                             <a href="<?php echo base_url(); ?>loan/thirdparty-loan-list" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-credit-card"></i>

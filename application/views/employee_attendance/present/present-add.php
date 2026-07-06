@@ -1,46 +1,69 @@
 <section class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
-        <form id="attendanceForm" method="post" class="card px-3 pb-3">
+        <form id="attendanceGridForm" method="post" class="card px-3 pb-3">
             <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pt-3 pb-3 sticky-head flex-wrap gap-3">
                 <div class="d-flex gap-2 align-items-center">
-                    <a href="<?php echo base_url() . 'attendance/present-list/' . $year . '/' . $month; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
-                    <h4 class="fw-bold mb-0 text-black"><?php echo $formTitle; ?></h4>
+                    <a href="<?php echo base_url(); ?>attendance/attendance-employee-list" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                    <h4 class="fw-bold mb-0 text-black">Monthly Attendance Sheet</h4>
                 </div>
                 <div class="d-flex gap-3 justify-content-end">
-                    <a href="<?php echo base_url() . 'attendance/present-list/' . $year . '/' . $month; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
-                    <button type="submit" class="btn btn-success px-4 py-2 rounded border-0 fw-bold text-white">Save</button>
+                    <button type="submit" class="btn btn-success px-4 py-2 rounded border-0 fw-bold text-white">Save Attendance</button>
                 </div>
             </div>
-            <input name="attendance_id" id="attendance_id" type="hidden" value="<?php echo $attendanceId; ?>">
-            <div class="row g-3">
-                <div class="col-lg-3 col-md-6 col-6">
-                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Zone <span class="text-danger">*</span></label>
-                    <select name="zone" id="zone" class="form-select">
-                        <option value="">Select Zone</option>
-                        <option value="chennai" <?php if($zone == 'chennai') { echo 'selected'; } ?>>Chennai</option>
-                        <option value="mumbai" <?php if($zone == 'mumbai') { echo 'selected'; } ?>>Mumbai</option>
-                        <option value="indore" <?php if($zone == 'indore') { echo 'selected'; } ?>>Indore</option>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-lg-3 col-md-4">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Year <span class="text-danger">*</span></label>
+                    <select name="year" id="year" class="form-select filter-trigger">
+                        <option value="">Select Year</option>
+                        <?php 
+                        $currentYear = date('Y');
+                        for($i = $currentYear - 2; $i <= $currentYear; $i++) {
+                            echo "<option value='$i'".($i == $currentYear ? ' selected' : '').">$i</option>";
+                        }
+                        ?>
                     </select>
                 </div>
-                <div class="col-lg-3 col-md-6 col-6">
-                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Date <span class="text-danger">*</span></label>
-                    <input name="present_date" id="present_date" type="date" class="form-control date-picker presentDate" placeholder="YYYY - MM - DD" value="<?php echo $presentDate; ?>">
+                <div class="col-lg-3 col-md-4">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Month <span class="text-danger">*</span></label>
+                    <select name="month" id="month" class="form-select filter-trigger">
+                        <option value="">Select Month</option>
+                        <option value="01">January</option>
+                        <option value="02">February</option>
+                        <option value="03">March</option>
+                        <option value="04">April</option>
+                        <option value="05">May</option>
+                        <option value="06">June</option>
+                        <option value="07">July</option>
+                        <option value="08">August</option>
+                        <option value="09">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
                 </div>
+                <div class="col-lg-3 col-md-4">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Zone <span class="text-danger">*</span></label>
+                    <select name="zone" id="zone" class="form-select filter-trigger">
+                        <option value="">Select Zone</option>
+                        <option value="chennai" <?php if(isset($zone) && $zone == 'chennai') { echo 'selected'; } ?>>Chennai</option>
+                        <option value="mumbai" <?php if(isset($zone) && $zone == 'mumbai') { echo 'selected'; } ?>>Mumbai</option>
+                        <option value="indore" <?php if(isset($zone) && $zone == 'indore') { echo 'selected'; } ?>>Indore</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="col-12">
-                    <div class="mt-2 table-responsive">
-                        <table class="table table-striped table-bordered">
-                            <thead>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover text-center align-middle" id="attendanceTable">
+                            <thead class="table-light sticky-top" id="attendanceGridHeader">
                                 <tr>
-                                    <th>S. No</th>
-                                    <th>Employee Name</th>
-                                    <th>Designation</th>
-                                    <th>Attendance Type</th>
+                                    <th>Please select Year, Month and Zone</th>
                                 </tr>
                             </thead>
-                            <tbody id="employeeTableBody">
-                                <tr>
-                                    <td colspan="4" class="text-center">Select a date to view attendance</td>
-                                </tr>
+                            <tbody id="attendanceGridBody">
+                                <!-- Data will be loaded here via AJAX -->
                             </tbody>
                         </table>
                     </div>
@@ -50,126 +73,141 @@
     </div>
 </section>
 
+<style>
+    /* Styling to make it look more like excel */
+    #attendanceTable th, #attendanceTable td {
+        min-width: 50px;
+        padding: 5px;
+        border: 1px solid #ddd;
+    }
+    #attendanceTable th:first-child, #attendanceTable td:first-child {
+        min-width: 200px;
+        text-align: left;
+        position: sticky;
+        left: 0;
+        background: #fff;
+        z-index: 1;
+    }
+    #attendanceTable th:first-child {
+        z-index: 2;
+    }
+    .att-select {
+        border: none;
+        background: transparent;
+        width: 100%;
+        text-align: center;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+    }
+    .att-select:focus {
+        outline: 1px solid #0d6efd;
+    }
+    .att-P { color: green; font-weight: bold; }
+    .att-A { color: red; font-weight: bold; }
+</style>
 
 <script>
-    $('#zone').change(function () {
-        $('.presentDate').val('');
-        $('#employeeTableBody').html('<tr><td colspan="4" class="text-center">Please select date</td></tr>');
+$(document).ready(function() {
+    // Current month auto-selection
+    const currentMonth = new Date().getMonth() + 1;
+    $('#month').val(currentMonth.toString().padStart(2, '0'));
+
+    $('.filter-trigger').change(function() {
+        loadAttendanceGrid();
     });
 
+    function loadAttendanceGrid() {
+        var year = $('#year').val();
+        var month = $('#month').val();
+        var zone = $('#zone').val();
 
-    $('.presentDate, #zone').change(function () {
-        var selectZone = $('#zone').val();
-        var selectedAttendanceDate = $('.presentDate').val();
-
-        if (selectedAttendanceDate !== '' && selectZone !== '') {
-
-            var tbody = $('#employeeTableBody');
-            tbody.html('<tr><td colspan="4" class="text-center">Loading...</td></tr>');
+        if (year && month && zone) {
+            $('#attendanceGridHeader').html('<tr><th>Loading...</th></tr>');
+            $('#attendanceGridBody').html('');
 
             $.ajax({
-                url: "<?php echo base_url('attendance/attendanceEmployeeList'); ?>",
+                url: "<?php echo base_url('attendance/getMonthlyAttendanceGrid'); ?>",
                 type: "POST",
                 dataType: "json",
                 data: {
-                    attendanceDate: selectedAttendanceDate,
-                    zoneName: selectZone,
+                    year: year,
+                    month: month,
+                    zone: zone
                 },
-                success: function (data) {
-                    tbody.empty();
-
-                    if (Array.isArray(data) && data.length > 0) {
-                        $.each(data, function (index, row) {
-                            var html = '<tr>' +
-                                '<td>' + (index + 1) + '</td>' +
-                                '<td>' + (row.employee_name || 'N/A') + '</td>' +
-                                '<td>' + (row.designation || 'N/A') + '</td>' +
-                                '<td>' +
-                                    '<input name="employee_id[]" value="' + row.id + '" type="hidden">' +
-                                    '<select name="attendance_type[]" class="form-select">' +
-                                        '<option value="">Select Attendance</option>' +
-                                        '<option value="present">Present</option>' +
-                                        '<option value="absent">Absent</option>' +
-                                    '</select>' +
-                                '</td>' +
-                            '</tr>';
-                            tbody.append(html);
-                        });
+                success: function (res) {
+                    if (res.status === 'success') {
+                        $('#attendanceGridHeader').html(res.thead);
+                        $('#attendanceGridBody').html(res.tbody);
                     } else {
-                        tbody.append('<tr><td colspan="4" class="text-center">No employees found</td></tr>');
+                        $('#attendanceGridHeader').html('<tr><th class="text-danger">Failed to load data</th></tr>');
                     }
                 },
-                error: function () {
-                    tbody.html('<tr><td colspan="4" class="text-danger text-center">Error loading data</td></tr>');
+                error: function() {
+                    $('#attendanceGridHeader').html('<tr><th class="text-danger">Error fetching data</th></tr>');
                 }
             });
         }
-    });
+    }
+    
+    // Automatically load if zone is predefined
+    if($('#zone').val() !== '') {
+        loadAttendanceGrid();
+    }
 
+    // Save grid
+    $("#attendanceGridForm").submit(function (e) {
+        e.preventDefault();
+        
+        var year = $('#year').val();
+        var month = $('#month').val();
+        var zone = $('#zone').val();
 
-    // Save EmployeeAttendance Order Form
-    $("#attendanceForm").validate({
-        rules: {
-            present_date: {
-                required: true
-            },
-            zone: {
-                required: true
-            }
-        },
-        messages: {
-            present_date: {
-                required: "Please Select Date",
-            },
-            zone: {
-                required: "Please Select Zone",
-            }
-        },
-        submitHandler: function(form) {
-            var data = new FormData($('#attendanceForm').get(0));
-
-            $.ajax({
-                url: '<?php echo base_url(); ?>attendance/employeeAttendanceSaveForm',
-                data: data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                method: 'POST',
-                dataType: 'json',
-                beforeSend: function () {
-                    $(".loader").show();
-                },
-                success: function(data) {
-                    toastr.options = {
-                        'closeButton': true,
-                        'debug': false,
-                        'newestOnTop': false,
-                        'progressBar': false,
-                        'positionClass': 'toast-top-right',
-                        'preventDuplicates': false,
-                        'showDuration': '1000',
-                        'hideDuration': '1000',
-                        'timeOut': '5000',
-                        'extendedTimeOut': '1000',
-                        'showEasing': 'swing',
-                        'hideEasing': 'linear',
-                        'showMethod': 'fadeIn',
-                        'hideMethod': 'fadeOut',
-                    }
-                    $(".loader").hide();
-                    if (data['isError']) {
-                        toastr.error(data['message']);
-                    }
-                    else {
-                        oneClickSubmitBtn();
-                        toastr.success(data['message']);
-                        setTimeout(function () {
-                            window.location.href = "<?php echo base_url() . 'attendance/present-list/' . $year . '/' . $month; ?>";
-                        }, 1500);
-                    }
-                }
-            });
+        if (!year || !month || !zone) {
+            alert('Please select Year, Month and Zone');
             return false;
         }
+        
+        var formData = new FormData(this);
+        
+        $.ajax({
+            url: '<?php echo base_url(); ?>attendance/saveMonthlyAttendanceGrid',
+            data: formData,
+            cache: false,
+            processData: false,
+            contentType: false,
+            method: 'POST',
+            dataType: 'json',
+            beforeSend: function () {
+                $(".loader").show();
+            },
+            success: function (data) {
+                $(".loader").hide();
+                toastr.options = {
+                    'closeButton': true,
+                    'positionClass': 'toast-top-right',
+                    'timeOut': '3000',
+                }
+                if (data.isError) {
+                    toastr.error(data.message);
+                }
+                else {
+                    toastr.success(data.message);
+                }
+            },
+            error: function() {
+                $(".loader").hide();
+                alert("Error saving data");
+            }
+        });
     });
+
+    // Color code selects when changed
+    $(document).on('change', '.att-select', function() {
+        $(this).removeClass('att-P att-A');
+        var val = $(this).val();
+        if(val == 'present') $(this).addClass('att-P');
+        else if(val == 'absent') $(this).addClass('att-A');
+    });
+});
 </script>

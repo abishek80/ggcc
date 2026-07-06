@@ -53,7 +53,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $default_controller = "web";
 $language_alias = array('en');
 // exceptions
-$controller_exceptions = array('login', 'web', 'complaint', 'purchase', 'bill', 'employee', 'master', 'vehicle', 'outlet', 'stock', 'loan', 'report', 'attendance', 'cron');
+$controller_exceptions = array('login', 'web', 'complaint', 'purchase', 'bill', 'employee', 'master', 'vehicle', 'outlet', 'stock', 'loan', 'report', 'attendance', 'cron', 'notification');
 // route
 $route['default_controller'] = $default_controller;
 $route["^(".implode('|', $language_alias).")/(".implode('|', $controller_exceptions).")(.*)"] = '$2';
@@ -122,3 +122,9 @@ $route['report/(:any)/(:any)'] = 'report/$1/$2';
 $route['attendance'] = "attendance/index";
 $route['attendance/(:any)'] = 'attendance/$1';
 $route['attendance/(:any)/(:any)'] = 'attendance/$1/$2';
+$route['report/(:any)/(:any)'] = 'report/$1/$2';
+
+// notification Controller Route Path
+$route['notification'] = "notification/index";
+$route['notification/(:any)'] = 'notification/$1';
+$route['notification/(:any)/(:any)'] = 'notification/$1/$2';

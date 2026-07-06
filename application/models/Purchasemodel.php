@@ -130,6 +130,52 @@ class Purchasemodel extends CI_Model
         return $res->result();
     }
     
+    //Pending Retention List for Cron Email
+    public function getPendingRetentionList()
+    {
+        $sql = "SELECT RM.*, MB.branch AS branch_name, MB.zone, PO.po_title, PO.purchase_order_no, 
+                DATE_FORMAT(PO.po_date, '%d-%m-%Y') AS po_dateFormat, 
+                EB.estimation_number, DATE_FORMAT(EB.estimation_date, '%d-%m-%Y') AS estimation_dateFormat, 
+                DATE_FORMAT(RM.retention_date, '%d-%m-%Y') AS retention_dateFormat 
+                FROM retention_money RM 
+                LEFT JOIN master_branch MB ON MB.id = RM.branch_id 
+                LEFT JOIN purchase_order PO ON PO.id = RM.po_id 
+                LEFT JOIN estimation_bill EB ON EB.id = RM.estimation_id 
+                WHERE RM.delete_status = 0 AND RM.status = 'notreceived' 
+                AND RM.retention_date IS NOT NULL 
+                AND RM.retention_date != '0000-00-00'
+                AND RM.retention_date <= LAST_DAY(CURRENT_DATE) 
+                ORDER BY MB.zone ASC, MB.branch ASC, RM.retention_date ASC";
+
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+    
+    //Pending Security Amount List for Cron Email
+    public function getPendingSecurityAmountListForCron($year, $month = null)
+    {
+        $monthCondition = "";
+        if ($month !== null) {
+            $monthCondition = " AND MONTH(DATE_ADD(PO.validity_end, INTERVAL 1 YEAR)) = $month ";
+        }
+
+        $sql = "SELECT PO.*, MB.branch AS branch_name, MB.zone, 
+                DATE_FORMAT(PO.po_date, '%d-%m-%Y') AS po_dateFormat, 
+                DATE_FORMAT(PO.validity_end, '%d-%m-%Y') AS validity_endFormat, 
+                DATE_FORMAT(DATE_ADD(PO.validity_end, INTERVAL 1 YEAR), '%d-%m-%Y') AS security_due_dateFormat 
+                FROM purchase_order PO 
+                LEFT JOIN master_branch MB ON MB.id = PO.branch_id 
+                WHERE PO.delete_status = 0 AND PO.security_status != 'received' 
+                AND PO.validity_end IS NOT NULL 
+                AND PO.validity_end != '0000-00-00'
+                AND YEAR(DATE_ADD(PO.validity_end, INTERVAL 1 YEAR)) = $year 
+                $monthCondition 
+                ORDER BY MB.zone ASC, MB.branch ASC, DATE_ADD(PO.validity_end, INTERVAL 1 YEAR) ASC";
+
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+    
     //Taxinvoice List
     public function getTaxinvoiceAmountList($poId='')
     {

@@ -91,7 +91,8 @@
                         <h5 class="mb-2">${event.dateFormat}</h5>
                         <h5 class="mb-2 fw-bold text-black">${event.title}</h5>
                         <h6 class="mb-0 fw-bold text-black">${event.description}</h6>
-                        <p class="mb-0 mt-2 fw-bold text-black">${event.status}</p>
+                        <p class="mb-0 mt-2 fw-bold text-black text-capitalize">Plan Type: ${event.plan_type}</p>
+                        <p class="mb-0 mt-2 fw-bold text-black text-capitalize">${event.status.replace('_', ' ')}</p>
                     </div>
                 `;
             }).join('');

@@ -8,7 +8,55 @@ class Cron extends CI_Controller
         parent::__construct();
         $this->load->model('vehiclemodel');
         $this->load->model('purchasemodel');
+        $this->load->model('webmodel');
         $this->load->library('common');
+    }
+
+    /**
+     * Yearly Trigger Email
+     */
+    public function yearlyTriggerEmail()
+    {
+        // Allow CLI OR secure URL access
+        if (!is_cli()) {
+            $token = $this->input->get('token');
+            if ($token !== '9aX7kP2LmQ8tR4Yw') {
+                show_error('Unauthorized Access', 403);
+            }
+        }
+        
+        $currentYear = date('Y');
+        $count = $this->webmodel->duplicateRepeatedEventsForYear($currentYear);
+        
+        // Fetch all active events for the current year
+        $activePlans = $this->webmodel->getActiveYearlyPlans($currentYear);
+        
+        // Group by month
+        $groupedPlans = [];
+        foreach ($activePlans as $plan) {
+            $month = strtolower(date('F', strtotime($plan->date)));
+            $groupedPlans[$month][] = $plan;
+        }
+
+        $data['year'] = $currentYear;
+        $data['groupedPlans'] = $groupedPlans;
+
+        $emails = [
+            'drajan76@rediffmail.com',
+            'antonyabishek80@gmail.com'
+        ];
+
+        $subject = "Overall Active Yearly Plans - $currentYear";
+        $message = $this->load->view('email_template/yearly_plan_template', $data, TRUE);
+
+        foreach ($emails as $email) {
+            $this->common->email_data($email, $subject, $message);
+        }
+        
+        echo "Yearly repeated events have been duplicated. Yearly digest email sent for $currentYear. (Duplicated: $count events)<br>";
+        
+        // Also trigger the yearly security amount email
+        $this->sendSecurityYearlyEmail();
     }
 
     /**
@@ -17,6 +65,8 @@ class Cron extends CI_Controller
     public function monthlyTriggerEmail()
     {
         $this->sendVehicleRenewalEmail();
+        $this->sendRetentionMoneyEmail();
+        $this->sendSecurityMonthlyEmail();
     }
 
     /**
@@ -47,7 +97,7 @@ class Cron extends CI_Controller
         $data['fcRenewalList']        = $this->vehiclemodel->getVehicleRenewalList($year, $month, 'fc');
         $data['pucRenewalList']       = $this->vehiclemodel->getVehicleRenewalList($year, $month, 'puc');
 
-        // If nothing to send — stop execution
+        // If nothing to send â€” stop execution
         if (
             empty($data['insuranceRenewalList']) &&
             empty($data['fcRenewalList']) &&
@@ -84,7 +134,146 @@ class Cron extends CI_Controller
             $this->common->email_data($email, $subject, $message);
         }
 
-        echo "Renewal emails sent successfully.";
+        // Insert Notifications
+        $this->load->model('notificationmodel');
+        $this->_addVehicleNotifications($data['insuranceRenewalList'], 'Vehicle Insurance Renewal Due');
+        $this->_addVehicleNotifications($data['fcRenewalList'], 'Vehicle FC Renewal Due');
+        $this->_addVehicleNotifications($data['pucRenewalList'], 'Vehicle PUC Renewal Due');
+
+        echo "Renewal emails sent successfully.<br>";
+    }
+
+    public function sendRetentionMoneyEmail()
+    {
+        // Allow CLI OR secure URL access
+        if (!is_cli()) {
+            $token = $this->input->get('token');
+            if ($token !== '9aX7kP2LmQ8tR4Yw') {
+                show_error('Unauthorized Access', 403);
+            }
+        }
+
+        $pendingRetentions = $this->purchasemodel->getPendingRetentionList();
+        
+        if (empty($pendingRetentions)) {
+            echo "No pending retention money found for this month.<br>";
+            return;
+        }
+
+        $groupedRetentions = [];
+        foreach ($pendingRetentions as $retention) {
+            $zone = $retention->zone ? $retention->zone : 'Unassigned Zone';
+            $branchName = $retention->branch_name ? $retention->branch_name : 'Unassigned Branch';
+            $branchGroup = $zone . ' Zone & ' . $branchName;
+            $groupedRetentions[$branchGroup][] = $retention;
+        }
+
+        $data['monthText'] = date('F');
+        $data['year'] = date('Y');
+        $data['groupedRetentions'] = $groupedRetentions;
+
+        $subject = "Retention Money Reminder - " . $data['monthText'] . " " . $data['year'];
+        
+        $message = $this->load->view('email_template/retention_reminder_template', $data, TRUE);
+
+        $emails = [
+            'antonyabishek80@gmail.com'
+        ];
+
+        foreach ($emails as $email) {
+            $this->common->email_data($email, $subject, $message);
+        }
+
+        // Insert Notifications
+        $this->load->model('notificationmodel');
+        $this->_addRetentionNotifications($pendingRetentions, 'Retention Money Due');
+
+        echo "Retention Money emails sent successfully.<br>";
+    }
+
+    public function sendSecurityYearlyEmail()
+    {
+        $year = date('Y');
+        $securityAmounts = $this->purchasemodel->getPendingSecurityAmountListForCron($year);
+        
+        if (empty($securityAmounts)) {
+            echo "No pending security amounts found for $year.<br>";
+            return;
+        }
+
+        $groupedSecurity = [];
+        foreach ($securityAmounts as $item) {
+            $zone = $item->zone ? $item->zone : 'Unassigned Zone';
+            $branchName = $item->branch_name ? $item->branch_name : 'Unassigned Branch';
+            $branchGroup = $zone . ' Zone & ' . $branchName;
+            $groupedSecurity[$branchGroup][] = $item;
+        }
+
+        $data['year'] = $year;
+        $data['groupedSecurity'] = $groupedSecurity;
+
+        $subject = "Yearly Security Amount Reminder - " . $year;
+        
+        $message = $this->load->view('email_template/security_yearly_template', $data, TRUE);
+
+        $emails = [
+            'antonyabishek80@gmail.com'
+        ];
+
+        foreach ($emails as $email) {
+            $this->common->email_data($email, $subject, $message);
+        }
+
+        // Insert Notifications
+        $this->load->model('notificationmodel');
+        $this->_addSecurityNotifications($securityAmounts, 'Yearly Security Amount Reminder');
+
+        echo "Yearly Security Amount emails sent successfully.<br>";
+    }
+
+    public function sendSecurityMonthlyEmail()
+    {
+        // Monthly trigger is meant to fetch records for the upcoming month
+        $year = date('Y', strtotime('+1 month'));
+        $month = date('m', strtotime('+1 month'));
+        $monthText = date('F', strtotime('+1 month'));
+
+        $securityAmounts = $this->purchasemodel->getPendingSecurityAmountListForCron($year, $month);
+        
+        if (empty($securityAmounts)) {
+            echo "No pending security amounts found for $monthText $year.<br>";
+            return;
+        }
+
+        $groupedSecurity = [];
+        foreach ($securityAmounts as $item) {
+            $zone = $item->zone ? $item->zone : 'Unassigned Zone';
+            $branchName = $item->branch_name ? $item->branch_name : 'Unassigned Branch';
+            $branchGroup = $zone . ' Zone & ' . $branchName;
+            $groupedSecurity[$branchGroup][] = $item;
+        }
+
+        $data['year'] = $year;
+        $data['monthText'] = $monthText;
+        $data['groupedSecurity'] = $groupedSecurity;
+
+        $subject = "Upcoming Monthly Security Amount Reminder - " . $monthText . " " . $year;
+        
+        $message = $this->load->view('email_template/security_monthly_template', $data, TRUE);
+
+        $emails = [
+            'antonyabishek80@gmail.com'
+        ];
+
+        foreach ($emails as $email) {
+            $this->common->email_data($email, $subject, $message);
+        }
+
+        // Insert Notifications
+        $this->load->model('notificationmodel');
+        $this->_addSecurityNotifications($securityAmounts, 'Upcoming Security Amount Due');
+
+        echo "Monthly Security Amount emails sent successfully.<br>";
     }
 
     public function sendPurchaseOrderEmail($simDate = null, $simDay = null)
@@ -112,7 +301,7 @@ class Cron extends CI_Controller
             $dayOfWeek = (int)$this->input->get('sim_day');
         }
 
-        $isMonday = ($dayOfWeek === 1);
+        $isMonthly = (date('j', strtotime($today)) == 1);
         $isPreview = (!is_cli() && $this->input->get('preview') == 1);
 
         $purchaseOrderList = $this->purchasemodel->getAllPurchaseOrdersList();
@@ -123,14 +312,13 @@ class Cron extends CI_Controller
         }
 
         // Initialize lists for each alert category
-        $data['poExpiry60'] = [];
+        $data['poExpiry150'] = [];
+        $data['poExpiry90'] = [];
         $data['poExpiry30'] = [];
-        $data['poExpiry15'] = [];
-        $data['poExpiry3']  = [];
 
-        $data['poBalance10000'] = [];
-        $data['poBalance5000']  = [];
-        $data['poBalance1000']  = [];
+        $data['poBalance500000'] = [];
+        $data['poBalance300000'] = [];
+        $data['poBalance100000'] = [];
 
         foreach ($purchaseOrderList as $row)
         {
@@ -141,107 +329,103 @@ class Cron extends CI_Controller
             $row->PoRemainingDate = $PoRemainingDate;
 
             // =========================================================================
-            // 📅 Purchase Order DATE BASED (Range matching on Monday/Preview, Exact on Tue-Sun)
+            // ðŸ“… Purchase Order DATE BASED (Range matching on Monthly/Preview, Exact on other days)
             // =========================================================================
-            if ($isMonday || $isPreview) {
-                if ($PoRemainingDate > 30 && $PoRemainingDate <= 60) {
-                    $data['poExpiry60'][] = $row;
-                } elseif ($PoRemainingDate > 15 && $PoRemainingDate <= 30) {
+            if ($isMonthly || $isPreview) {
+                if ($PoRemainingDate > 90 && $PoRemainingDate <= 150) {
+                    $data['poExpiry150'][] = $row;
+                } elseif ($PoRemainingDate > 30 && $PoRemainingDate <= 90) {
+                    $data['poExpiry90'][] = $row;
+                } elseif ($PoRemainingDate >= 0 && $PoRemainingDate <= 30) {
                     $data['poExpiry30'][] = $row;
-                } elseif ($PoRemainingDate > 3 && $PoRemainingDate <= 15) {
-                    $data['poExpiry15'][] = $row;
-                } elseif ($PoRemainingDate >= 0 && $PoRemainingDate <= 3) {
-                    $data['poExpiry3'][] = $row;
                 }
             } else {
-                if ($PoRemainingDate == 60) {
-                    $data['poExpiry60'][] = $row;
+                if ($PoRemainingDate == 150) {
+                    $data['poExpiry150'][] = $row;
+                } elseif ($PoRemainingDate == 90) {
+                    $data['poExpiry90'][] = $row;
                 } elseif ($PoRemainingDate == 30) {
                     $data['poExpiry30'][] = $row;
-                } elseif ($PoRemainingDate == 15) {
-                    $data['poExpiry15'][] = $row;
-                } elseif ($PoRemainingDate == 3) {
-                    $data['poExpiry3'][] = $row;
                 }
             }
 
             // =========================================================================
-            // 💰 BALANCE AMOUNT BASED (Range matching on Monday/Preview, First-Cross on Tue-Sun)
+            // ðŸ’° BALANCE AMOUNT BASED (Range matching on Monthly/Preview, First-Cross on other days)
             // =========================================================================
-            if ($isMonday || $isPreview) {
-                // Compile the ranges for the Weekly Consolidated Digest
-                if ($balanceAmount <= 1000) {
-                    $data['poBalance1000'][] = $row;
-                } elseif ($balanceAmount <= 5000 && $balanceAmount > 1000) {
-                    $data['poBalance5000'][] = $row;
-                } elseif ($balanceAmount <= 10000 && $balanceAmount > 5000) {
-                    $data['poBalance10000'][] = $row;
+            if ($isMonthly || $isPreview) {
+                // Compile the ranges for the Monthly Consolidated Digest
+                if ($balanceAmount <= 100000) {
+                    $data['poBalance100000'][] = $row;
+                } elseif ($balanceAmount <= 300000 && $balanceAmount > 100000) {
+                    $data['poBalance300000'][] = $row;
+                } elseif ($balanceAmount <= 500000 && $balanceAmount > 300000) {
+                    $data['poBalance500000'][] = $row;
                 }
 
-                // If Monday Weekly Digest, we update database flags so they are marked as notified
-                if ($isMonday && !$isPreview) {
-                    if ($balanceAmount <= 1000) {
+                // If Monthly Digest, we update database flags so they are marked as notified
+                if ($isMonthly && !$isPreview) {
+                    if ($balanceAmount <= 100000) {
                         $this->purchasemodel->updateBalanceAlertFlags($row->id, [
-                            'bal_alert_1000_sent' => 1,
-                            'bal_alert_5000_sent' => 1,
-                            'bal_alert_10000_sent' => 1
+                            'bal_alert_100000_sent' => 1,
+                            'bal_alert_300000_sent' => 1,
+                            'bal_alert_500000_sent' => 1
                         ]);
-                    } elseif ($balanceAmount <= 5000) {
+                    } elseif ($balanceAmount <= 300000) {
                         $this->purchasemodel->updateBalanceAlertFlags($row->id, [
-                            'bal_alert_1000_sent' => 0,
-                            'bal_alert_5000_sent' => 1,
-                            'bal_alert_10000_sent' => 1
+                            'bal_alert_100000_sent' => 0,
+                            'bal_alert_300000_sent' => 1,
+                            'bal_alert_500000_sent' => 1
                         ]);
-                    } elseif ($balanceAmount <= 10000) {
+                    } elseif ($balanceAmount <= 500000) {
                         $this->purchasemodel->updateBalanceAlertFlags($row->id, [
-                            'bal_alert_1000_sent' => 0,
-                            'bal_alert_5000_sent' => 0,
-                            'bal_alert_10000_sent' => 1
+                            'bal_alert_100000_sent' => 0,
+                            'bal_alert_300000_sent' => 0,
+                            'bal_alert_500000_sent' => 1
                         ]);
                     } else {
-                        // Reset all flags if balance goes back above 10,000 (Self-healing)
+                        // Reset all flags if balance goes back above 500000 (Self-healing)
                         $this->purchasemodel->updateBalanceAlertFlags($row->id, [
-                            'bal_alert_1000_sent' => 0,
-                            'bal_alert_5000_sent' => 0,
-                            'bal_alert_10000_sent' => 0
+                            'bal_alert_100000_sent' => 0,
+                            'bal_alert_300000_sent' => 0,
+                            'bal_alert_500000_sent' => 0
                         ]);
                     }
                 }
             } else {
-                // Tuesday - Sunday Daily Critical Check (Trigger alert only when FIRST crossed)
-                if ($balanceAmount <= 1000) {
-                    if ($row->bal_alert_1000_sent == 0) {
-                        $data['poBalance1000'][] = $row;
+                // Daily Critical Check (Trigger alert only when FIRST crossed)
+                if ($balanceAmount <= 100000) {
+                    if ($row->bal_alert_100000_sent == 0) {
+                        $data['poBalance100000'][] = $row;
                     }
                     $this->purchasemodel->updateBalanceAlertFlags($row->id, [
-                        'bal_alert_1000_sent' => 1,
-                        'bal_alert_5000_sent' => 1,
-                        'bal_alert_10000_sent' => 1
+                        'bal_alert_100000_sent' => 1,
+                        'bal_alert_300000_sent' => 1,
+                        'bal_alert_500000_sent' => 1
                     ]);
-                } elseif ($balanceAmount <= 5000) {
-                    if ($row->bal_alert_5000_sent == 0) {
-                        $data['poBalance5000'][] = $row;
+                } elseif ($balanceAmount <= 300000) {
+                    if ($row->bal_alert_300000_sent == 0) {
+                        $data['poBalance300000'][] = $row;
                     }
                     $this->purchasemodel->updateBalanceAlertFlags($row->id, [
-                        'bal_alert_1000_sent' => 0,
-                        'bal_alert_5000_sent' => 1,
-                        'bal_alert_10000_sent' => 1
+                        'bal_alert_100000_sent' => 0,
+                        'bal_alert_300000_sent' => 1,
+                        'bal_alert_500000_sent' => 1
                     ]);
-                } elseif ($balanceAmount <= 10000) {
-                    if ($row->bal_alert_10000_sent == 0) {
-                        $data['poBalance10000'][] = $row;
+                } elseif ($balanceAmount <= 500000) {
+                    if ($row->bal_alert_500000_sent == 0) {
+                        $data['poBalance500000'][] = $row;
                     }
                     $this->purchasemodel->updateBalanceAlertFlags($row->id, [
-                        'bal_alert_1000_sent' => 0,
-                        'bal_alert_5000_sent' => 0,
-                        'bal_alert_10000_sent' => 1
+                        'bal_alert_100000_sent' => 0,
+                        'bal_alert_300000_sent' => 0,
+                        'bal_alert_500000_sent' => 1
                     ]);
                 } else {
-                    // Reset all flags if balance goes back above 10,000 (Self-healing)
+                    // Reset all flags if balance goes back above 500000 (Self-healing)
                     $this->purchasemodel->updateBalanceAlertFlags($row->id, [
-                        'bal_alert_1000_sent' => 0,
-                        'bal_alert_5000_sent' => 0,
-                        'bal_alert_10000_sent' => 0
+                        'bal_alert_100000_sent' => 0,
+                        'bal_alert_300000_sent' => 0,
+                        'bal_alert_500000_sent' => 0
                     ]);
                 }
             }
@@ -249,19 +433,18 @@ class Cron extends CI_Controller
 
         // Check if there is anything to alert
         if (
-            empty($data['poExpiry60']) &&
+            empty($data['poExpiry150']) &&
+            empty($data['poExpiry90']) &&
             empty($data['poExpiry30']) &&
-            empty($data['poExpiry15']) &&
-            empty($data['poExpiry3']) &&
-            empty($data['poBalance10000']) &&
-            empty($data['poBalance5000']) &&
-            empty($data['poBalance1000'])
+            empty($data['poBalance500000']) &&
+            empty($data['poBalance300000']) &&
+            empty($data['poBalance100000'])
         ) {
             if ($isPreview) {
                 // Pass dynamic info to template
-                $data['emailTitle'] = "Weekly Purchase Order Digest";
+                $data['emailTitle'] = "Monthly Purchase Order Digest";
                 $data['emailSubtext'] = "Consolidated Expiries &amp; Low Balance Reminders";
-                $data['introText'] = "Below is the consolidated weekly report of all active Purchase Orders flagged with upcoming expiries or low balances.";
+                $data['introText'] = "Below is the consolidated monthly report of all active Purchase Orders flagged with upcoming expiries or low balances.";
                 $data['currentDate'] = date('d F, Y', strtotime($today));
                 $this->load->view('email_template/purchase_order_template', $data);
                 return;
@@ -271,11 +454,11 @@ class Cron extends CI_Controller
         }
 
         // Customize email subject and content
-        if ($isMonday) {
-            $subject = "Weekly Purchase Order Consolidated Digest - " . date('d F, Y', strtotime($today));
-            $data['emailTitle'] = "Weekly Purchase Order Digest";
-            $data['emailSubtext'] = "Weekly Consolidated Expiries &amp; Low Balances";
-            $data['introText'] = "Below is the consolidated weekly report of all active Purchase Orders flagged with upcoming expiries or low balances. Please review the status of these accounts.";
+        if ($isMonthly) {
+            $subject = "Monthly Purchase Order Consolidated Digest - " . date('d F, Y', strtotime($today));
+            $data['emailTitle'] = "Monthly Purchase Order Digest";
+            $data['emailSubtext'] = "Monthly Consolidated Expiries &amp; Low Balances";
+            $data['introText'] = "Below is the consolidated monthly report of all active Purchase Orders flagged with upcoming expiries or low balances. Please review the status of these accounts.";
         } else {
             $subject = "Daily Purchase Order Critical Alerts - " . date('d F, Y', strtotime($today));
             $data['emailTitle'] = "Daily Purchase Order Critical Alerts";
@@ -304,7 +487,20 @@ class Cron extends CI_Controller
             $this->common->email_data($email, $subject, $message);
         }
 
-        echo $isMonday ? "Weekly PO digest processed and sent." : "Daily PO critical alerts processed and sent.";
+        // Insert Notifications for each alerted PO
+        $this->load->model('notificationmodel');
+        $this->_addNotifications($data['poExpiry150'], 'PO Expiry in 5 Months', 'purchase_order', 'expiry_alert');
+        $this->_addNotifications($data['poExpiry90'], 'PO Expiry in 3 Months', 'purchase_order', 'expiry_alert');
+        $this->_addNotifications($data['poExpiry30'], 'PO Expiry in 1 Month', 'purchase_order', 'expiry_alert');
+        $this->_addNotifications($data['poBalance500000'], 'PO Balance Below ₹5,00,000', 'purchase_order', 'balance_alert');
+        $this->_addNotifications($data['poBalance300000'], 'PO Balance Below ₹3,00,000', 'purchase_order', 'balance_alert');
+        $this->_addNotifications($data['poBalance100000'], 'PO Balance Below ₹1,00,000', 'purchase_order', 'balance_alert');
+
+        if (isset($isMonthly) && $isMonthly) {
+            echo "Monthly PO digest processed and sent.";
+        } else {
+            echo "Daily PO critical alerts processed and sent.";
+        }
     }
 
     public function sendEmployeeWorkReminderEmail($simDate = null)
@@ -378,5 +574,57 @@ class Cron extends CI_Controller
         }
 
         echo "Successfully sent " . $emailsSent . " consolidated reminder email(s) alerting " . $totalReportsReminded . " pending report(s) due on " . date('d/m/Y', strtotime($targetDate)) . ".";
+    }
+
+    private function _addNotifications($list, $alertText, $moduleType, $notificationType) {
+        if (empty($list)) return;
+        foreach ($list as $item) {
+            $msg = $alertText . ': ' . $item->po_title . ' (' . $item->purchase_order_no . ')';
+            $this->notificationmodel->addNotification([
+                'module_type' => $moduleType,
+                'module_id' => $item->id,
+                'notification_type' => $notificationType,
+                'message' => $msg
+            ]);
+        }
+    }
+
+    private function _addVehicleNotifications($list, $alertText) {
+        if (empty($list)) return;
+        foreach ($list as $item) {
+            $msg = $alertText . ': ' . $item->vehicle_name . ' (' . $item->vehicle_number . ')';
+            $this->notificationmodel->addNotification([
+                'module_type' => 'vehicle',
+                'module_id' => $item->id,
+                'notification_type' => 'renewal_alert',
+                'message' => $msg
+            ]);
+        }
+    }
+
+    private function _addRetentionNotifications($list, $alertText) {
+        if (empty($list)) return;
+        foreach ($list as $item) {
+            $msg = $alertText . ': ' . $item->po_title . ' (' . $item->purchase_order_no . ')';
+            $this->notificationmodel->addNotification([
+                'module_type' => 'purchase_order',
+                'module_id' => $item->po_id,
+                'notification_type' => 'retention_alert',
+                'message' => $msg
+            ]);
+        }
+    }
+
+    private function _addSecurityNotifications($list, $alertText) {
+        if (empty($list)) return;
+        foreach ($list as $item) {
+            $msg = $alertText . ': ' . $item->po_title . ' (' . $item->purchase_order_no . ')';
+            $this->notificationmodel->addNotification([
+                'module_type' => 'purchase_order',
+                'module_id' => $item->id,
+                'notification_type' => 'security_alert',
+                'message' => $msg
+            ]);
+        }
     }
 }

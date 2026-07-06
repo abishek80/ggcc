@@ -559,6 +559,7 @@ class Web extends CI_Controller {
         $data["month"] = $month;
         $data["year"] = $year;
         $data["formTitle"] = 'Add Yearly Plan';
+        $data["plan_type"] = 'once';
         
         $this->load->view('settings/header', $data);
         $this->load->view('yearly_plan/event-add', $data);
@@ -586,6 +587,7 @@ class Web extends CI_Controller {
           $data['date'] = $row->date;
           $data['title'] = $row->title;
           $data['description'] = $row->description;
+          $data['plan_type'] = $row->plan_type;
         }
 
         $this->load->view('settings/header', $data);
@@ -638,8 +640,9 @@ class Web extends CI_Controller {
       $title = $this->input->post('title');
       $description = $this->input->post('description');
       $status = $this->input->post('status');
+      $planType = $this->input->post('plan_type') ? $this->input->post('plan_type') : 'once';
       
-      $this->webmodel->saveYearlyPlanData($eventId, $date, $title, $description, $status);
+      $this->webmodel->saveYearlyPlanData($eventId, $date, $title, $description, $status, $planType);
       
       $data["isError"] = FALSE;
       if ($eventId > 0) {
