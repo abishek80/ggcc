@@ -406,7 +406,9 @@ class Employee extends CI_Controller {
     public function getAttendanceEmployeeNameList()
     {
       $employeeName = $this->input->post('employee_name');
-      $data = $this->employeemodel->getAttendanceEmployeeName($employeeName);
+      $zone         = $this->input->post('zone');
+      $branch       = $this->input->post('branch');
+      $data = $this->employeemodel->getAttendanceEmployeeName($employeeName, $zone, $branch);
       echo json_encode($data);
     }
 

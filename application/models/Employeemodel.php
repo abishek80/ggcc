@@ -237,7 +237,7 @@ class Employeemodel extends CI_Model
         return $query->result_array();
     } 
 
-    public function getAttendanceEmployeeName($employeeName)
+    public function getAttendanceEmployeeName($employeeName, $zone = '', $branch = '')
     {
         $this->db->select('AE.id, AE.employee_name as value, MD.designation');
         $this->db->from('attendance_employee AE');
@@ -245,6 +245,12 @@ class Employeemodel extends CI_Model
         $this->db->join('master_designation MD', 'E.designation = MD.id', 'left');
         $this->db->where('AE.status', 'active');
         $this->db->where('AE.delete_status', 0);
+        if ($zone != '') {
+            $this->db->where('AE.zone', $zone);
+        }
+        if ($branch != '') {
+            $this->db->where('AE.branch', $branch);
+        }
         $this->db->order_by('AE.employee_name ASC');
         $this->db->like('AE.employee_name', $employeeName);
         $query = $this->db->get();

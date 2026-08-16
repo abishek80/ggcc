@@ -105,6 +105,8 @@
     }
     .att-P { color: green; font-weight: bold; }
     .att-A { color: red; font-weight: bold; }
+    .att-FOT { color: orange; font-weight: bold; }
+    .att-HOT { color: #e6b800; font-weight: bold; }
 </style>
 
 <script>
@@ -204,10 +206,12 @@ $(document).ready(function() {
 
     // Color code selects when changed
     $(document).on('change', '.att-select', function() {
-        $(this).removeClass('att-P att-A');
+        $(this).removeClass('att-P att-A att-FOT att-HOT');
         var val = $(this).val();
         if(val == 'present') $(this).addClass('att-P');
         else if(val == 'absent') $(this).addClass('att-A');
+        else if(val == 'full_day_ot') $(this).addClass('att-FOT');
+        else if(val == 'half_day_ot') $(this).addClass('att-HOT');
     });
 });
 </script>

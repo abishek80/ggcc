@@ -7,8 +7,10 @@ class Notification extends CI_Controller {
     {
         parent::__construct();
         $this->load->model('notificationmodel');
-        if (($this->session->userdata('userid') == null) || ($this->session->userdata('userid') == "")) {
-            redirect(base_url() . 'login');
+        if (!is_cli()) {
+            if (($this->session->userdata('userid') == null) || ($this->session->userdata('userid') == "")) {
+                redirect(base_url() . 'login');
+            }
         }
         error_reporting(E_ALL ^ (E_NOTICE | E_WARNING | E_DEPRECATED));
     }
@@ -31,6 +33,9 @@ class Notification extends CI_Controller {
             $data['checkEmployeeExpensesList'] = $this->employeemodel->getCheckEmployeeExpensesList($empId);
             $data['checkEmployeeAttendanceList'] = $this->attendancemodel->getCheckEmployeeAttendanceList($empId);
         
+            // Generate upcoming/expiry alerts dynamically on-the-fly
+            $this->notificationmodel->generateUpcomingNotifications();
+            
             $data['notifications'] = $this->notificationmodel->getAllNotifications();
             
             $this->load->view('settings/header', $data);
@@ -48,6 +53,9 @@ class Notification extends CI_Controller {
      */
     public function get_unread_ajax()
     {
+        // Generate upcoming/expiry alerts dynamically on-the-fly
+        $this->notificationmodel->generateUpcomingNotifications();
+
         $limit = $this->input->post('limit') ? $this->input->post('limit') : 10;
         $notifications = $this->notificationmodel->getUnreadNotifications($limit);
         $count = $this->notificationmodel->getUnreadCount();

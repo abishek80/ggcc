@@ -450,13 +450,13 @@
                                         </a>
                                     </li>
                                 <?php } ?>
-                                <!-- <?php if(in_array('admin', $userPermission) || in_array('stock_management', $userPermission)) { ?>
+                                <?php if(in_array('admin', $userPermission) || in_array('stock_management', $userPermission)) { ?>
                                     <li class="menu-item <?php echo $menu_status == 'stock_report' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>report/stock-report" class="menu-link">
                                             <div data-i18n="Stock Report">Stock Report</div>
                                         </a>
                                     </li>
-                                <?php } ?> -->
+                                <?php } ?>
                             </ul>
                         </li>
                     <?php } ?>

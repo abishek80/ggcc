@@ -162,6 +162,14 @@ class Attendance extends CI_Controller {
     }
   }
 
+  public function selectEmployeeAttendanceDropdown()
+  {
+    $zone 	    = $this->input->post('zone');
+    $branch     = $this->input->post('branch');
+    $data 	    = $this->attendancemodel->getEmployeeAttendanceDropdown($zone, $branch);
+    echo json_encode($data); 
+  }
+
   //Employee Attendance Save Form //
   public function employeeAttendanceSaveForm()
   {
@@ -617,12 +625,16 @@ class Attendance extends CI_Controller {
                   $class = '';
                   if($status == 'present') $class = 'att-P';
                   else if($status == 'absent') $class = 'att-A';
+                  else if($status == 'full_day_ot') $class = 'att-FOT';
+                  else if($status == 'half_day_ot') $class = 'att-HOT';
                   
                   $tbody .= "<td>
                       <select name='attendance[$empId][$i]' class='att-select $class'>
                           <option value=''>-</option>
                           <option value='present' ".($status=='present' ? 'selected' : '').">P</option>
                           <option value='absent' ".($status=='absent' ? 'selected' : '').">A</option>
+                          <option value='full_day_ot' ".($status=='full_day_ot' ? 'selected' : '').">FD_OT</option>
+                          <option value='half_day_ot' ".($status=='half_day_ot' ? 'selected' : '').">HD_OT</option>
                       </select>
                   </td>";
               }

@@ -269,7 +269,7 @@ class Report extends CI_Controller {
             return;
         }
 
-        $fileName = $employeeName . "payslip_report_" . date("d-m-Y") . ".xls";
+        $fileName = ($companyName ? $companyName . "_" : "") . "payslip_report_" . date("d-m-Y") . ".xls";
 
         header("Content-Type: application/vnd.ms-excel");
         header("Content-Disposition: attachment; filename=\"$fileName\"");
@@ -505,8 +505,8 @@ class Report extends CI_Controller {
             $data['menu_status'] = 'stock_report';
 
             $branch = $data['branchId'] = $this->input->get('branch');
-            $fromDate = $data['fromDate'] = $this->input->get('fromDate');
-            $toDate = $data['toDate'] = $this->input->get('toDate');
+            $fromDate = $data['fromDate'] = $this->input->get('from_date');
+            $toDate = $data['toDate'] = $this->input->get('to_date');
 
             $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
             $data['stockReportList'] = $this->reportmodel->exportStockData($branch, $fromDate, $toDate);

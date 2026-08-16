@@ -88,8 +88,8 @@
             type: 'post',
             data: {
                 branch: branch,
-                fromDate: fromDate,
-                toDate: toDate
+                from_date: fromDate,
+                to_date: toDate
             },
             xhrFields: {
                 responseType: 'blob' // Expect a binary response for file download

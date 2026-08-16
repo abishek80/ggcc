@@ -35,6 +35,18 @@
                 $whereOT .= " AND MONTHNAME(EOT.ot_date) = '$month'";
             }
 
+            $subPresent = $subLeave = $subOT = '';
+            if ($year) {
+                $subPresent .= " AND YEAR(present_date) = '$year'";
+                $subLeave .= " AND YEAR(leave_date) = '$year'";
+                $subOT .= " AND YEAR(ot_date) = '$year'";
+            }
+            if ($month) {
+                $subPresent .= " AND MONTHNAME(present_date) = '$month'";
+                $subLeave .= " AND MONTHNAME(leave_date) = '$month'";
+                $subOT .= " AND MONTHNAME(ot_date) = '$month'";
+            }
+
             $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, 
                     COUNT(DISTINCT EA.id) AS present_count, 
                     COUNT(DISTINCT ELD.id) AS leave_count, 
@@ -48,6 +60,38 @@
                     LEFT JOIN employee_leave_detail ELD ON ELD.employee_id = E.id AND ELD.delete_status = 0 $whereLeave 
                     INNER JOIN master_designation MD ON MD.id = E.designation 
                     WHERE E.delete_status = 0 
+                    AND (
+                        E.id IN (
+                            SELECT employee_id 
+                            FROM attendance_employee 
+                            WHERE status = 'active' 
+                            AND delete_status = 0
+                        )
+                        OR E.id IN (
+                            SELECT employee_id 
+                            FROM employee_attendance 
+                            WHERE delete_status = 0 
+                            $subPresent
+                        )
+                        OR E.id IN (
+                            SELECT employee_id 
+                            FROM employee_leave 
+                            WHERE delete_status = 0 
+                            $subLeave
+                        )
+                        OR E.id IN (
+                            SELECT employee_id 
+                            FROM employee_leave_detail 
+                            WHERE delete_status = 0 
+                            $subLeave
+                        )
+                        OR E.id IN (
+                            SELECT employee_id 
+                            FROM employee_ot 
+                            WHERE delete_status = 0 
+                            $subOT
+                        )
+                    )
                     GROUP BY E.id 
                     ORDER BY E.employee_name ASC";
 
@@ -146,6 +190,19 @@
             return $res->result();
         }
 
+        public function getEmployeeAttendanceDropdown($zone = '', $branch = '')
+        {
+            if ($zone > '' && $branch > '') {
+                $where = "WHERE AE.zone = '" . $zone . "' AND AE.branch = " . $branch . " AND AE.status = 'active' AND AE.delete_status = 0 ORDER BY E.employee_name ASC";
+            }else{
+                $where = '';
+            }
+            
+            $sql ="SELECT AE.*, E.employee_name FROM attendance_employee AE INNER JOIN employee E ON E.id = AE.employee_id $where";
+
+            $res = $this->db->query($sql);
+            return $res->result();
+        }
 
         public function saveEmployeeAttendanceData($attendanceId, $presentDate, $employeeId, $attendanceType)
         {
@@ -669,7 +726,19 @@
             $leaveRes = $this->db->query($leaveSql, [$startDate, $endDate]);
             $leaveData = $leaveRes->result();
 
-            $mergedData = array_merge($attendanceData, $leaveData);
+            // OT days
+            $otSql = "SELECT employee_id, ot_date as present_date, 
+                             CASE WHEN ot_type = 'Full Day' THEN 'full_day_ot' 
+                                  WHEN ot_type = 'Half Day' THEN 'half_day_ot' 
+                                  ELSE 'full_day_ot' 
+                             END as status 
+                      FROM employee_ot 
+                      WHERE delete_status = 0 
+                      AND ot_date BETWEEN ? AND ?";
+            $otRes = $this->db->query($otSql, [$startDate, $endDate]);
+            $otData = $otRes->result();
+
+            $mergedData = array_merge($attendanceData, $leaveData, $otData);
 
             // Group by employee and date
             $gridData = [];
@@ -722,6 +791,11 @@
                     $this->db->where('leave_date', $dateStr);
                     $this->db->delete('employee_leave');
 
+                    // Delete from employee_ot where ot_date matches and employee_id matches
+                    $this->db->where('employee_id', (int) $empId);
+                    $this->db->where('ot_date', $dateStr);
+                    $this->db->delete('employee_ot');
+
                     // If present, insert into employee_attendance
                     if ($status === 'present') {
                         $this->db->insert('employee_attendance', [
@@ -759,6 +833,30 @@
                             'created_at' => $currentDateTime
                         );
                         $this->db->insert('employee_leave_detail', $leaveDetailData);
+                    }
+                    // If full day OT or half day OT, insert into employee_ot
+                    else if ($status === 'full_day_ot' || $status === 'half_day_ot') {
+                        $branchId = '13';
+                        $branchQuery = $this->db->select('branch')->where('employee_id', $empId)->get('attendance_employee')->row();
+                        if ($branchQuery) {
+                            $branchId = $branchQuery->branch;
+                        }
+
+                        $otType = ($status === 'full_day_ot') ? 'Full Day' : 'Half Day';
+                        $this->db->insert('employee_ot', [
+                            'branch_id' => $branchId,
+                            'employee_id' => $empId,
+                            'ot_date' => $dateStr,
+                            'work_place' => 'Office',
+                            'time_zone' => 'General',
+                            'ot_type' => $otType,
+                            'status' => 'approved',
+                            'delete_status' => 0,
+                            'created_by' => $userId,
+                            'created_at' => $currentDateTime,
+                            'updated_by' => $userId,
+                            'updated_at' => $currentDateTime
+                        ]);
                     }
                 }
             }

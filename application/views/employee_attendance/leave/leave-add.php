@@ -111,14 +111,14 @@
 
 <script>
     $('.zone').change(function () {
-        var selectedOutletZone = $(this).val();
-        if (selectedOutletZone !== '') {
+        var selectedZone = $(this).val();
+        if (selectedZone !== '') {
             $.ajax({
                 url: "<?php echo base_url('master/selectBranchDropdown'); ?>",
                 type: "POST",
                 dataType: "json",
                 data: {
-                    zone: selectedOutletZone
+                    zone: selectedZone
                 },
                 success: function (data) {
                     var selectElement = document.querySelector('.branch');
@@ -132,6 +132,34 @@
                 }
             });
         }
+    });
+    
+    $(document).ready(function() {
+        $('.branch').change(function () {
+            var selectedBranch = $(this).val();
+            var selectedZone = $('.zone').val();
+            if (selectedZone !== '' && selectedBranch !== '') {
+                $.ajax({
+                    url: "<?php echo base_url('attendance/selectEmployeeAttendanceDropdown'); ?>",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        zone: selectedZone,
+                        branch: selectedBranch
+                    },
+                    success: function (data) {
+                        var selectElement = document.querySelector('.selectEmployeeName');
+                        selectElement.innerHTML = '<option value="">Select Employee Name</option>';
+                        data.forEach(function (item) {
+                            var option = document.createElement('option');
+                            option.textContent = item.employee_name;
+                            option.value = item.id;
+                            selectElement.appendChild(option);
+                        });
+                    }
+                });
+            }
+        });
     });
 
     $(document).ready(function () {

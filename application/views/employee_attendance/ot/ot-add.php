@@ -186,7 +186,9 @@
                     type: 'post',
                     dataType: "json",
                     data: {
-                        employee_name: request.term
+                        employee_name: request.term,
+                        zone: $('.zone').val(),
+                        branch: $('.branch').val()
                     },
                     success: function(data) {
                         if (data && data.length > 0) {
