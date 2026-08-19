@@ -355,22 +355,20 @@ class Report extends CI_Controller {
             $data['vehicleDropdown'] = $this->mastermodel->getVehicleDropdown();
             $data['vehicleFuelReportList'] = $this->reportmodel->getExportVehicleFuelData($fromDate, $toDate, $vehicleId);
 
-            $vehicleFuelReportDetail = $this->reportmodel->getExportVehicleFuelDetail($fromDate, $toDate, $vehicleId);
+            $summary = $this->calculateFuelSummary($vehicleId, $fromDate, $toDate);
 
-            $row = is_array($vehicleFuelReportDetail[0]) ? (object) $vehicleFuelReportDetail[0] : $vehicleFuelReportDetail[0];
-
-            $data['vehicleName'] = $row->vehicle_name;
-            $data['vehicleNumber'] = $row->vehicle_number;
-            $data['fuelType'] = $row->fuel_type;
-            $data['totalKilometer'] = $row->total_kilometer;
-            $data['totalAmount'] = $row->total_amount;
-            $data['totalLiter'] = $row->total_liter;
+            $data['vehicleName'] = $summary['vehicle_name'];
+            $data['vehicleNumber'] = $summary['vehicle_number'];
+            $data['fuelType'] = $summary['fuel_type'];
+            $data['totalKilometer'] = $summary['total_kilometer'];
+            $data['totalAmount'] = $summary['total_amount'];
+            $data['totalLiter'] = $summary['total_liter'];
             
-            $data['ratePerLtr'] = $row->rate_per_ltr;
-            $data['kmPerLtr'] = $row->km_per_ltr;
-            $data['rsPerKM'] = $row->rs_per_km;
+            $data['ratePerLtr'] = $summary['rate_per_ltr'];
+            $data['kmPerLtr'] = $summary['km_per_ltr'];
+            $data['rsPerKM'] = $summary['rs_per_km'];
             
-            $data['average'] = $row->avg_percentage;
+            $data['average'] = $summary['avg_percentage'];
 
             extract($data);
 
@@ -390,13 +388,12 @@ class Report extends CI_Controller {
         $fromDate = $this->input->post('fromDate');
         $toDate = $this->input->post('toDate');
     
-        $summaryResult = $this->reportmodel->getExportVehicleFuelDetail($fromDate, $toDate, $vehicleId);
-        $summary = !empty($summaryResult) ? $summaryResult[0] : [];
+        $summary = $this->calculateFuelSummary($vehicleId, $fromDate, $toDate);
 
         // Fetch detailed records
         $details = $this->reportmodel->getExportVehicleFuelData($fromDate, $toDate, $vehicleId);
 
-        if (empty($summary) && empty($details)) {
+        if (empty($details)) {
             echo json_encode(["isError" => true, "message" => "No data available for export"]);
             return;
         }
@@ -495,6 +492,151 @@ class Report extends CI_Controller {
 
         fclose($output);
         exit;
+    }
+
+    private function calculateFuelSummary($vehicleId, $fromDate, $toDate)
+    {
+        $logs = $this->reportmodel->getExportVehicleFuelData($fromDate, $toDate, $vehicleId);
+        
+        $summary = [
+            'vehicle_name' => '',
+            'vehicle_number' => '',
+            'fuel_type' => '',
+            'total_kilometer' => 0,
+            'total_liter' => 0,
+            'total_amount' => 0,
+            'rate_per_ltr' => 0,
+            'km_per_ltr' => 0,
+            'rs_per_km' => 0,
+            'avg_percentage' => 0
+        ];
+
+        if (empty($logs)) {
+            if ($vehicleId) {
+                $this->db->select('vehicle_name, vehicle_number, fuel_type');
+                $this->db->where('id', $vehicleId);
+                $vQuery = $this->db->get('vehicle');
+                if ($vQuery->num_rows() > 0) {
+                    $vRow = $vQuery->row();
+                    $summary['vehicle_name'] = $vRow->vehicle_name;
+                    $summary['vehicle_number'] = $vRow->vehicle_number;
+                    $summary['fuel_type'] = $vRow->fuel_type;
+                }
+            }
+            return $summary;
+        }
+
+        // Sort logs chronologically (oldest to newest)
+        usort($logs, function($a, $b) {
+            $dateA = strtotime($a['filling_date']);
+            $dateB = strtotime($b['filling_date']);
+            if ($dateA == $dateB) {
+                return $a['id'] - $b['id'];
+            }
+            return $dateA - $dateB;
+        });
+
+        $summary['vehicle_name'] = $logs[0]['vehicle_name'] ?? '';
+        $summary['vehicle_number'] = $logs[0]['vehicle_number'] ?? '';
+        $summary['fuel_type'] = $logs[0]['fuel_type'] ?? '';
+
+        // Calculate absolute totals
+        $totalAmount = 0;
+        $totalLiter = 0;
+        $kms = [];
+        
+        foreach ($logs as $log) {
+            $totalAmount += floatval($log['amount']);
+            $totalLiter += floatval($log['liter_qty']);
+            $kmVal = intval($log['vehicle_km']);
+            if ($kmVal > 0) {
+                $kms[] = $kmVal;
+            }
+        }
+
+        $summary['total_amount'] = round($totalAmount, 2);
+        $summary['total_liter'] = round($totalLiter, 2);
+
+        if ($vehicleId) {
+            $precedingKm = 0;
+            if (!empty($kms)) {
+                $maxKm = max($kms);
+                $minKm = min($kms);
+                
+                $earliestDate = $logs[0]['filling_date'];
+                
+                $sql = "SELECT vehicle_km FROM vehicle_fuel WHERE vehicle_id = ? AND delete_status = 0 AND vehicle_km > 0 AND filling_date < ? ORDER BY filling_date DESC, id DESC LIMIT 1";
+                $query = $this->db->query($sql, [$vehicleId, $earliestDate]);
+                if ($query->num_rows() > 0) {
+                    $precedingKm = intval($query->row()->vehicle_km);
+                }
+                
+                if ($precedingKm > 0 && $maxKm >= $precedingKm) {
+                    $summary['total_kilometer'] = $maxKm - $precedingKm;
+                } else {
+                    $summary['total_kilometer'] = ($maxKm >= $minKm) ? ($maxKm - $minKm) : 0;
+                }
+            }
+
+            // Exclude entries with missing or 0 liter quantities/kms for mileage and average rate per liter
+            $validLogs = array_filter($logs, function($log) {
+                return intval($log['vehicle_km']) > 0 && floatval($log['liter_qty']) > 0;
+            });
+
+            if (!empty($validLogs)) {
+                $validLogs = array_values($validLogs);
+                
+                // Calculate rate_per_ltr using only entries where liter is recorded
+                $validAmount = 0;
+                $validLiter = 0;
+                foreach ($validLogs as $vl) {
+                    $validAmount += floatval($vl['amount']);
+                    $validLiter += floatval($vl['liter_qty']);
+                }
+                if ($validLiter > 0) {
+                    $summary['rate_per_ltr'] = round($validAmount / $validLiter, 2);
+                }
+
+                // Mileage calculation: MAX km - preceding valid km, divided by liters
+                $validKms = array_map(function($vl) { return intval($vl['vehicle_km']); }, $validLogs);
+                $maxValidKm = max($validKms);
+                $minValidKm = min($validKms);
+                
+                $precedingValidKm = 0;
+                $earliestValidDate = $validLogs[0]['filling_date'];
+                
+                $sql = "SELECT vehicle_km FROM vehicle_fuel WHERE vehicle_id = ? AND delete_status = 0 AND vehicle_km > 0 AND liter_qty > 0 AND filling_date < ? ORDER BY filling_date DESC, id DESC LIMIT 1";
+                $query = $this->db->query($sql, [$vehicleId, $earliestValidDate]);
+                if ($query->num_rows() > 0) {
+                    $precedingValidKm = intval($query->row()->vehicle_km);
+                }
+
+                if ($precedingValidKm > 0 && $maxValidKm >= $precedingValidKm) {
+                    $mileageKm = $maxValidKm - $precedingValidKm;
+                    $mileageLiter = $validLiter;
+                } else {
+                    $mileageKm = ($maxValidKm >= $minValidKm) ? ($maxValidKm - $minValidKm) : 0;
+                    $mileageLiter = $validLiter - floatval($validLogs[0]['liter_qty']);
+                }
+
+                if ($mileageLiter > 0 && $mileageKm > 0) {
+                    $summary['km_per_ltr'] = round($mileageKm / $mileageLiter, 2);
+                }
+
+                // Rupees Per Kilometer
+                $mileageKmTotal = ($precedingValidKm > 0 && $maxValidKm >= $precedingValidKm) ? ($maxValidKm - $precedingValidKm) : (($maxValidKm >= $minValidKm) ? ($maxValidKm - $minValidKm) : 0);
+                if ($mileageKmTotal > 0) {
+                    $summary['rs_per_km'] = round($validAmount / $mileageKmTotal, 2);
+                }
+                
+                // Average percentage based on baseline of 12 km/L
+                if ($summary['km_per_ltr'] > 0) {
+                    $summary['avg_percentage'] = round(($summary['km_per_ltr'] / 12) * 100, 2);
+                }
+            }
+        }
+
+        return $summary;
     }
     
     

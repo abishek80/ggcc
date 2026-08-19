@@ -11,8 +11,10 @@ class Employee extends CI_Controller {
       $this->output->set_header('Cache-Control: no-store, no-cache, must-revalidate');
       $this->output->set_header('Cache-Control: post-check=0, pre-check=0', false);
       $this->output->set_header('Pragma: no-cache');
-      if (($this->session->userdata('userid') == null) || ($this->session->userdata('userid') == "")) {
-        redirect(base_url() . 'login');
+      if (!is_cli()) {
+        if (($this->session->userdata('userid') == null) || ($this->session->userdata('userid') == "")) {
+          redirect(base_url() . 'login');
+        }
       }
   
       error_reporting(E_ALL ^ (E_NOTICE | E_WARNING | E_DEPRECATED));
@@ -112,6 +114,9 @@ class Employee extends CI_Controller {
                 $data['pancard'] = $row->pancard_img;
                 $data['bankbook'] = $row->bankbook_img;
                 $data['licence'] = $row->licence_img;
+                $data['licenceNumber'] = $row->licence_number;
+                $data['electricalLicence'] = $row->electrical_licence;
+                $data['electricalLicenceImg'] = $row->electrical_licence_img;
                 $data['houseNo'] = $row->house_no;
                 $data['street'] = $row->street;
                 $data['city'] = $row->city;
@@ -181,6 +186,9 @@ class Employee extends CI_Controller {
             $data['employeePancard'] = $row->pancard_img;
             $data['employeeBankbook'] = $row->bankbook_img;
             $data['employeeLicence'] = $row->licence_img;
+            $data['licenceNumber'] = $row->licence_number;
+            $data['electricalLicence'] = $row->electrical_licence;
+            $data['electricalLicenceImg'] = $row->electrical_licence_img;
             $data['employeeContactName'] = $row->contact_name;
             $data['employeeRelativeType'] = $row->contact_relative;
             $data['employeeContactNumber'] = $row->contact_phone_number;
@@ -260,11 +268,15 @@ class Employee extends CI_Controller {
         $ifscCode = $this->input->post('ifsc_code');
         $status = $this->input->post('status');
 
+        $licenceNumber = $this->input->post('licence_number');
+        $electricalLicence = $this->input->post('electrical_licence');
+
         $alterEmployeeProfile = $this->input->post('alter_employee_profile');
         $alterEmployeeAadharcard = $this->input->post('alter_employee_aadharcard');
         $alterEmployeePancard = $this->input->post('alter_employee_pancard');
         $alterEmployeeBankbook = $this->input->post('alter_employee_bankbook');
         $alterEmployeeLicence = $this->input->post('alter_employee_licence');
+        $alterElectricalLicenceImg = $this->input->post('alter_employee_electrical_licence');
         
         $allowTypes = array('jpg', 'png', 'jpeg', 'pdf', 'doc', 'docx', 'xls', 'xlsx');
         $profileUploadDir = './uploads/employee_profile/';
@@ -272,6 +284,7 @@ class Employee extends CI_Controller {
         $pancardUploadDir = './uploads/employee_pancard/';
         $bankbookUploadDir = './uploads/employee_bankbook/';
         $licenceUploadDir = './uploads/employee_licence/';
+        $electricalLicenceUploadDir = './uploads/employee_electrical_licence/';
 
         // Employee Profile
         if (isset($_FILES['employee_profile'])) {
@@ -302,12 +315,19 @@ class Employee extends CI_Controller {
             $filesArray = $_FILES['employee_licence'];
             $uploadedFiles['employee_licence'] = $this->common->fileUpload($filesArray, $licenceUploadDir, $allowTypes);
         }
+
+        // Employee Electrical Licence
+        if (isset($_FILES['employee_electrical_licence'])) {
+            $filesArray = $_FILES['employee_electrical_licence'];
+            $uploadedFiles['employee_electrical_licence'] = $this->common->fileUpload($filesArray, $electricalLicenceUploadDir, $allowTypes);
+        }
         
         $employeeProfile_img = $uploadedFiles['employee_profile'][0];
         $employeeAadharcard_img = $uploadedFiles['employee_aadharcard'][0];
         $employeePancard_img = $uploadedFiles['employee_pancard'][0];
         $employeeBankbook_img = $uploadedFiles['employee_bankbook'][0];
         $employeeLicence_img = $uploadedFiles['employee_licence'][0];
+        $employeeElectricalLicence_img = $uploadedFiles['employee_electrical_licence'][0];
         
         if ($_FILES["employee_profile"]["name"] == FALSE) {
             $employeeProfile_img = $alterEmployeeProfile;
@@ -324,6 +344,9 @@ class Employee extends CI_Controller {
         if ($_FILES["employee_licence"]["name"] == FALSE) {
             $employeeLicence_img = $alterEmployeeLicence;
         }
+        if ($_FILES["employee_electrical_licence"]["name"] == FALSE) {
+            $employeeElectricalLicence_img = $alterElectricalLicenceImg;
+        }
 
         if ($employeeId < 0 || $employeeId == '') {
             $checkExists = $this->employeemodel->checkEmployee($token);
@@ -335,7 +358,7 @@ class Employee extends CI_Controller {
             }
         }
 
-        $this->employeemodel->saveEmployeeData($employeeId, $token, $employeeCode, $employeePassword, $employeePermission, $companyName, $zone, $branch, $branchLocation, $employeeName, $employeeEmail, $employeeNumber, $employeeDesignation, $employeeEducation, $dob, $doj, $status, $houseNo, $street, $city, $district, $pincode, $contactName, $contactRelative, $contactPhoneNumber, $contactHouseNo, $contactStreet, $contactCity, $contactDistrict, $contactPincode, $payslipStatus, $employeeProfile_img, $employeeAadharcard_img, $employeePancard_img, $employeeBankbook_img, $employeeLicence_img, $basicPay, $allowanceAmount, $pfStatus, $esiStatus, $esiNumber, $pfNumber, $mobileRecharge, $pfAmount, $bankName, $bankBranchName, $accountNumber, $ifscCode, $panNumber, $aadharNumber);
+        $this->employeemodel->saveEmployeeData($employeeId, $token, $employeeCode, $employeePassword, $employeePermission, $companyName, $zone, $branch, $branchLocation, $employeeName, $employeeEmail, $employeeNumber, $employeeDesignation, $employeeEducation, $dob, $doj, $status, $houseNo, $street, $city, $district, $pincode, $contactName, $contactRelative, $contactPhoneNumber, $contactHouseNo, $contactStreet, $contactCity, $contactDistrict, $contactPincode, $payslipStatus, $employeeProfile_img, $employeeAadharcard_img, $employeePancard_img, $employeeBankbook_img, $employeeLicence_img, $basicPay, $allowanceAmount, $pfStatus, $esiStatus, $esiNumber, $pfNumber, $mobileRecharge, $pfAmount, $bankName, $bankBranchName, $accountNumber, $ifscCode, $panNumber, $aadharNumber, $licenceNumber, $electricalLicence, $employeeElectricalLicence_img);
         
         $data["isError"] = FALSE;
         if ($employeeId > 0) {
@@ -553,6 +576,35 @@ class Employee extends CI_Controller {
         $employeeName 	= $this->input->post('employeeName');
         $data 	= $this->employeemodel->getEmployeeSalaryInfo($employeeName);
         echo json_encode($data); 
+    }
+
+    public function getEmployeeAttendanceCounts()
+    {
+        $employeeId = $this->input->post('employeeId');
+        $year       = $this->input->post('year');
+        $month      = $this->input->post('month');
+
+        $this->load->model('attendancemodel');
+        $results = $this->attendancemodel->getAttendanceCounts($year, $month, $employeeId);
+
+        if ($employeeId !== null && $employeeId !== '') {
+            if (!empty($results)) {
+                echo json_encode($results[0]);
+            } else {
+                echo json_encode([
+                    'present_count' => 0,
+                    'leave_count' => 0,
+                    'ot_count' => 0
+                ]);
+            }
+        } else {
+            // Index by employee_id for easy lookup in multi add page
+            $indexed = array();
+            foreach ($results as $row) {
+                $indexed[$row['employee_id']] = $row;
+            }
+            echo json_encode($indexed);
+        }
     }
 
     public function employeeInfo()

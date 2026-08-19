@@ -6793,6 +6793,20 @@ a.invert-bg-dark:focus {
   border-color: #d3e8cd;
 }
 
+/* Weekend column header */
+#attendanceTable thead th.weekend-col {
+  background-color: #f0f0ff !important;
+  font-weight: bold;
+}
+/* Odd rows - slightly darker yellow */
+#attendanceTable tbody tr:nth-child(odd) td.weekend-col {
+  background-color: #f0f0ff !important;
+}
+/* Even rows - lighter yellow */
+#attendanceTable tbody tr:nth-child(even) td.weekend-col {
+  background-color: #f0f0ff !important;
+}
+
 .table-success th {
   border-bottom-color: inherit !important;
 }

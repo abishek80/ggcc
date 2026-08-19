@@ -194,12 +194,39 @@
             }
         }
 
+        function fetchEmployeeAttendance() {
+            var selectedEmployeeName = $('.selectEmployeeName').val();
+            var selectedMonth = $('#month').val();
+            var selectedYear = $('#year').val();
+
+            if (selectedEmployeeName && selectedMonth && selectedYear) {
+                $.ajax({
+                    url: "<?php echo base_url('employee/getEmployeeAttendanceCounts'); ?>",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        employeeId: selectedEmployeeName,
+                        year: selectedYear,
+                        month: selectedMonth
+                    },
+                    success: function (data) {
+                        if (data) {
+                            $('.presentDays').val(data.present_count).trigger('input').blur();
+                            $('.otDays').val(data.ot_count).blur();
+                            $('.absentCount').val(data.leave_count);
+                        }
+                    }
+                });
+            }
+        }
+
         $('#month, #year').change(function() {
             const selectedMonth = $('#month').val();
             const selectedYear = $('#year').val();
 
             if (selectedMonth && selectedYear) {
                 updateDayCount(selectedMonth, selectedYear);
+                fetchEmployeeAttendance();
             } else {
                 $('.dayCount').val('');
                 $('.absentCount').val('');
@@ -214,8 +241,8 @@
         $('.selectEmployeeName').change(function () {
             var selectedEmployeeName = $(this).val();
 
-            // Reset all fields
-            $('#payslip_id, #month_basic_pay, #month_allowance_amount, #allowance_amount, #basic_pay, #absent_count, #ot_amount, #mobile_recharge, #total_earning, #esi_basic_amount, #pf_status, #esi_status, #month_pf_amount, #pf_amount, #esi_amount, #deduction_amount, #salary_in_word, #month, #day_count, #present_count, #ot_count, #travelling_amount, #incentive_amount, #food_expenses, #advance_cash, #salary_amount').val('');
+            // Reset all fields (except month and year)
+            $('#payslip_id, #month_basic_pay, #month_allowance_amount, #allowance_amount, #basic_pay, #absent_count, #ot_amount, #mobile_recharge, #total_earning, #esi_basic_amount, #pf_status, #esi_status, #month_pf_amount, #pf_amount, #esi_amount, #deduction_amount, #salary_in_word, #day_count, #present_count, #ot_count, #travelling_amount, #incentive_amount, #food_expenses, #advance_cash, #salary_amount').val('');
 
             if (selectedEmployeeName !== '') {
                 $.ajax({
@@ -239,6 +266,9 @@
                         $('.pfStatus').val(pfStatus);
                         $('.pfAmount').val(pfAmount);
                         $('.esiStatus').val(esiStatus);
+
+                        // Fetch attendance counts after salary info is loaded
+                        fetchEmployeeAttendance();
                     }
                 });
             }

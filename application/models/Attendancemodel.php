@@ -18,8 +18,7 @@
             return $res->result();
         }
 
-        // Employee Attendance List
-        public function getEmployeeAttendanceList($year = '', $month = '')
+        public function getEmployeeAttendanceList($year = '', $month = '', $employeeId = '')
         {
             $wherePresent = $whereLeave = $whereOT = '';
 
@@ -47,19 +46,27 @@
                 $subOT .= " AND MONTHNAME(ot_date) = '$month'";
             }
 
+            $employeeFilter = '';
+            if ($employeeId) {
+                $employeeFilter = " AND E.id = " . $this->db->escape($employeeId);
+            }
+
             $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, 
-                    COUNT(DISTINCT EA.id) AS present_count, 
+                    (
+                        COUNT(DISTINCT EA.id)
+                        + (SELECT COUNT(*) FROM employee_ot WHERE employee_id = E.id AND delete_status = 0 $subOT)
+                    ) AS present_count, 
                     COUNT(DISTINCT ELD.id) AS leave_count, 
                     (SELECT COALESCE(SUM(CASE 
-                        WHEN ot_type = 'Half Day' THEN 0.5 
-                        WHEN ot_type = 'Full Day' THEN 1 
-                        ELSE 1 
+                        WHEN ot_type = 'Half Day' THEN 0.25 
+                        WHEN ot_type = 'Full Day' THEN 0.5 
+                        ELSE 0.5 
                     END), 0) FROM employee_ot WHERE employee_id = E.id AND delete_status = 0 " . str_replace('EOT.', '', $whereOT) . ") AS ot_count 
                     FROM employee E 
                     LEFT JOIN employee_attendance EA ON EA.employee_id = E.id AND EA.delete_status = 0 $wherePresent 
                     LEFT JOIN employee_leave_detail ELD ON ELD.employee_id = E.id AND ELD.delete_status = 0 $whereLeave 
                     INNER JOIN master_designation MD ON MD.id = E.designation 
-                    WHERE E.delete_status = 0 
+                    WHERE E.delete_status = 0 $employeeFilter
                     AND (
                         E.id IN (
                             SELECT employee_id 
@@ -349,8 +356,10 @@
         //Employee Leave List
         public function getEmployeeLeaveList($pageStatus = '', $year = '', $month = '', $employeeId = '')
         {
+            $where = $employeeWhere = $monthWhere = $yearWhere = '';
+
             if ($pageStatus) {
-                $where = "AND status = '$pageStatus'";
+                $where = "AND EL.status = '$pageStatus'";
             }
 
             if ($employeeId) {
@@ -513,8 +522,10 @@
         public function getEmployeeOTList($pageStatus = '', $year = '', $month = '', $employeeId = '')
         {
             $userId = $this->session->userdata('userid');
-            $userPermission = json_decode($this->session->userdata('permission'), true);
+            $userPermission = json_decode($this->session->userdata('permission'), true) ?: [];
             
+            $where = $employeeWhere = $monthWhere = $yearWhere = '';
+
             if ($employeeId) {
                 $employeeWhere = "AND EOT.employee_id = '$employeeId'";
             } elseif(in_array('attendance_management', $userPermission)) {
@@ -863,6 +874,61 @@
 
             $this->db->trans_complete();
             return $this->db->trans_status();
+        }
+
+        public function getAttendanceCounts($year, $month, $employeeId = null)
+        {
+            $wherePresent = $whereLeave = $whereOT = '';
+            if ($year) {
+                $wherePresent .= " AND YEAR(EA.present_date) = '$year'";
+                $whereLeave .= " AND YEAR(ELD.leave_date) = '$year'";
+                $whereOT .= " AND YEAR(EOT.ot_date) = '$year'";
+            }
+            if ($month) {
+                $monthNum = date('n', strtotime($month));
+                $wherePresent .= " AND MONTH(EA.present_date) = $monthNum";
+                $whereLeave .= " AND MONTH(ELD.leave_date) = $monthNum";
+                $whereOT .= " AND MONTH(EOT.ot_date) = $monthNum";
+            }
+
+            $empCondition = '';
+            if ($employeeId !== null && $employeeId !== '') {
+                $empCondition = " AND E.id = " . intval($employeeId);
+            }
+
+            // Build OT where clause without table alias prefix for subquery
+            $whereOTSub = '';
+            if ($year) {
+                $whereOTSub .= " AND YEAR(ot_date) = '$year'";
+            }
+            if ($month) {
+                $monthNum = date('n', strtotime($month));
+                $whereOTSub .= " AND MONTH(ot_date) = $monthNum";
+            }
+            if ($employeeId !== null && $employeeId !== '') {
+                // already filtered via empCondition on main query
+            }
+
+            $sql = "SELECT E.id AS employee_id,
+                    (
+                        COUNT(DISTINCT EA.id)
+                        + (SELECT COUNT(*) FROM employee_ot EOT2 
+                           WHERE EOT2.employee_id = E.id AND EOT2.delete_status = 0 $whereOTSub)
+                    ) AS present_count, 
+                    COUNT(DISTINCT ELD.id) AS leave_count, 
+                    (SELECT COALESCE(SUM(CASE 
+                        WHEN ot_type = 'Half Day' THEN 0.25 
+                        WHEN ot_type = 'Full Day' THEN 0.5 
+                        ELSE 0.5 
+                    END), 0) FROM employee_ot EOT WHERE EOT.employee_id = E.id AND EOT.delete_status = 0 $whereOT) AS ot_count 
+                    FROM employee E 
+                    LEFT JOIN employee_attendance EA ON EA.employee_id = E.id AND EA.delete_status = 0 $wherePresent 
+                    LEFT JOIN employee_leave_detail ELD ON ELD.employee_id = E.id AND ELD.delete_status = 0 $whereLeave 
+                    WHERE E.delete_status = 0 $empCondition
+                    GROUP BY E.id";
+
+            $res = $this->db->query($sql);
+            return $res->result_array();
         }
     }
 ?>

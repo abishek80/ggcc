@@ -22,7 +22,7 @@ class Employeemodel extends CI_Model
         if($employeeId) {
             $where = " AND E.id = $employeeId";
         }
-        $sql = "SELECT E.id, E.employee_code, E.company_name, E.zone, E.branch, E.branch_location, E.employee_name, E.mobile_number, E.email, E.designation, E.education, E.house_no, E.street, E.city, E.district, E.pincode, E.profile_img, E.aadharcard_img, E.pancard_img, E.bankbook_img, E.licence_img, E.contact_name, E.contact_relative, E.contact_phone_number, E.contact_house_no, E.contact_street, E.contact_city, E.contact_district, E.contact_pincode, E.basic_pay, E.allowance_amount, E.pf_status, E.esi_status, E.esi_number, E.pf_number, E.pan_number, E.aadhar_number, E.mobile_recharge, E.dob, E.doj, E.password, E.permission, E.pf_amount, E.bank_name, E.bank_branch_name, E.account_number, E.ifsc_code, E.status, E.created_at, MD.designation, E.payslip_status, DATE_FORMAT(E.created_at, '%d/%m/%Y %h:%i %p') AS created_at, DATE_FORMAT(E.dob, '%d - %m - %Y') AS dobFormat, DATE_FORMAT(E.doj, '%d - %m - %Y') AS dojFormat, LP.employee_name AS created_by, B.branch AS branch_name FROM employee E LEFT JOIN master_branch B ON B.id = E.branch LEFT JOIN master_designation MD ON MD.id = E.designation LEFT JOIN login_permission LP ON LP.employee_id = E.created_by WHERE E.delete_status = 0 $where";
+        $sql = "SELECT E.id, E.employee_code, E.company_name, E.zone, E.branch, E.branch_location, E.employee_name, E.mobile_number, E.email, E.designation, E.education, E.house_no, E.street, E.city, E.district, E.pincode, E.profile_img, E.aadharcard_img, E.pancard_img, E.bankbook_img, E.licence_img, E.licence_number, E.electrical_licence, E.electrical_licence_img, E.contact_name, E.contact_relative, E.contact_phone_number, E.contact_house_no, E.contact_street, E.contact_city, E.contact_district, E.contact_pincode, E.basic_pay, E.allowance_amount, E.pf_status, E.esi_status, E.esi_number, E.pf_number, E.pan_number, E.aadhar_number, E.mobile_recharge, E.dob, E.doj, E.password, E.permission, E.pf_amount, E.bank_name, E.bank_branch_name, E.account_number, E.ifsc_code, E.status, E.created_at, MD.designation, E.payslip_status, DATE_FORMAT(E.created_at, '%d/%m/%Y %h:%i %p') AS created_at, DATE_FORMAT(E.dob, '%d - %m - %Y') AS dobFormat, DATE_FORMAT(E.doj, '%d - %m - %Y') AS dojFormat, LP.employee_name AS created_by, B.branch AS branch_name FROM employee E LEFT JOIN master_branch B ON B.id = E.branch LEFT JOIN master_designation MD ON MD.id = E.designation LEFT JOIN login_permission LP ON LP.employee_id = E.created_by WHERE E.delete_status = 0 $where";
 
         $res = $this->db->query($sql);
         return $res->result();
@@ -38,7 +38,7 @@ class Employeemodel extends CI_Model
     }
 
     //Save Employee Form
-    public function saveEmployeeData($employeeId, $token, $employeeCode, $employeePassword, $employeePermission, $companyName, $zone, $branch, $branchLocation, $employeeName, $employeeEmail, $employeeNumber, $employeeDesignation, $employeeEducation, $dob, $doj, $status, $houseNo, $street, $city, $district, $pincode, $contactName, $contactRelative, $contactPhoneNumber, $contactHouseNo, $contactStreet, $contactCity, $contactDistrict, $contactPincode, $payslipStatus, $employeeProfile_img, $employeeAadharcard_img, $employeePancard_img, $employeeBankbook_img, $employeeLicence_img, $basicPay, $allowanceAmount, $pfStatus, $esiStatus, $esiNumber, $pfNumber, $mobileRecharge, $pfAmount, $bankName, $bankBranchName, $accountNumber, $ifscCode, $panNumber, $aadharNumber)
+    public function saveEmployeeData($employeeId, $token, $employeeCode, $employeePassword, $employeePermission, $companyName, $zone, $branch, $branchLocation, $employeeName, $employeeEmail, $employeeNumber, $employeeDesignation, $employeeEducation, $dob, $doj, $status, $houseNo, $street, $city, $district, $pincode, $contactName, $contactRelative, $contactPhoneNumber, $contactHouseNo, $contactStreet, $contactCity, $contactDistrict, $contactPincode, $payslipStatus, $employeeProfile_img, $employeeAadharcard_img, $employeePancard_img, $employeeBankbook_img, $employeeLicence_img, $basicPay, $allowanceAmount, $pfStatus, $esiStatus, $esiNumber, $pfNumber, $mobileRecharge, $pfAmount, $bankName, $bankBranchName, $accountNumber, $ifscCode, $panNumber, $aadharNumber, $licenceNumber, $electricalLicence, $electricalLicence_img)
     {
         $userId = $this->session->userdata('userid');
 
@@ -68,6 +68,9 @@ class Employeemodel extends CI_Model
                 'pancard_img' => $employeePancard_img,
                 'bankbook_img' => $employeeBankbook_img,
                 'licence_img' => $employeeLicence_img,
+                'licence_number' => $licenceNumber,
+                'electrical_licence' => $electricalLicence,
+                'electrical_licence_img' => $electricalLicence_img,
                 'dob' => $dob,
                 'doj' => $doj,
                 'house_no' => $houseNo,
@@ -147,6 +150,9 @@ class Employeemodel extends CI_Model
                 'pancard_img' => $employeePancard_img,
                 'bankbook_img' => $employeeBankbook_img,
                 'licence_img' => $employeeLicence_img,
+                'licence_number' => $licenceNumber,
+                'electrical_licence' => $electricalLicence,
+                'electrical_licence_img' => $electricalLicence_img,
                 'dob' => $dob,
                 'doj' => $doj,
                 'house_no' => $houseNo,
@@ -494,12 +500,14 @@ class Employeemodel extends CI_Model
     }
 
     //Employee Payslip List
-    public function getPayslipList($year='')
+    public function getPayslipList($year='', $employeeId='')
     {
+        $where = '';
         if ($year) {
-            $where = "EP.year = '$year' AND";
-        } else {
-            $where = '';
+            $where .= "EP.year = '$year' AND ";
+        }
+        if ($employeeId) {
+            $where .= "EP.employee_id = " . $this->db->escape($employeeId) . " AND ";
         }
 
         $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, EP.month, EP.id AS payslipId FROM employee_payslip EP INNER JOIN employee E ON E.id = EP.employee_id INNER JOIN master_designation MD ON MD.id = E.designation WHERE $where EP.delete_status = 0 AND E.is_admin = 0 ORDER BY E.employee_name ASC";

@@ -43,10 +43,16 @@
                     <input name="service_km" id="service_km" type="text" class="form-control number-only" placeholder="Enter Service Kilometer" value="<?php echo $serviceKM; ?>">
                 </div>
                 <div class="col-lg-4 col-md-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Next Service Kilometer</label>
+                    <input name="next_service_km" id="next_service_km" type="text" class="form-control number-only" placeholder="Enter Next Service Kilometer" value="<?php echo $nextServiceKM; ?>">
+                </div>
+                <div class="col-lg-4 col-md-6">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Service Category</label>
                     <select name="service_category" id="service_category" class="form-select">
                         <option value="">Select Service Category</option>
                         <option value="maintenance" <?php if($serviceCategory == 'maintenance') { echo 'selected'; } ?>>Maintenance</option>
+                        <option value="oil_change" <?php if($serviceCategory == 'oil_change') { echo 'selected'; } ?>>Oil Change</option>
+                        <option value="wheel_alignment" <?php if($serviceCategory == 'wheel_alignment') { echo 'selected'; } ?>>Wheel Alignment</option>
                         <option value="tyre_change" <?php if($serviceCategory == 'tyre_change') { echo 'selected'; } ?>>Tyre Change</option>
                         <option value="fc_work" <?php if($serviceCategory == 'fc_work') { echo 'selected'; } ?>>FC Work</option>
                     </select>

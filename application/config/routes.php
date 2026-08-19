@@ -53,7 +53,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $default_controller = "web";
 $language_alias = array('en');
 // exceptions
-$controller_exceptions = array('login', 'web', 'complaint', 'purchase', 'bill', 'employee', 'master', 'vehicle', 'outlet', 'stock', 'loan', 'report', 'attendance', 'cron', 'notification');
+$controller_exceptions = array('login', 'web', 'complaint', 'purchase', 'bill', 'employee', 'master', 'vehicle', 'outlet', 'stock', 'loan', 'report', 'attendance', 'cron', 'notification', 'api');
 // route
 $route['default_controller'] = $default_controller;
 $route["^(".implode('|', $language_alias).")/(".implode('|', $controller_exceptions).")(.*)"] = '$2';
@@ -67,6 +67,11 @@ $route['^(it|en)/(.+)$'] = "$2";
 $route['^(it|en)$'] = $route['default_controller'];
 $route['translate_uri_dashes'] = TRUE;
 $route['upload'] = 'Upload';
+
+// API Route Path
+$route['api'] = 'api/index';
+$route['api/(:any)/(:any)'] = 'api/$1/$2';
+$route['api/(:any)'] = 'api/$1';
 
 // complaint Controller Route Path
 $route['complaint'] = "complaint/index";

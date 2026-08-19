@@ -496,7 +496,7 @@ class Attendance extends CI_Controller {
   {
     $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
     if (in_array('admin', $userPermission) || in_array('employee_management', $userPermission) || in_array('attendance_management', $userPermission)) {
-      $data["menu_open"] = 'employee_attendance';
+      $data["menu_open"] = 'access_control';
       $data["menu_status"] = 'attendance_employee';
       $data['activeLink'] = $pageStatus;
 
@@ -516,7 +516,7 @@ class Attendance extends CI_Controller {
   {
     $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
     if (in_array('admin', $userPermission) || in_array('employee_management', $userPermission) || in_array('attendance_management', $userPermission)) {
-      $data["menu_open"] = 'employee_attendance';
+      $data["menu_open"] = 'access_control';
       $data["menu_status"] = 'attendance_employee';
 
       $data['formTitle'] = "Add Attendance Master";
@@ -537,7 +537,7 @@ class Attendance extends CI_Controller {
   {
     $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
     if (in_array('admin', $userPermission) || in_array('employee_management', $userPermission) || in_array('attendance_management', $userPermission)) {
-      $data["menu_open"] = 'employee_attendance';
+      $data["menu_open"] = 'access_control';
       $data["menu_status"] = 'attendance_employee';
 
       $data['formTitle'] = "Edit Attendance Master";
@@ -608,7 +608,9 @@ class Attendance extends CI_Controller {
       
       $thead = "<tr><th>Employee Name</th>";
       for($i = 1; $i <= $daysInMonth; $i++) {
-          $thead .= "<th>$i</th>";
+          $dayOfWeek = date('w', strtotime("$year-$month-" . str_pad($i, 2, '0', STR_PAD_LEFT)));
+          $weekendClass = ($dayOfWeek == 0 || $dayOfWeek == 6) ? ' class="weekend-col"' : '';
+          $thead .= "<th$weekendClass>$i</th>";
       }
       $thead .= "</tr>";
       
@@ -622,14 +624,17 @@ class Attendance extends CI_Controller {
               
               for($i = 1; $i <= $daysInMonth; $i++) {
                   $status = isset($data['attendance'][$i]) ? $data['attendance'][$i] : '';
-                  $class = '';
-                  if($status == 'present') $class = 'att-P';
-                  else if($status == 'absent') $class = 'att-A';
-                  else if($status == 'full_day_ot') $class = 'att-FOT';
-                  else if($status == 'half_day_ot') $class = 'att-HOT';
+                  $tdClass = '';
+                  $selectClass = 'att-select';
+                  $dayOfWeek = date('w', strtotime("$year-$month-" . str_pad($i, 2, '0', STR_PAD_LEFT)));
+                  if($dayOfWeek == 0 || $dayOfWeek == 6) $tdClass .= ' weekend-col';
+                  if($status == 'present') $selectClass .= ' att-P';
+                  else if($status == 'absent') $selectClass .= ' att-A';
+                  else if($status == 'full_day_ot') $selectClass .= ' att-FOT';
+                  else if($status == 'half_day_ot') $selectClass .= ' att-HOT';
                   
-                  $tbody .= "<td>
-                      <select name='attendance[$empId][$i]' class='att-select $class'>
+                  $tbody .= "<td class='$tdClass'>
+                      <select name='attendance[$empId][$i]' class='$selectClass'>
                           <option value=''>-</option>
                           <option value='present' ".($status=='present' ? 'selected' : '').">P</option>
                           <option value='absent' ".($status=='absent' ? 'selected' : '').">A</option>

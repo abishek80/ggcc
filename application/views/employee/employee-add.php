@@ -202,6 +202,24 @@
                     <input name="employee_licence" id="employee_licence" type="file" class="form-control">
                     <input type="hidden" value="<?php echo $licence; ?>" name="alter_employee_licence">
                 </div>
+                <div class="col-lg-4 col-md-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Licence Number</label>
+                    <input name="licence_number" id="licence_number" type="text" class="form-control" placeholder="Enter Licence Number" value="<?php echo $licenceNumber; ?>">
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Electrical Licence</label>
+                    <input name="electrical_licence" id="electrical_licence" type="text" class="form-control" placeholder="Enter Electrical Licence" value="<?php echo $electricalLicence; ?>">
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="d-flex justify-content-between">
+                        <label class="w-100 fw-bold text-black mb-2 fs-14px">Electrical Licence File</label>
+                        <?php if($electricalLicenceImg) { ?>
+                            <a href="<?php echo base_url() . $electricalLicenceImg; ?>" class="iframe-popup"><i class="bx bx-show-alt"></i></a>
+                        <?php } ?>
+                    </div>
+                    <input name="employee_electrical_licence" id="employee_electrical_licence" type="file" class="form-control">
+                    <input type="hidden" value="<?php echo $electricalLicenceImg; ?>" name="alter_employee_electrical_licence">
+                </div>
                 <h4 class="fw-bold text-gray mb-0 mt-4 pt-2">Bank Details</h4>
                 <div class="col-12 pt-3 mt-3 border-top">
                     <div class="row g-3">

@@ -160,13 +160,42 @@ class Vehicle extends CI_Controller {
         }
     }
 
-    public function vehicle_service_list()
+    public function vehicle_service_list($category = '')
     {
       $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
       if (in_array('admin', $userPermission) || in_array('vehicle_management', $userPermission)) {
         $data["menu_status"] = 'vehicle_service';
+        $data['vehicleId'] = '';
+        $data['activeCategory'] = $category;
         
-        $data['allVehicleServiceList'] = $this->vehiclemodel->getVehicleServiceList();
+        // Fetch all services to calculate sums for each category
+        $allServices = $this->vehiclemodel->getVehicleServiceList();
+        
+        $sums = [
+            'all' => 0,
+            'maintenance' => 0,
+            'oil_change' => 0,
+            'wheel_alignment' => 0,
+            'tyre_change' => 0,
+            'fc_work' => 0
+        ];
+        
+        foreach ($allServices as $row) {
+            $cost = floatval(str_replace(',', '', $row->service_cost));
+            $sums['all'] += $cost;
+            if (array_key_exists($row->service_category, $sums)) {
+                $sums[$row->service_category] += $cost;
+            }
+        }
+        
+        $data['categorySums'] = $sums;
+        
+        // If a category is selected, filter the list, otherwise show all
+        if ($category) {
+            $data['allVehicleServiceList'] = $this->vehiclemodel->getVehicleServiceList('', $category);
+        } else {
+            $data['allVehicleServiceList'] = $allServices;
+        }
   
         $this->load->view('settings/header', $data);
         $this->load->view('vehicle/vehicle-service-list', $data);
@@ -186,6 +215,7 @@ class Vehicle extends CI_Controller {
 
             $data['vehicleId'] = $vehicleId;
             $data['formTitle'] = "Add Vehicle Service";
+            $data['nextServiceKM'] = '';
             
             $data['vehicleDropdown'] = $this->mastermodel->getVehicleDropdown();
 
@@ -216,6 +246,7 @@ class Vehicle extends CI_Controller {
                 $data['nextServiceDate'] = $row->next_service_date;
                 $data['serviceCategory'] = $row->service_category;
                 $data['serviceKM'] = $row->service_km;
+                $data['nextServiceKM'] = $row->next_service_km;
                 $data['serviceCost'] = $row->service_cost;
                 $data['serviceBill'] = $row->service_bill;
                 $data['description'] = $row->description;
@@ -290,8 +321,18 @@ class Vehicle extends CI_Controller {
             $data['vehicleNumber'] = $row->vehicle_number;
             $data['serviceDate'] = $row->service_dateFormat;
             $data['nextServiceDate'] = $row->next_service_dateFormat;
-            $data['serviceCategory'] = $row->service_category;
+            
+            $catMap = [
+                'maintenance' => 'Maintenance',
+                'oil_change' => 'Oil Change',
+                'wheel_alignment' => 'Wheel Alignment',
+                'tyre_change' => 'Tyre Change',
+                'fc_work' => 'FC Work'
+            ];
+            $data['serviceCategory'] = isset($catMap[$row->service_category]) ? $catMap[$row->service_category] : ucwords(str_replace('_', ' ', $row->service_category));
+            
             $data['serviceKM'] = $row->service_km;
+            $data['nextServiceKM'] = $row->next_service_km;
             $data['serviceCost'] = $row->service_cost;
             $data['serviceBill'] = $row->service_bill;
             $data['description'] = $row->description;
@@ -422,6 +463,7 @@ class Vehicle extends CI_Controller {
         $nextServiceDate = $this->input->post('next_service_date');
         $serviceCategory = $this->input->post('service_category');
         $serviceKM = $this->input->post('service_km');
+        $nextServiceKM = $this->input->post('next_service_km');
         $serviceCost = $this->input->post('service_cost');
         $serviceBill = $this->input->post('service_bill');
         $description = $this->input->post('description');
@@ -445,7 +487,7 @@ class Vehicle extends CI_Controller {
             $serviceBill_img = $alterServiceBill;
         }
 
-        $this->vehiclemodel->saveVehicleServiceData($vehicleId, $serviceId, $serviceDate, $nextServiceDate, $serviceCategory, $serviceKM, $serviceCost, $description, $serviceBill_img, $status, $method);
+        $this->vehiclemodel->saveVehicleServiceData($vehicleId, $serviceId, $serviceDate, $nextServiceDate, $serviceCategory, $serviceKM, $nextServiceKM, $serviceCost, $description, $serviceBill_img, $status, $method);
         
         $data["isError"] = FALSE;
         if ($serviceId > 0) {

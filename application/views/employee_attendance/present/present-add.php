@@ -110,108 +110,113 @@
 </style>
 
 <script>
-$(document).ready(function() {
-    // Current month auto-selection
-    const currentMonth = new Date().getMonth() + 1;
-    $('#month').val(currentMonth.toString().padStart(2, '0'));
+    $(document).ready(function() {
+        // Pre-select month from URL if available, otherwise use current month
+        <?php if (!empty($month)): ?>
+            const urlMonth = '<?php echo date('m', strtotime("1 $month $year")); ?>';
+            $('#month').val(urlMonth);
+        <?php else: ?>
+            const currentMonth = new Date().getMonth() + 1;
+            $('#month').val(currentMonth.toString().padStart(2, '0'));
+        <?php endif; ?>
 
-    $('.filter-trigger').change(function() {
-        loadAttendanceGrid();
-    });
+        $('.filter-trigger').change(function() {
+            loadAttendanceGrid();
+        });
 
-    function loadAttendanceGrid() {
-        var year = $('#year').val();
-        var month = $('#month').val();
-        var zone = $('#zone').val();
+        function loadAttendanceGrid() {
+            var year = $('#year').val();
+            var month = $('#month').val();
+            var zone = $('#zone').val();
 
-        if (year && month && zone) {
-            $('#attendanceGridHeader').html('<tr><th>Loading...</th></tr>');
-            $('#attendanceGridBody').html('');
+            if (year && month && zone) {
+                $('#attendanceGridHeader').html('<tr><th>Loading...</th></tr>');
+                $('#attendanceGridBody').html('');
 
+                $.ajax({
+                    url: "<?php echo base_url('attendance/getMonthlyAttendanceGrid'); ?>",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        year: year,
+                        month: month,
+                        zone: zone
+                    },
+                    success: function (res) {
+                        if (res.status === 'success') {
+                            $('#attendanceGridHeader').html(res.thead);
+                            $('#attendanceGridBody').html(res.tbody);
+                        } else {
+                            $('#attendanceGridHeader').html('<tr><th class="text-danger">Failed to load data</th></tr>');
+                        }
+                    },
+                    error: function() {
+                        $('#attendanceGridHeader').html('<tr><th class="text-danger">Error fetching data</th></tr>');
+                    }
+                });
+            }
+        }
+        
+        // Automatically load if zone is predefined
+        if($('#zone').val() !== '') {
+            loadAttendanceGrid();
+        }
+
+        // Save grid
+        $("#attendanceGridForm").submit(function (e) {
+            e.preventDefault();
+            
+            var year = $('#year').val();
+            var month = $('#month').val();
+            var zone = $('#zone').val();
+
+            if (!year || !month || !zone) {
+                alert('Please select Year, Month and Zone');
+                return false;
+            }
+            
+            var formData = new FormData(this);
+            
             $.ajax({
-                url: "<?php echo base_url('attendance/getMonthlyAttendanceGrid'); ?>",
-                type: "POST",
-                dataType: "json",
-                data: {
-                    year: year,
-                    month: month,
-                    zone: zone
+                url: '<?php echo base_url(); ?>attendance/saveMonthlyAttendanceGrid',
+                data: formData,
+                cache: false,
+                processData: false,
+                contentType: false,
+                method: 'POST',
+                dataType: 'json',
+                beforeSend: function () {
+                    $(".loader").show();
                 },
-                success: function (res) {
-                    if (res.status === 'success') {
-                        $('#attendanceGridHeader').html(res.thead);
-                        $('#attendanceGridBody').html(res.tbody);
-                    } else {
-                        $('#attendanceGridHeader').html('<tr><th class="text-danger">Failed to load data</th></tr>');
+                success: function (data) {
+                    $(".loader").hide();
+                    toastr.options = {
+                        'closeButton': true,
+                        'positionClass': 'toast-top-right',
+                        'timeOut': '3000',
+                    }
+                    if (data.isError) {
+                        toastr.error(data.message);
+                    }
+                    else {
+                        toastr.success(data.message);
                     }
                 },
                 error: function() {
-                    $('#attendanceGridHeader').html('<tr><th class="text-danger">Error fetching data</th></tr>');
+                    $(".loader").hide();
+                    alert("Error saving data");
                 }
             });
-        }
-    }
-    
-    // Automatically load if zone is predefined
-    if($('#zone').val() !== '') {
-        loadAttendanceGrid();
-    }
+        });
 
-    // Save grid
-    $("#attendanceGridForm").submit(function (e) {
-        e.preventDefault();
-        
-        var year = $('#year').val();
-        var month = $('#month').val();
-        var zone = $('#zone').val();
-
-        if (!year || !month || !zone) {
-            alert('Please select Year, Month and Zone');
-            return false;
-        }
-        
-        var formData = new FormData(this);
-        
-        $.ajax({
-            url: '<?php echo base_url(); ?>attendance/saveMonthlyAttendanceGrid',
-            data: formData,
-            cache: false,
-            processData: false,
-            contentType: false,
-            method: 'POST',
-            dataType: 'json',
-            beforeSend: function () {
-                $(".loader").show();
-            },
-            success: function (data) {
-                $(".loader").hide();
-                toastr.options = {
-                    'closeButton': true,
-                    'positionClass': 'toast-top-right',
-                    'timeOut': '3000',
-                }
-                if (data.isError) {
-                    toastr.error(data.message);
-                }
-                else {
-                    toastr.success(data.message);
-                }
-            },
-            error: function() {
-                $(".loader").hide();
-                alert("Error saving data");
-            }
+        // Color code selects when changed
+        $(document).on('change', '.att-select', function() {
+            $(this).removeClass('att-P att-A att-FOT att-HOT');
+            var val = $(this).val();
+            if(val == 'present') $(this).addClass('att-P');
+            else if(val == 'absent') $(this).addClass('att-A');
+            else if(val == 'full_day_ot') $(this).addClass('att-FOT');
+            else if(val == 'half_day_ot') $(this).addClass('att-HOT');
         });
     });
-
-    // Color code selects when changed
-    $(document).on('change', '.att-select', function() {
-        $(this).removeClass('att-P att-A att-FOT att-HOT');
-        var val = $(this).val();
-        if(val == 'present') $(this).addClass('att-P');
-        else if(val == 'absent') $(this).addClass('att-A');
-        else if(val == 'full_day_ot') $(this).addClass('att-FOT');
-        else if(val == 'half_day_ot') $(this).addClass('att-HOT');
-    });
-});
 </script>

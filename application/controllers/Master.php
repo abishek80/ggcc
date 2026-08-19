@@ -1040,7 +1040,7 @@ class Master extends CI_Controller {
     {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
         if (in_array('admin', $userPermission) || in_array('complaint_management', $userPermission)) {
-            $data["menu_open"] = 'master';
+            $data["menu_open"] = 'access_control';
             $data["menu_status"] = 'incharge';
             $data['activeLink'] = $pageStatus;
 
@@ -1060,7 +1060,7 @@ class Master extends CI_Controller {
     {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
         if (in_array('admin', $userPermission) || in_array('complaint_management', $userPermission)) {
-            $data["menu_open"] = 'master';
+            $data["menu_open"] = 'access_control';
             $data["menu_status"] = 'incharge';
 
             $data['formTitle'] = "Add Complaint Incharge";
@@ -1081,7 +1081,7 @@ class Master extends CI_Controller {
     {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
         if (in_array('admin', $userPermission) || in_array('complaint_management', $userPermission)) {
-            $data["menu_open"] = 'master';
+            $data["menu_open"] = 'access_control';
             $data["menu_status"] = 'incharge';
 
             $data['formTitle'] = "Edit Complaint Incharge";
@@ -1334,5 +1334,145 @@ class Master extends CI_Controller {
 
         echo json_encode($data);
         return;
+    }
+
+    // Menu Control //
+    public function menu_control()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'access_control';
+            $data["menu_status"] = 'menu_control';
+
+            $data['menuList'] = $this->mastermodel->getMenuControlList();
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/menu_control/menu-control-list', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    // Update Menu Status AJAX //
+    public function update_menu_status()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $menuKey = $this->input->post('menuKey');
+            $status = $this->input->post('status');
+
+            if ($this->mastermodel->updateMenuStatus($menuKey, $status)) {
+                echo json_encode(['isError' => false, 'message' => 'Menu status updated successfully']);
+            } else {
+                echo json_encode(['isError' => true, 'message' => 'Failed to update menu status']);
+            }
+        } else {
+            echo json_encode(['isError' => true, 'message' => 'No permission']);
+        }
+    }
+
+    // Add Menu Control Item
+    public function menu_control_add()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'access_control';
+            $data["menu_status"] = 'menu_control';
+
+            $data['formTitle'] = "Add Menu Item";
+            $data['menuId'] = 0;
+            $data['menuKey'] = '';
+            $data['menuName'] = '';
+            $data['parentKey'] = '';
+            $data['displayOrder'] = 0;
+            $data['status'] = 'enabled';
+
+            $data['parentMenus'] = $this->db->select('menu_key, menu_name')
+                                            ->where('parent_key', NULL)
+                                            ->where('delete_status', 0)
+                                            ->get('menu_control')
+                                            ->result();
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/menu_control/menu-control-add', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    // Edit Menu Control Item
+    public function menu_control_edit($menuId)
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'access_control';
+            $data["menu_status"] = 'menu_control';
+
+            $data['formTitle'] = "Edit Menu Item";
+
+            $menuInfo = $this->mastermodel->getMenuControlInfo($menuId);
+            foreach ($menuInfo as $row) {
+                $data['menuId'] = $row->id;
+                $data['menuKey'] = $row->menu_key;
+                $data['menuName'] = $row->menu_name;
+                $data['parentKey'] = $row->parent_key;
+                $data['displayOrder'] = $row->display_order;
+                $data['status'] = $row->status;
+            }
+
+            $data['parentMenus'] = $this->db->select('menu_key, menu_name')
+                                            ->where('parent_key', NULL)
+                                            ->where('delete_status', 0)
+                                            ->where('id !=', $menuId)
+                                            ->get('menu_control')
+                                            ->result();
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/menu_control/menu-control-add', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    // Save Menu Control Form
+    public function menuControlFormSave()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $menuId = $this->input->post('menu_id');
+            $menuKey = trim($this->input->post('menu_key'));
+            $menuName = trim($this->input->post('menu_name'));
+            $parentKey = $this->input->post('parent_key');
+            $displayOrder = (int)$this->input->post('display_order');
+            $status = $this->input->post('status');
+
+            if ($menuId <= 0 || $menuId == '') {
+                $checkExists = $this->mastermodel->checkMenuKeyExists($menuKey);
+                if ($checkExists > 0) {
+                    echo json_encode(["isError" => TRUE, "message" => "Menu Key Already Exists"]);
+                    return;
+                }
+            }
+
+            $this->mastermodel->saveMenuControlData($menuId, $menuKey, $menuName, $parentKey, $displayOrder, $status);
+            
+            echo json_encode([
+                "isError" => FALSE,
+                "message" => ($menuId > 0) ? "Menu Item Updated Successfully" : "Menu Item Created Successfully"
+            ]);
+            return;
+        } else {
+            echo json_encode(["isError" => TRUE, "message" => "No permission"]);
+            return;
+        }
     }
 }

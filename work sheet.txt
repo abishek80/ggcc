@@ -27,15 +27,6 @@ material filter - order by date
 material - tranfer value not needed
 
 
-
-
-
-
-Announcement and leave list
-
-
-
-
 Report Date --> Reported submitted on
 report date format change
     i assign work to the employee reporting date 
@@ -49,11 +40,6 @@ employee work
 master work type
     work name | date | details (description) | status
 
-
-
-
-
-
 reminder
     Payslip
     employee work
@@ -62,3 +48,39 @@ reminder
     security amount
     yearly plan
     
+Employee -
+    Licence Number
+    electrical Licence
+    electrical Licence File
+
+Menu Control
+
+
+
+
+
+
+
+Announcement and leave list
+
+vechicle Service report
+
+
+
+
+
+
+
+
+
+
+
+Website - 
+    What We do
+    Who we are
+    Motive - vision, mission
+    Partner, Customer
+    Service
+    Contact
+    Awards
+    Our Works 

@@ -1118,5 +1118,73 @@ class Mastermodel extends CI_Model
             $this->db->insert_id();
         }
     }
+
+    // Menu Control List
+    public function getMenuControlList()
+    {
+        $sql = "SELECT * FROM menu_control WHERE delete_status = 0 ORDER BY display_order ASC";
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+
+    // Update Menu Status
+    public function updateMenuStatus($menuKey, $status)
+    {
+        $data = array('status' => $status);
+        $this->db->where('menu_key', $menuKey);
+        return $this->db->update('menu_control', $data);
+    }
+
+    // Menu Control Info
+    public function getMenuControlInfo($menuId)
+    {
+        $sql = "SELECT * FROM menu_control WHERE delete_status = 0 AND id = " . (int)$menuId;
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+
+    // Save Menu Control Data
+    public function saveMenuControlData($menuId, $menuKey, $menuName, $parentKey, $displayOrder, $status)
+    {
+        $userId = $this->session->userdata('userid');
+        if ($parentKey == '') {
+            $parentKey = NULL;
+        }
+
+        if ($menuId > 0) {
+            $data = array(
+                'menu_key' => $menuKey,
+                'menu_name' => $menuName,
+                'parent_key' => $parentKey,
+                'display_order' => $displayOrder,
+                'status' => $status,
+                'updated_by' => $userId,
+                'updated_at' => date('Y-m-d H:i:s')
+            );
+            $this->db->where('id', (int) $menuId);
+            $this->db->update('menu_control', $data);
+        } else {
+            $data = array(
+                'menu_key' => $menuKey,
+                'menu_name' => $menuName,
+                'parent_key' => $parentKey,
+                'display_order' => $displayOrder,
+                'status' => $status,
+                'created_by' => $userId,
+                'created_at' => date('Y-m-d H:i:s')
+            );
+            $this->db->insert('menu_control', $data);
+            return $this->db->insert_id();
+        }
+    }
+
+    // Check Menu Key Exists
+    public function checkMenuKeyExists($menuKey)
+    {
+        $sql = "SELECT COUNT(*) AS cnt FROM menu_control WHERE delete_status = 0 AND menu_key = " . $this->db->escape($menuKey);
+        $res = $this->db->query($sql);
+        $row = $res->row();
+        return $row->cnt;
+    }
 }
 ?>

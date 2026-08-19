@@ -333,6 +333,7 @@ class Web extends CI_Controller {
     {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
         if (in_array('admin', $userPermission) || in_array('employee_management', $userPermission)) {
+            $data['menu_open'] = "access_control";
             $data['menu_status'] = "login_permission";
             $data['activeLink'] = $pageStatus;
 
@@ -352,6 +353,7 @@ class Web extends CI_Controller {
     {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
         if (in_array('admin', $userPermission) || in_array('employee_management', $userPermission)) {
+            $data['menu_open'] = "access_control";
             $data['menu_status'] = "login_permission";
             $data['formTitle'] = "Add Login Permission";
 
@@ -369,6 +371,7 @@ class Web extends CI_Controller {
     {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
         if (in_array('admin', $userPermission) || in_array('employee_management', $userPermission)) {
+            $data['menu_open'] = "access_control";
             $data['menu_status'] = "login_permission";
             $data['formTitle'] = "Edit Login Permission";
 

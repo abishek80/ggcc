@@ -104,7 +104,7 @@
                             <th>Service Date</th>
                             <th>Next Service Date</th>
                             <th>Service Category</th>
-                            <th>Service KM</th>
+                            <th>Service KM <br> Next Service KM</th>
                             <th>Service Cost</th>
                             <th>Description</th>
                             <th>Status</th>
@@ -120,8 +120,22 @@
                             <td><?php echo $i++; ?></td>
                             <td><?php echo $row->service_dateFormat; ?></td>
                             <td><?php echo $row->next_service_dateFormat; ?></td>
-                            <td><?php echo $row->service_category; ?></td>
-                            <td><?php echo $row->service_km; ?></td>
+                             <td>
+                                 <?php
+                                     $catMap = [
+                                         'maintenance' => 'Maintenance',
+                                         'oil_change' => 'Oil Change',
+                                         'wheel_alignment' => 'Wheel Alignment',
+                                         'tyre_change' => 'Tyre Change',
+                                         'fc_work' => 'FC Work'
+                                     ];
+                                     echo isset($catMap[$row->service_category]) ? $catMap[$row->service_category] : ucwords(str_replace('_', ' ', $row->service_category));
+                                 ?>
+                             </td>
+                             <td>
+                                 <p class="mb-1"><?php echo $row->service_km; ?></p>
+                                 <p class="mb-0 text-secondary"><?php echo $row->next_service_km ? $row->next_service_km : '-'; ?></p>
+                             </td>
                             <td><?php echo $row->service_cost; ?></td>
                             <td><?php echo $row->description; ?></td>
                             <td>
@@ -181,10 +195,14 @@
                         <label class="w-100 fw-bold text-black mb-1">Next Service Date</label>
                         <div id="nextServiceDate" class="text-capitalize text-black"></div>
                     </div>
-                    <div class="col-lg-3 col-md-4 col-sm-6">
-                        <label class="w-100 fw-bold text-black mb-1">Service Kilometer</label>
-                        <div id="serviceKM" class="text-capitalize text-black"></div>
-                    </div>
+                     <div class="col-lg-3 col-md-4 col-sm-6">
+                         <label class="w-100 fw-bold text-black mb-1">Service Kilometer</label>
+                         <div id="serviceKM" class="text-capitalize text-black"></div>
+                     </div>
+                     <div class="col-lg-3 col-md-4 col-sm-6">
+                         <label class="w-100 fw-bold text-black mb-1">Next Service Kilometer</label>
+                         <div id="nextServiceKM" class="text-capitalize text-black"></div>
+                     </div>
                     <div class="col-lg-3 col-md-4 col-sm-6">
                         <label class="w-100 fw-bold text-black mb-1">Service Category</label>
                         <div id="serviceCategory" class="text-capitalize text-black"></div>
@@ -237,6 +255,7 @@
                 $('#nextServiceDate').html(data.nextServiceDate);
                 $('#serviceCategory').html(data.serviceCategory);
                 $('#serviceKM').html(data.serviceKM);
+                $('#nextServiceKM').html(data.nextServiceKM ? data.nextServiceKM : '-');
                 $('#serviceCost').html(data.serviceCost);
                 if (data.serviceBill) {
                     $('#serviceBill').html('<a href="' + '<?php echo base_url(); ?>' + data.serviceBill + '" data-lightbox="roadtrip" class="doc-hover">View Service Bill</a>');

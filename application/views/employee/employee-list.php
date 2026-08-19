@@ -148,6 +148,18 @@
                         <label class="w-100 fw-bold text-black mb-1">Employee Licence</label>
                         <div id="employeeLicence" class="text-capitalize text-black"></div>
                     </div>
+                    <div class="col-lg-3 col-md-4 col-sm-6 licenceNumber">
+                        <label class="w-100 fw-bold text-black mb-1">Licence Number</label>
+                        <div id="licenceNumber" class="text-capitalize text-black"></div>
+                    </div>
+                    <div class="col-lg-3 col-md-4 col-sm-6 electricalLicence">
+                        <label class="w-100 fw-bold text-black mb-1">Electrical Licence</label>
+                        <div id="electricalLicence" class="text-capitalize text-black"></div>
+                    </div>
+                    <div class="col-lg-3 col-md-4 col-sm-6 employeeElectricalLicence">
+                        <label class="w-100 fw-bold text-black mb-1">Electrical Licence File</label>
+                        <div id="employeeElectricalLicence" class="text-capitalize text-black"></div>
+                    </div>
                     <div class="col-12">
                         <div class="border-top"></div>
                     </div>
@@ -307,6 +319,27 @@
                     $('.employeeLicence').removeClass('d-none');
                 } else {
                     $('.employeeLicence').addClass('d-none');
+                }
+                
+                if (data.licenceNumber) {
+                    $('#licenceNumber').html(data.licenceNumber);
+                    $('.licenceNumber').removeClass('d-none');
+                } else {
+                    $('.licenceNumber').addClass('d-none');
+                }
+                
+                if (data.electricalLicence) {
+                    $('#electricalLicence').html(data.electricalLicence);
+                    $('.electricalLicence').removeClass('d-none');
+                } else {
+                    $('.electricalLicence').addClass('d-none');
+                }
+                
+                if (data.electricalLicenceImg) {
+                    $('#employeeElectricalLicence').html('<a href="' + '<?php echo base_url(); ?>' + data.electricalLicenceImg + '" target="_blank" class="doc-hover">View Electrical Licence</a>');
+                    $('.employeeElectricalLicence').removeClass('d-none');
+                } else {
+                    $('.employeeElectricalLicence').addClass('d-none');
                 }
                 
                 if (data.employeeContactName) {

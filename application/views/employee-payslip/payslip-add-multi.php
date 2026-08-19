@@ -218,12 +218,47 @@
             $(row).find('.absentDays').val(absentDays);
         }
 
+        function fetchAllEmployeesAttendance() {
+            updateCommonValues();
+            if (commonMonth && commonYear) {
+                $.ajax({
+                    url: "<?php echo base_url('employee/getEmployeeAttendanceCounts'); ?>",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        year: commonYear,
+                        month: commonMonth
+                    },
+                    success: function (data) {
+                        if (data) {
+                            $('tbody tr').each(function() {
+                                var row = $(this);
+                                var employeeId = row.find('.employeeId').val();
+                                if (employeeId && data[employeeId]) {
+                                    var empData = data[employeeId];
+                                    row.find('.presentDays').val(empData.present_count).blur();
+                                    row.find('.otDays').val(empData.ot_count).blur();
+                                    row.find('.absentDays').val(empData.leave_count);
+                                } else {
+                                    // Default/reset if no data is found
+                                    row.find('.presentDays').val('').blur();
+                                    row.find('.otDays').val('').blur();
+                                    row.find('.absentDays').val('');
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
         // Update calculations on common month/year change
         $(document).on('change', '.payslipMonth, #year', function() {
             updateCommonValues();
             $('tr').each(function() {
                 updateDayCount(this);
             });
+            fetchAllEmployeesAttendance();
         });
 
         // Calculate based on present days

@@ -85,6 +85,7 @@
                 </div>
             </div>
         </div>
+        <h4 class="fw-bold mb-3 pt-2 text-black text-capitalize">Security Amount List - <?php echo $companyName; ?></h4>
         <div class="card p-3">
             <div class="table-responsive">
                 <table class="zero_config table table-striped table-bordered">

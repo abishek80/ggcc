@@ -25,14 +25,16 @@
                 </div>
             </div>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered text-center align-middle" id="attendanceTable" style="min-width: max-content;">
+                <table class="table table-bordered text-center align-middle" id="attendanceTable" style="min-width: max-content;">
                     <thead class="table-light sticky-top" style="z-index: 2;">
                         <tr>
                             <th>S. No</th>
                             <th style="position: sticky; left: 0; background: #f8f9fa; z-index: 3;">Employee Name</th>
                             <?php if(isset($daysInMonth) && $daysInMonth > 0) { 
                                 for($d = 1; $d <= $daysInMonth; $d++) {
-                                    echo "<th>$d</th>";
+                                    $dayOfWeek = date('w', strtotime("$year-" . date('m', strtotime("1 $month $year")) . "-$d"));
+                                    $weekendClass = ($dayOfWeek == 0 || $dayOfWeek == 6) ? ' class="weekend-col"' : '';
+                                    echo "<th$weekendClass>$d</th>";
                                 }
                             } ?>
                             <th>Total <br> Present</th>
@@ -59,6 +61,8 @@
                                 for($d = 1; $d <= $daysInMonth; $d++) {
                                     $status = isset($row->daily_attendance[$d]) ? $row->daily_attendance[$d] : '-';
                                     $class = '';
+                                    $dayOfWeek = date('w', strtotime("$year-" . date('m', strtotime("1 $month $year")) . "-$d"));
+                                    if($dayOfWeek == 0 || $dayOfWeek == 6) $class .= ' weekend-col';
                                     if(strpos($status, 'P') !== false) $class .= ' text-success fw-bold';
                                     else if(strpos($status, 'A') !== false) $class .= ' text-danger fw-bold';
                                     else if(strpos($status, 'OT') !== false) $class .= ' text-warning fw-bold';
