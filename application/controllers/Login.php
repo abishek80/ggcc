@@ -12,8 +12,8 @@ class Login extends CI_Controller
         $this->output->set_header('Cache-Control: post-check=0, pre-check=0', false);
         $this->output->set_header('Pragma: no-cache');
 
-        if (($this->session->userdata('userid') != null) || ($this->session->userdata('userid') != "")) {
-            redirect(base_url() . 'login');
+        if (($this->session->userdata('userid') != null) && ($this->session->userdata('userid') != "")) {
+            redirect(base_url() . 'admin');
         }
     }
 

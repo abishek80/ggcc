@@ -53,9 +53,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $default_controller = "web";
 $language_alias = array('en');
 // exceptions
-$controller_exceptions = array('login', 'web', 'complaint', 'purchase', 'bill', 'employee', 'master', 'vehicle', 'outlet', 'stock', 'loan', 'report', 'attendance', 'cron', 'notification', 'api');
+$controller_exceptions = array('web', 'login', 'admin', 'complaint', 'purchase', 'bill', 'employee', 'master', 'vehicle', 'outlet', 'stock', 'loan', 'report', 'attendance', 'cron', 'notification', 'api');
 // route
 $route['default_controller'] = $default_controller;
+
+// Public GGCC Corporate Website Routes
+$route['about'] = 'web/about';
+$route['services'] = 'web/services';
+$route['services/(:any)'] = 'web/service_detail/$1';
+$route['gallery'] = 'web/gallery';
+$route['contact'] = 'web/contact';
+$route['partners-customers'] = 'web/partners_customers';
+$route['terms-and-conditions'] = 'web/terms_and_conditions';
+$route['privacy-policy'] = 'web/privacy_policy';
+$route['locations'] = 'web/locations';
+$route['locations/(:any)'] = 'web/location_detail/$1';
+
 $route["^(".implode('|', $language_alias).")/(".implode('|', $controller_exceptions).")(.*)"] = '$2';
 $route["^(".implode('|', $language_alias).")?/(.*)"] = $default_controller.'/$2';
 $route["^((?!\b".implode('\b|\b', $controller_exceptions)."\b).*)$"] = $default_controller.'/$1';
@@ -66,7 +79,9 @@ $route['404_override'] = 'common/errorPage';
 $route['^(it|en)/(.+)$'] = "$2";
 $route['^(it|en)$'] = $route['default_controller'];
 $route['translate_uri_dashes'] = TRUE;
-$route['upload'] = 'Upload';
+// Admin Route Path
+$route['admin/dashboard'] = 'admin/index';
+$route['dashboard'] = 'admin/index';
 
 // API Route Path
 $route['api'] = 'api/index';

@@ -58,7 +58,7 @@ if ($CI->db->table_exists('menu_control')) {
         <div class="layout-container">
             <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                 <div class="app-brand demo justify-content-center">
-                    <a href="<?php echo base_url(); ?>" class="app-brand-link">
+                    <a href="<?php echo base_url(); ?>admin" class="app-brand-link">
                         <div class="logo-img" style="background-image: url('<?php echo base_url(); ?>themes/images/ggcc-logo.png');"></div>
                     </a>
                     <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-lg-none">
@@ -69,7 +69,7 @@ if ($CI->db->table_exists('menu_control')) {
                 <ul id="ggccMenu" class="menu-inner py-1">
                     <?php if (($menuStates['dashboard'] ?? 'enabled') === 'enabled') { ?>
                     <li class="menu-item <?php echo $menu_status == 'dashboard' ? 'active' : ''; ?>">
-                        <a href="<?php echo base_url(); ?>" class="menu-link">
+                        <a href="<?php echo base_url(); ?>admin" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-home-alt"></i>
                             <div data-i18n="Dashboard">Dashboard</div>
                         </a>
@@ -492,7 +492,7 @@ if ($CI->db->table_exists('menu_control')) {
                         <?php } ?>
                         <?php if (($menuStates['branch_visit'] ?? 'enabled') === 'enabled') { ?>
                         <li class="menu-item <?php echo $menu_status == 'branch_visit' ? 'active' : ''; ?>">
-                            <a href="<?php echo base_url(); ?>branch-visit-list" class="menu-link">
+                            <a href="<?php echo base_url(); ?>admin/branch-visit-list" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-map"></i>
                                 <div data-i18n="Branch Visit">Branch Visit</div>
                             </a>
@@ -508,7 +508,7 @@ if ($CI->db->table_exists('menu_control')) {
                         <?php } ?>
                         <?php if (($menuStates['yearly_plan'] ?? 'enabled') === 'enabled') { ?>
                         <li class="menu-item <?php echo $menu_status == 'yearly_plan' ? 'active' : ''; ?>">
-                            <a href="<?php echo base_url(); ?>event-list/<?php echo date('Y'); ?>" class="menu-link">
+                            <a href="<?php echo base_url(); ?>admin/event-list/<?php echo date('Y'); ?>" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-calendar-heart"></i>
                                 <div data-i18n="Yearly Plan">Yearly Plan</div>
                             </a>
@@ -516,7 +516,7 @@ if ($CI->db->table_exists('menu_control')) {
                         <?php } ?>
                         <?php if (($menuStates['file_manage'] ?? 'enabled') === 'enabled') { ?>
                         <li class="menu-item <?php echo $menu_status == 'file_manage' ? 'active' : ''; ?>">
-                            <a href="<?php echo base_url(); ?>file-manage-list" class="menu-link">
+                            <a href="<?php echo base_url(); ?>admin/file-manage-list" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-folder-open"></i>
                                 <div data-i18n="File Management">File Management</div>
                             </a>
@@ -539,7 +539,7 @@ if ($CI->db->table_exists('menu_control')) {
                                 <?php } ?>
                                 <?php if (($menuStates['login_permission'] ?? 'enabled') === 'enabled' && in_array('admin', $userPermission)) { ?>
                                     <li class="menu-item <?php echo $menu_status == 'login_permission' ? 'active' : ''; ?>">
-                                        <a href="<?php echo base_url(); ?>permission-list" class="menu-link">
+                                        <a href="<?php echo base_url(); ?>admin/permission-list" class="menu-link">
                                             <div data-i18n="Login Permission">Login Permission</div>
                                         </a>
                                     </li>
@@ -702,21 +702,21 @@ if ($CI->db->table_exists('menu_control')) {
                         <ul class="menu-sub">
                             <?php if (($menuStates['settings_profile'] ?? 'enabled') === 'enabled') { ?>
                             <li class="menu-item <?php echo $menu_status == 'profile' ? 'active' : ''; ?>">
-                                <a href="<?php echo base_url(); ?>profile" class="menu-link">
+                                <a href="<?php echo base_url(); ?>admin/profile" class="menu-link">
                                     <div data-i18n="My Profile">My Profile</div>
                                 </a>
                             </li>
                             <?php } ?>
                             <?php if (($menuStates['settings_password'] ?? 'enabled') === 'enabled' && in_array('admin', $userPermission)) { ?>
                                 <li class="menu-item <?php echo $menu_status == 'change_password' ? 'active' : ''; ?>">
-                                    <a href="<?php echo base_url(); ?>change-password" class="menu-link">
+                                    <a href="<?php echo base_url(); ?>admin/change-password" class="menu-link">
                                         <div data-i18n="Change Password">Change Password</div>
                                     </a>
                                 </li>
                             <?php } ?>
                             <?php if (($menuStates['settings_logout'] ?? 'enabled') === 'enabled') { ?>
                             <li class="menu-item">
-                                <a href="<?php echo base_url(); ?>logout" class="menu-link">
+                                <a href="<?php echo base_url(); ?>admin/logout" class="menu-link">
                                     <div data-i18n="Log Out">Log Out</div>
                                 </a>
                             </li>

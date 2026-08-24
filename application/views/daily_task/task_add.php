@@ -14,7 +14,7 @@
                                 <?php if($dailyTaskId) { ?>
                                     <a href="<?php echo base_url() . 'employee/task-list/' . $dailyTaskId; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                                 <?php } else { ?>
-                                    <a href="<?php echo base_url(); ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                                    <a href="<?php echo base_url(); ?>admin" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                                 <?php } ?>
                         <?php } ?>
                         <h4 class="fw-bold mb-0 text-black"><?php echo $formTitle; ?></h4>

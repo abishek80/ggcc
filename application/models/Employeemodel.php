@@ -510,7 +510,7 @@ class Employeemodel extends CI_Model
             $where .= "EP.employee_id = " . $this->db->escape($employeeId) . " AND ";
         }
 
-        $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, EP.month, EP.id AS payslipId FROM employee_payslip EP INNER JOIN employee E ON E.id = EP.employee_id INNER JOIN master_designation MD ON MD.id = E.designation WHERE $where EP.delete_status = 0 AND E.is_admin = 0 ORDER BY E.employee_name ASC";
+        $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, EP.month, EP.year, EP.id AS payslipId FROM employee_payslip EP INNER JOIN employee E ON E.id = EP.employee_id INNER JOIN master_designation MD ON MD.id = E.designation WHERE $where EP.delete_status = 0 AND E.is_admin = 0 ORDER BY E.employee_name ASC, EP.year DESC";
 
         $query = $this->db->query($sql);
         $result = $query->result_array();
@@ -519,7 +519,13 @@ class Employeemodel extends CI_Model
         foreach ($result as $row) {
             $payslipList[$row['employee_id']]['employee_name'] = $row['employee_name'];
             $payslipList[$row['employee_id']]['designation'] = $row['designation'];
-            $payslipList[$row['employee_id']]['payslip'][$row['month']] = $row['payslipId'];
+            $monthKey = strtolower($row['month']);
+            $y = $row['year'];
+            $payslipList[$row['employee_id']]['payslip'][$y][$monthKey] = [
+                'id'    => $row['payslipId'],
+                'month' => $monthKey,
+                'year'  => $y
+            ];
         }
 
         return $payslipList;

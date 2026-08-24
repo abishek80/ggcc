@@ -44,7 +44,7 @@
         submitHandler: function(form) {
             var data = new FormData($('#changePassword').get(0));
                   $.ajax({
-                url: '<?php echo base_url(); ?>changePassword',
+                url: '<?php echo base_url(); ?>admin/changePassword',
                     data: data,
                     cache: false,
                     processData: false,
@@ -79,7 +79,7 @@
                         oneClickSubmitBtn();
                         toastr.success(data['message']);
                         setTimeout(function () {
-                        window.location.href = "<?php echo base_url(); ?>logout";
+                        window.location.href = "<?php echo base_url(); ?>admin/logout";
                         }, 1500);
                     }
                   }

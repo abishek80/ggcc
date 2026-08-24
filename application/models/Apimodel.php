@@ -14,7 +14,7 @@ class Apimodel extends CI_Model
         $this->db->where('login_id', $loginId)->delete('api_tokens');
 
         $token      = bin2hex(random_bytes(32)); // 64-char secure token
-        $expiresAt  = date('Y-m-d H:i:s', strtotime('+30 days'));
+        $expiresAt  = date('Y-m-d H:i:s', strtotime('+6 hours'));
         $now        = date('Y-m-d H:i:s');
 
         $this->db->insert('api_tokens', [
@@ -36,9 +36,11 @@ class Apimodel extends CI_Model
      */
     public function validateToken($token)
     {
-        $sql = "SELECT AT.*, LP.employee_name, LP.mobile_number, LP.login_code, LP.permission, LP.is_admin
+        $sql = "SELECT AT.*, LP.employee_name, LP.mobile_number, LP.login_code, LP.permission, LP.is_admin, MD.designation, E.profile_img
                 FROM api_tokens AT
                 INNER JOIN login_permission LP ON LP.id = AT.login_id
+                LEFT JOIN employee E ON E.id = LP.employee_id
+                LEFT JOIN master_designation MD ON MD.id = E.designation
                 WHERE AT.token = ?
                   AND AT.expires_at > NOW()
                   AND LP.status = 'active'

@@ -33,7 +33,7 @@ class Reportmodel extends CI_Model
             $fromtoDate = "";
         }
 
-		$sql = "SELECT C.sno, DATE_FORMAT(C.date, '%d - %m - %Y') AS date, C.zone, MB.branch, C.work_type, C.assign_to, O.customer_id, O.outlet_name, O.outlet_location, C.description, C.job_report, C.checking_date, C.renewal_date, C.earthing_report, C.status FROM complaint C LEFT JOIN master_branch MB ON MB.id = C.branch LEFT JOIN outlet O ON O.id = C.outlet_id WHERE C.delete_status = 0 $branch $employeeName $fromtoDate $workType $complaintStatus ORDER By C.date DESC, C.id DESC";
+		$sql = "SELECT C.id, C.sno, DATE_FORMAT(C.date, '%d - %m - %Y') AS date, C.zone, MB.branch, C.work_type, C.assign_to, O.customer_id, O.outlet_name, O.outlet_location, C.description, C.job_report, C.checking_date, C.renewal_date, C.earthing_report, C.status FROM complaint C LEFT JOIN master_branch MB ON MB.id = C.branch LEFT JOIN outlet O ON O.id = C.outlet_id WHERE C.delete_status = 0 $branch $employeeName $fromtoDate $workType $complaintStatus ORDER By C.date DESC, C.id DESC";
         
 		$res = $this->db->query($sql);
 		return $res->result_array();

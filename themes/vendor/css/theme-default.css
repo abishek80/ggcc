@@ -135,7 +135,7 @@ a.bg-primary:focus {
 }
 
 .bg-label-primary {
-  background-color: #e7e7ff !important;
+  background-color: #f1f1fe !important;
   color: #696cff !important;
 }
 
@@ -201,7 +201,7 @@ button.list-group-item-primary.active {
 }
 
 .alert-primary {
-  background-color: #e7e7ff;
+  background-color: #f1f1fe;
   border-color: #d2d3ff;
   color: #696cff;
 }
@@ -932,12 +932,12 @@ html:not(.layout-menu-collapsed) .bg-menu-theme .menu-inner .menu-item .menu-lin
 
 .bg-menu-theme .menu-sub>.menu-item.active>.menu-link:not(.menu-toggle):before {
   background-color: #696cff !important;
-  border: 3px solid #e7e7ff !important;
+  border: 3px solid #f1f1fe !important;
 }
 
 .app-brand .layout-menu-toggle {
   background-color: #696cff;
-  border: 7px solid #e7e7ff;
+  border: 7px solid #f1f1fe;
 }
 
 .app-brand .layout-menu-toggle i {
@@ -949,7 +949,7 @@ html:not(.layout-menu-collapsed) .bg-menu-theme .menu-inner .menu-item .menu-lin
 }
 
 .bg-footer-theme {
-  background-color: #e7e7ff !important;
+  background-color: #f1f1fe !important;
   color: #697a8d;
 }
 

@@ -37,7 +37,7 @@
                                         <?php } else if ($row->module_type == 'vehicle') { ?>
                                             <a href="<?= base_url('vehicle/vehicle-edit/' . $row->module_id) ?>" class="btn btn-sm btn-info text-white">View</a>
                                         <?php } else if ($row->module_type == 'yearly_plan') { ?>
-                                            <a href="<?= base_url('web/event-edit/' . $row->module_id) ?>" class="btn btn-sm btn-info text-white">View</a>
+                                            <a href="<?= base_url('admin/event-edit/' . $row->module_id) ?>" class="btn btn-sm btn-info text-white">View</a>
                                         <?php } else if ($row->module_type == 'task') { ?>
                                             <a href="<?= base_url('employee/task-list/' . $row->module_id) ?>" class="btn btn-sm btn-info text-white">View</a>
                                         <?php } else { ?>

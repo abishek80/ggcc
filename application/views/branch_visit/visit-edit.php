@@ -4,11 +4,11 @@
             <div class="card px-3 pb-3">
                 <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pt-3 pb-3 sticky-head flex-wrap gap-3">
                     <div class="d-flex gap-2 align-items-center">
-                        <a href="<?php echo base_url() . 'branch-visit-view/' . $branchId; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                        <a href="<?php echo base_url() . 'admin/branch-visit-view/' . $branchId; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                         <h4 class="fw-bold mb-0 text-black"><?php echo $formTitle; ?></h4>
                     </div>
                     <div class="d-flex gap-3 justify-content-end">
-                        <a href="<?php echo base_url() . 'branch-visit-view/' . $branchId; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
+                        <a href="<?php echo base_url() . 'admin/branch-visit-view/' . $branchId; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
                         <button type="submit" class="btn btn-success px-4 py-2 rounded border-0 fw-bold text-white">Save</button>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
             var data = new FormData($('#branchVisitForm').get(0));
 
             $.ajax({
-                url: '<?php echo base_url(); ?>editBranchVisitFormSave',
+                url: '<?php echo base_url(); ?>admin/editBranchVisitFormSave',
                 data: data,
                 cache: false,
                 processData: false,
@@ -131,7 +131,7 @@
                         oneClickSubmitBtn();
                         toastr.success(data['message']);
                         setTimeout(function () {
-                            window.location.href = "<?php echo base_url() . 'branch-visit-view/' . $branchId; ?>";
+                            window.location.href = "<?php echo base_url() . 'admin/branch-visit-view/' . $branchId; ?>";
                         }, 1500);
                     }
                 }

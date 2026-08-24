@@ -1,7 +1,7 @@
 <?php if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
-class Webmodel extends CI_Model
+class Adminmodel extends CI_Model
 {
     public function deleteRecord($recordId, $tableName = '')
     {

@@ -224,7 +224,7 @@
                     headers: {
                         "X-CSRFToken": csrftoken
                     },
-                    url: '<?php echo base_url(); ?>deleteRecord/',
+                    url: '<?php echo base_url(); ?>admin/deleteRecord/',
                     dataType: "json",
                     data: {
                         fieldId, 
@@ -280,7 +280,7 @@
                     headers: {
                         "X-CSRFToken": csrftoken
                     },
-                    url: '<?php echo base_url(); ?>deletePartyPaymentRecord/',
+                    url: '<?php echo base_url(); ?>admin/deletePartyPaymentRecord/',
                     dataType: "json",
                     data: {
                         partyPaymentId,
@@ -336,7 +336,7 @@
                     headers: {
                         "X-CSRFToken": csrftoken
                     },
-                    url: '<?php echo base_url(); ?>deletePurchaseRecord/',
+                    url: '<?php echo base_url(); ?>admin/deletePurchaseRecord/',
                     dataType: "json",
                     data: {
                         fieldId, 
@@ -389,7 +389,7 @@
                     headers: {
                         "X-CSRFToken": csrftoken
                     },
-                    url: '<?php echo base_url(); ?>deleteRetentionMoneyRecord/',
+                    url: '<?php echo base_url(); ?>admin/deleteRetentionMoneyRecord/',
                     dataType: "json",
                     data: {
                         fieldId
@@ -442,7 +442,7 @@
                     headers: {
                         "X-CSRFToken": csrftoken
                     },
-                    url: '<?php echo base_url(); ?>completePurchaseRecord/',
+                    url: '<?php echo base_url(); ?>admin/completePurchaseRecord/',
                     dataType: "json",
                     data: {
                         fieldId, 
@@ -495,7 +495,7 @@
                     headers: {
                         "X-CSRFToken": csrftoken
                     },
-                    url: '<?php echo base_url(); ?>deleteLeaveRecord/',
+                    url: '<?php echo base_url(); ?>admin/deleteLeaveRecord/',
                     dataType: "json",
                     data: {
                         fieldId
@@ -549,7 +549,7 @@
                     headers: {
                         "X-CSRFToken": csrftoken
                     },
-                    url: '<?php echo base_url(); ?>changeStatus/',
+                    url: '<?php echo base_url(); ?>admin/changeStatus/',
                     dataType: "json",
                     data: {
                         fieldId, 
@@ -604,7 +604,7 @@
                     headers: {
                         "X-CSRFToken": csrftoken
                     },
-                    url: '<?php echo base_url(); ?>changeAllEmployeeStatus/',
+                    url: '<?php echo base_url(); ?>admin/changeAllEmployeeStatus/',
                     dataType: "json",
                     data: {
                         fieldId, 

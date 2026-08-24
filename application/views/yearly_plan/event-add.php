@@ -4,17 +4,17 @@
             <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pt-3 pb-3 sticky-head flex-wrap gap-3">
                 <div class="d-flex gap-2 align-items-center">
                     <?php if($year && $month) { ?>
-                        <a href="<?php echo base_url() . 'event-view/' . $year . '/' . $month; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                        <a href="<?php echo base_url() . 'admin/event-view/' . $year . '/' . $month; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                     <?php } else { ?>
-                        <a href="<?php echo base_url() . 'event-list/' . $year; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                        <a href="<?php echo base_url() . 'admin/event-list/' . $year; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                     <?php } ?>
                     <h4 class="fw-bold mb-0 text-black"><?php echo $formTitle; ?></h4>
                 </div>
                 <div class="d-flex gap-3 justify-content-end">
                     <?php if($year && $month) { ?>
-                        <a href="<?php echo base_url() . 'event-view/' . $year . '/' . $month; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
+                        <a href="<?php echo base_url() . 'admin/event-view/' . $year . '/' . $month; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
                     <?php } else { ?>
-                        <a href="<?php echo base_url() . 'event-list/' . $year; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
+                        <a href="<?php echo base_url() . 'admin/event-list/' . $year; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
                     <?php } ?>
                     <button type="submit" class="btn btn-success px-4 py-2 rounded border-0 fw-bold text-white">Save</button>
                 </div>
@@ -93,7 +93,7 @@
         submitHandler: function(form) {
             var data = new FormData($('#yearlyPlanForm').get(0));
             $.ajax({
-                url: '<?php echo base_url(); ?>yearlyPlanFormSave',
+                url: '<?php echo base_url(); ?>admin/yearlyPlanFormSave',
                 data: data,
                 cache: false,
                 processData: false,
@@ -129,9 +129,9 @@
                         toastr.success(data['message']);
                         setTimeout(function () {
                             <?php if($year && $month) { ?>
-                                window.location.href = "<?php echo base_url() . 'event-view/' . $year . '/' . $month; ?>";
+                                window.location.href = "<?php echo base_url() . 'admin/event-view/' . $year . '/' . $month; ?>";
                             <?php } else { ?>
-                                window.location.href = "<?php echo base_url() . 'event-list/' . $year; ?>";
+                                window.location.href = "<?php echo base_url() . 'admin/event-list/' . $year; ?>";
                             <?php } ?>
                         }, 1500);
                     }

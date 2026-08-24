@@ -75,10 +75,40 @@ class Report extends CI_Controller {
         $output = fopen("php://output", "w");
     
         // Write header
-        fputcsv($output, ["SNO", "Date", "Zone", "Branch", "Work Type", "Assign To", "Customer Id", "Outlet Name", "Outlet Location", "Description", "Job_report", "Checking Date", "Renewal Date", "Earthing Report", "Status"], "\t");
+        fputcsv($output, ["SNO", "Date", "Zone", "Branch", "Work Type", "Assign To", "Customer Id", "Outlet Name", "Outlet Location", "Description", "Job_report", "Job Completion Letter", "Checking Date", "Renewal Date", "Earthing Report", "Before Images", "After Images", "Status"], "\t");
 
         // Write data rows
         foreach ($data as $row) {
+            $complaintId = $row['id'];
+            $job_report_url = !empty($row['job_report']) ? base_url() . ltrim($row['job_report'], './\\') : '';
+            $earthing_report_url = !empty($row['earthing_report']) ? base_url() . ltrim($row['earthing_report'], './\\') : '';
+
+            // Fetch additional images from before_after_images table
+            $sql = "SELECT imagepath, type FROM before_after_images WHERE complaint_id = ?";
+            $query = $this->db->query($sql, [$complaintId]);
+            $images = $query->result_array();
+
+            $job_report_letters = [];
+            $before_images = [];
+            $after_images = [];
+
+            foreach ($images as $img) {
+                if (!empty($img['imagepath'])) {
+                    $url = base_url() . ltrim($img['imagepath'], './\\');
+                    if ($img['type'] == 'job_report_letter') {
+                        $job_report_letters[] = $url;
+                    } elseif ($img['type'] == 'before') {
+                        $before_images[] = $url;
+                    } elseif ($img['type'] == 'after') {
+                        $after_images[] = $url;
+                    }
+                }
+            }
+
+            $job_report_letters_str = implode(', ', $job_report_letters);
+            $before_images_str = implode(', ', $before_images);
+            $after_images_str = implode(', ', $after_images);
+
             fputcsv($output, [
                 $row['sno'],
                 $row['date'],
@@ -90,10 +120,13 @@ class Report extends CI_Controller {
                 $row['outlet_name'],
                 $row['outlet_location'],
                 $row['description'],
-                $row['job_report'],
+                $job_report_url,
+                $job_report_letters_str,
                 $row['checking_date'],
                 $row['renewal_date'],
-                $row['earthing_report'],
+                $earthing_report_url,
+                $before_images_str,
+                $after_images_str,
                 $row['status']
             ], "\t");
         }

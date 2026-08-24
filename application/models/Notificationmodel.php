@@ -75,7 +75,7 @@ class Notificationmodel extends CI_Model {
     public function generateUpcomingNotifications() {
         $this->load->model('purchasemodel');
         $this->load->model('vehiclemodel');
-        $this->load->model('webmodel');
+        $this->load->model('adminmodel');
         $this->load->model('employeemodel');
 
         $today = date('Y-m-d');
@@ -171,7 +171,7 @@ class Notificationmodel extends CI_Model {
         }
 
         // 5. Yearly Plan
-        $activePlans = $this->webmodel->getActiveYearlyPlans($year);
+        $activePlans = $this->adminmodel->getActiveYearlyPlans($year);
         if (!empty($activePlans)) {
             foreach ($activePlans as $plan) {
                 $planDate = $plan->date;

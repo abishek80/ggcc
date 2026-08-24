@@ -46,7 +46,10 @@
                         <?php
                             $i = 1;
                             foreach ($payslipList as $employee_id => $employee) { 
-                                $payslip = $employee['payslip'];
+                                $payslip = $employee['payslip'] ?? [];
+                                if (isset($activeLink) && isset($payslip[$activeLink])) {
+                                    $payslip = $payslip[$activeLink];
+                                }
                         ?>
                         <tr>
                             <td><?php echo $i++; ?></td>
@@ -58,7 +61,12 @@
                                 $month = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
                                 foreach ($month as $value) {
                                     echo '<td> <div class="d-flex justify-content-center">';
-                                        echo isset($payslip[$value]) ? '<a href="' . base_url() . 'employee/payslip-view/' . $payslip[$value] . '" class="box-hover" target="_blank" data-toggle="tooltip" data-placement="top" title="View Payslip"> <i class="bx bx-show-alt"></i> </a>' : '-';
+                                        if (isset($payslip[$value])) {
+                                            $pId = is_array($payslip[$value]) ? $payslip[$value]['id'] : $payslip[$value];
+                                            echo '<a href="' . base_url() . 'employee/payslip-view/' . $pId . '" class="box-hover" target="_blank" data-toggle="tooltip" data-placement="top" title="View Payslip"> <i class="bx bx-show-alt"></i> </a>';
+                                        } else {
+                                            echo '-';
+                                        }
                                     echo '</div></td>';
                                 }
                             ?>

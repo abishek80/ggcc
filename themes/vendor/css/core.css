@@ -47,7 +47,7 @@
   --bs-body-font-weight: 400;
   --bs-body-line-height: 1.53;
   --bs-body-color: #697a8d;
-  --bs-body-bg: #e7e7ff;
+  --bs-body-bg: #f1f1fe;
 }
 
 *,
@@ -6798,10 +6798,12 @@ a.invert-bg-dark:focus {
   background-color: #f0f0ff !important;
   font-weight: bold;
 }
+
 /* Odd rows - slightly darker yellow */
 #attendanceTable tbody tr:nth-child(odd) td.weekend-col {
   background-color: #f0f0ff !important;
 }
+
 /* Even rows - lighter yellow */
 #attendanceTable tbody tr:nth-child(even) td.weekend-col {
   background-color: #f0f0ff !important;
@@ -11435,7 +11437,7 @@ button.list-group-item-gray.active {
 
 .bg-body {
   --bs-bg-opacity: 1;
-  background-color: #e7e7ff !important;
+  background-color: #f1f1fe !important;
   /* background-color: #f5f5f9 !important; */
 }
 

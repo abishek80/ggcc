@@ -310,9 +310,9 @@
                                     </td>
                                     <td>
                                         <?php if($row->status == 'active') { ?>
-                                            <a href="javascript:void(0);" data-value="inactive" data-rowid="<?php echo $row->id; ?>" data-tablename="employee" data-link="<?php echo base_url(); ?>" class="text-success changeStatus" data-toggle="tooltip" data-placement="top" title="Status Change"> Active </a>
+                                            <a href="javascript:void(0);" data-value="inactive" data-rowid="<?php echo $row->id; ?>" data-tablename="employee" data-link="<?php echo base_url(); ?>admin" class="text-success changeStatus" data-toggle="tooltip" data-placement="top" title="Status Change"> Active </a>
                                         <?php } elseif($row->status == 'inactive') { ?>
-                                            <a href="javascript:void(0);" data-value="active" data-rowid="<?php echo $row->id; ?>" data-tablename="employee" data-link="<?php echo base_url(); ?>" class="text-danger changeStatus" data-toggle="tooltip" data-placement="top" title="Status Change"> Inactive </a>
+                                            <a href="javascript:void(0);" data-value="active" data-rowid="<?php echo $row->id; ?>" data-tablename="employee" data-link="<?php echo base_url(); ?>admin" class="text-danger changeStatus" data-toggle="tooltip" data-placement="top" title="Status Change"> Inactive </a>
                                         <?php } ?>
                                     </td>
                                 </tr>
@@ -1078,6 +1078,9 @@
                         actions += '<a href="javascript:void(0);" data-rowid="' + row.id + '" data-tablename="complaint" data-link="' + base_url + 'complaint/complaint-list/not_started" class="box-hover action-icon trashItem" data-toggle="tooltip" data-placement="top" title="Delete"> <i class="bx bx-trash"></i> </a>';
                         if(row.status == 'inprogress') {
                             actions += '<a href="' + base_url + 'complaint/job-report/' + row.id + '" class="box-hover action-icon" data-toggle="tooltip" data-placement="top" title="Send Report"> <i class="bx bx-send"></i> </a>';
+                        }
+                        if(row.status == 'completed' && row.has_files > 0) {
+                            actions += '<a href="' + base_url + 'complaint/download_complaint_zip/' + row.id + '" class="box-hover action-icon" data-toggle="tooltip" data-placement="top" title="Download All Files (ZIP)" target="blank"> <i class="bx bx-download"></i> </a>';
                         }
                         actions += '</div>';
                         return actions;

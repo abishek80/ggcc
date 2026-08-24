@@ -83,6 +83,14 @@ class Complaintmodel extends CI_Model
         return $res->result_array();
     }
 
+    // Fetch ALL image types in a single query (used by ZIP download to avoid cached result mismatch)
+    public function getAllComplaintImages($complaintId)
+    {
+        $sql = "SELECT * FROM before_after_images WHERE complaint_id = ? ORDER BY type, id ASC";
+        $res = $this->db->query($sql, [$complaintId]);
+        return $res->result_array();
+    }
+
     //Complaint Edit
     public function getComplaintEdit($complaintId)
     {
@@ -478,7 +486,12 @@ class Complaintmodel extends CI_Model
       
       $sortColumn = isset($sortingMapping[$columnName]) ? $sortingMapping[$columnName] : 'C.date';
 
-      $sql = "SELECT C.*, B.branch AS branch_name, DATE_FORMAT(C.date, '%d - %m - %Y') AS complaint_date, C.assign_to AS assign_toName 
+      $sql = "SELECT C.*, B.branch AS branch_name, DATE_FORMAT(C.date, '%d - %m - %Y') AS complaint_date, C.assign_to AS assign_toName,
+                      (
+                          (SELECT COUNT(*) FROM before_after_images BAI WHERE BAI.complaint_id = C.id)
+                          + IF(C.job_report IS NOT NULL AND C.job_report != '', 1, 0)
+                          + IF(C.earthing_report IS NOT NULL AND C.earthing_report != '', 1, 0)
+                      ) AS has_files
               FROM complaint C 
               INNER JOIN master_branch B ON B.id = C.branch 
               WHERE C.delete_status = 0 $statusQuery $userQuery $searchQuery $yearQuery

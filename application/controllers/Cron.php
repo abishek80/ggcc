@@ -8,7 +8,7 @@ class Cron extends CI_Controller
         parent::__construct();
         $this->load->model('vehiclemodel');
         $this->load->model('purchasemodel');
-        $this->load->model('webmodel');
+        $this->load->model('adminmodel');
         $this->load->library('common');
     }
 
@@ -26,10 +26,10 @@ class Cron extends CI_Controller
         }
         
         $currentYear = date('Y');
-        $count = $this->webmodel->duplicateRepeatedEventsForYear($currentYear);
+        $count = $this->adminmodel->duplicateRepeatedEventsForYear($currentYear);
         
         // Fetch all active events for the current year
-        $activePlans = $this->webmodel->getActiveYearlyPlans($currentYear);
+        $activePlans = $this->adminmodel->getActiveYearlyPlans($currentYear);
         
         // Group by month
         $groupedPlans = [];

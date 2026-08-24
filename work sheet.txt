@@ -84,3 +84,63 @@ Website -
     Contact
     Awards
     Our Works 
+
+
+i want to create a new website in this project 
+it's multi page website : 
+1. home
+2. about
+    What We do
+    Who we are
+    Motive - vision, mission
+3. services
+    Electrical Contracting
+    Industrial Electrical Installation
+    Commercial Electrical Installation
+    Annual Maintenance Contract (AMC)
+    HT & LT Cable Laying
+    Lt Control Panel Installation
+    Flameproof Electrical Installation
+    Street Lighting Installation
+    Area Lighting Installation
+    Electrical Panel Installation
+    Underground Cable Laying
+    Electrical Maintenance Services
+    Cable Tray Installation
+    APFC Panel Installation
+    UPS Installation & Maintenance
+    Servo Voltage Stabilizer Installation
+4. service detail page
+5. Gallery
+
+    Awards
+    Our Works 
+6. contact
+7. Partner and Customers
+8. terms and condition
+9. privacy policy
+
+
+100% optimaized SEO page tag and content 
+AI SEO tag and content 
+No Copyrights content and image don't add
+we are working 12 branchs 
+    Vashi
+    Gwalior
+    Madurai
+    Coimbatore
+    Tiruchirappalli
+    Bangalore
+    Indore
+    Tirunelveli
+    Mumbai
+    Nanded
+    Chennai
+    Bhopal
+    Kochi
+so add the the location to the seo friendly tag mention the location and service both 
+
+Company Name : george general construction company || GGCC || George General Construction Co
+main branch location : Suyog Samuha CHS Ltd, 9, Plot No. 41 to 44, Sector 8, Sanpada, Navi Mumbai, Maharashtra 400705
+mobile number : 099206 67756
+Email id : info@ggcc.org.in

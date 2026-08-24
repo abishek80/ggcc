@@ -152,7 +152,7 @@
                             oneClickSubmitBtn();
                             toastr.success(data['message']);
                             setTimeout(function () {
-                                window.location = '<?php echo base_url(); ?>';
+                                window.location = '<?php echo base_url(); ?>admin';
                             }, 1500);
                         }
                     }

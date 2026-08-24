@@ -587,4 +587,136 @@ class Complaint extends CI_Controller {
         $data = $this->complaintmodel->get_complaints_server_side($postData, $pageStatus, $activeYear); 
         echo json_encode($data);
     }
+
+    // Download all complaint files as a single ZIP
+    public function download_complaint_zip($complaintId)
+    {
+        $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (!in_array('admin', $userPermission) && !in_array('complaint_management', $userPermission)) {
+            show_error('Access Denied', 403);
+            return;
+        }
+
+        if (!class_exists('ZipArchive')) {
+            show_error('ZipArchive extension is not enabled on this server.', 500);
+            return;
+        }
+
+        // Fetch complaint main info
+        $complaintDetail = $this->complaintmodel->getComplaintInfo($complaintId);
+        if (empty($complaintDetail)) {
+            show_error('Complaint not found.', 404);
+            return;
+        }
+
+        $complaint = $complaintDetail[0];
+        $complaintCode = preg_replace('/[^a-zA-Z0-9_-]/', '_', $complaint->sno);
+        $zipName = 'Complaint_' . $complaintCode . '_Files.zip';
+
+        // -------------------------------------------------------
+        // Explicit type → ZIP folder mapping.
+        // ALL images fetched in ONE query to avoid CodeIgniter
+        // query-cache issues that can swap result sets between
+        // multiple calls to getComplaintImageList().
+        // -------------------------------------------------------
+        $typeFolderMap = array(
+            'job_report_letter' => 'Job_Completion_Letter',
+            'before'            => 'Before_Images',
+            'after'             => 'After_Images',
+        );
+
+        $basePath    = FCPATH; // document root (where index.php lives)
+        $tmpZip      = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'complaint_zip_' . uniqid() . '.zip';
+        $addedCount  = 0;
+        $entryNames  = array(); // track used names to prevent duplicate ZIP entries
+
+        $zip = new ZipArchive();
+        if ($zip->open($tmpZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+            show_error('Could not create ZIP file.', 500);
+            return;
+        }
+
+        // --- Single-file attachments from the complaint row ---
+
+        if (!empty($complaint->job_report)) {
+            $fullPath  = $basePath . ltrim($complaint->job_report, '/\\');
+            $entryName = 'Job_Report/' . basename($complaint->job_report);
+            if (file_exists($fullPath) && !isset($entryNames[$entryName])) {
+                $zip->addFile($fullPath, $entryName);
+                $entryNames[$entryName] = true;
+                $addedCount++;
+            }
+        }
+
+        if (!empty($complaint->earthing_report)) {
+            $fullPath  = $basePath . ltrim($complaint->earthing_report, '/\\');
+            $entryName = 'Earth_Report/' . basename($complaint->earthing_report);
+            if (file_exists($fullPath) && !isset($entryNames[$entryName])) {
+                $zip->addFile($fullPath, $entryName);
+                $entryNames[$entryName] = true;
+                $addedCount++;
+            }
+        }
+
+        // --- Multi-image rows: ONE query, folder driven by DB type column ---
+        $allImages = $this->complaintmodel->getAllComplaintImages($complaintId);
+
+        foreach ($allImages as $img) {
+            $type      = $img['type'];      // 'before' | 'after' | 'job_report_letter'
+            $imagePath = $img['imagepath']; // e.g. uploads/before_image/filename.jpg
+
+            if (!isset($typeFolderMap[$type])) continue; // skip unknown types
+
+            $folder   = $typeFolderMap[$type]; // always from DB type — never swapped
+            $fullPath = $basePath . ltrim($imagePath, '/\\');
+
+            if (!file_exists($fullPath)) continue;
+
+            // Ensure unique entry name within the ZIP
+            $baseName  = basename($imagePath);
+            $entryName = $folder . '/' . $baseName;
+
+            if (isset($entryNames[$entryName])) {
+                $ext      = pathinfo($baseName, PATHINFO_EXTENSION);
+                $nameOnly = pathinfo($baseName, PATHINFO_FILENAME);
+                $suffix   = 2;
+                do {
+                    $entryName = $folder . '/' . $nameOnly . '_' . $suffix . '.' . $ext;
+                    $suffix++;
+                } while (isset($entryNames[$entryName]));
+            }
+
+            $zip->addFile($fullPath, $entryName);
+            $entryNames[$entryName] = true;
+            $addedCount++;
+        }
+
+        $zip->close();
+
+        if ($addedCount === 0) {
+            @unlink($tmpZip);
+            show_error('No files available to download for this complaint.', 404);
+            return;
+        }
+
+        // FIX 2: Clear ALL of CodeIgniter's output buffers.
+        //        CI calls ob_start() at boot; if any buffered output exists,
+        //        PHP will treat headers as already sent and the binary stream
+        //        gets corrupted by any preceding HTML content.
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Send ZIP to browser
+        header('Content-Type: application/zip');
+        header('Content-Disposition: attachment; filename="' . $zipName . '"');
+        header('Content-Transfer-Encoding: binary');
+        header('Content-Length: ' . filesize($tmpZip));
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Expires: 0');
+        readfile($tmpZip);
+        @unlink($tmpZip);
+        exit;
+    }
 }

@@ -51,7 +51,7 @@
                 $employeeFilter = " AND E.id = " . $this->db->escape($employeeId);
             }
 
-            $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, 
+            $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, E.zone, MB.branch,
                     (
                         COUNT(DISTINCT EA.id)
                         + (SELECT COUNT(*) FROM employee_ot WHERE employee_id = E.id AND delete_status = 0 $subOT)
@@ -66,6 +66,7 @@
                     LEFT JOIN employee_attendance EA ON EA.employee_id = E.id AND EA.delete_status = 0 $wherePresent 
                     LEFT JOIN employee_leave_detail ELD ON ELD.employee_id = E.id AND ELD.delete_status = 0 $whereLeave 
                     INNER JOIN master_designation MD ON MD.id = E.designation 
+                    LEFT JOIN master_branch MB ON MB.id = E.branch
                     WHERE E.delete_status = 0 $employeeFilter
                     AND (
                         E.id IN (
@@ -170,7 +171,7 @@
                 $yearWhere = "AND DATE_FORMAT(EA.present_date, '%Y') = '$year'";
             }
     
-            $sql = "SELECT EA.*, E.employee_name, DATE_FORMAT(EA.present_date, '%d - %m - %Y') AS present_dateFormat, EA.*, E.id as employee_id, MD.designation FROM employee_attendance EA INNER JOIN employee E ON E.id = EA.employee_id INNER JOIN master_designation MD ON MD.id = E.designation WHERE EA.delete_status = 0 $employeeWhere $monthWhere $yearWhere ORDER BY EA.present_date DESC";
+            $sql = "SELECT EA.*, E.employee_name, DATE_FORMAT(EA.present_date, '%d - %m - %Y') AS present_dateFormat, E.id as employee_id, MD.designation, MB.branch, MB.zone FROM employee_attendance EA INNER JOIN employee E ON E.id = EA.employee_id INNER JOIN master_designation MD ON MD.id = E.designation LEFT JOIN master_branch MB ON MB.id = E.branch WHERE EA.delete_status = 0 $employeeWhere $monthWhere $yearWhere ORDER BY EA.present_date DESC";
 
             $res = $this->db->query($sql);
             return $res->result();
@@ -252,9 +253,16 @@
                 $this->db->where('leave_date', $presentDate);
                 $this->db->delete('employee_leave');
 
+                // Get branch_id from actual employee master
+                $branchId = '13'; // Default fallback
+                $empQuery = $this->db->select('branch')->where('id', (int) $employeeId)->get('employee')->row();
+                if ($empQuery && !empty($empQuery->branch)) {
+                    $branchId = $empQuery->branch;
+                }
+
                 // Insert new leave record
                 $leaveData = array(
-                    'branch_id' => '13',
+                    'branch_id' => $branchId,
                     'employee_id' => $employeeId,
                     'leave_date' => $presentDate,
                     'joining_date' => $presentDate,
@@ -820,8 +828,15 @@
                     } 
                     // If absent or leave, insert into employee_leave and detail
                     else if ($status === 'absent' || $status === 'leave') {
+                        // Get branch_id from actual employee master
+                        $branchId = '13'; // Default fallback
+                        $empQuery = $this->db->select('branch')->where('id', (int) $empId)->get('employee')->row();
+                        if ($empQuery && !empty($empQuery->branch)) {
+                            $branchId = $empQuery->branch;
+                        }
+
                         $leaveData = array(
-                            'branch_id' => '13', // Default branch id fallback, matching their original code logic
+                            'branch_id' => $branchId,
                             'employee_id' => $empId,
                             'leave_date' => $dateStr,
                             'joining_date' => $dateStr,
@@ -847,10 +862,11 @@
                     }
                     // If full day OT or half day OT, insert into employee_ot
                     else if ($status === 'full_day_ot' || $status === 'half_day_ot') {
-                        $branchId = '13';
-                        $branchQuery = $this->db->select('branch')->where('employee_id', $empId)->get('attendance_employee')->row();
-                        if ($branchQuery) {
-                            $branchId = $branchQuery->branch;
+                        // Get branch_id from actual employee master
+                        $branchId = '13'; // Default fallback
+                        $empQuery = $this->db->select('branch')->where('id', (int) $empId)->get('employee')->row();
+                        if ($empQuery && !empty($empQuery->branch)) {
+                            $branchId = $empQuery->branch;
                         }
 
                         $otType = ($status === 'full_day_ot') ? 'Full Day' : 'Half Day';

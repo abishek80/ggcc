@@ -129,6 +129,7 @@ class Api extends CI_Controller
                 'GET  api/attendance/ot'       => 'Get OT list (protected)',
                 'GET  api/payslip/list'        => 'Get payslip list (protected)',
                 'GET  api/payslip/detail'      => 'Get payslip details (protected)',
+                'GET  api/payslip/pdf'         => 'Stream payslip PDF (protected)',
                 'GET  api/loan/detail'         => 'Get personal loan details (protected)',
             ],
         ]);
@@ -177,8 +178,25 @@ class Api extends CI_Controller
         }
 
         // Generate & store token — get employee_id from login_permission
-        $row = $this->db->get_where('login_permission', ['id' => $loginId])->row();
+        $userSql = "SELECT LP.*, MD.designation, E.profile_img
+                    FROM login_permission LP
+                    LEFT JOIN employee E ON E.id = LP.employee_id
+                    LEFT JOIN master_designation MD ON MD.id = E.designation
+                    WHERE LP.id = ? LIMIT 1";
+        $row = $this->db->query($userSql, [$loginId])->row();
         $tokenData = $this->apimodel->generateToken($loginId, $row->employee_id ?? 0);
+
+        $designation = $row->designation ?? '';
+        if (empty($designation) && ($row->is_admin ?? 0) == 1) {
+            $designation = 'Administrator';
+        }
+
+        $profileImg = '';
+        if (!empty($row->profile_img)) {
+            $profileImg = filter_var($row->profile_img, FILTER_VALIDATE_URL) 
+                ? $row->profile_img 
+                : base_url() . ltrim($row->profile_img, './');
+        }
 
         $this->respond([
             'isError'    => false,
@@ -191,6 +209,8 @@ class Api extends CI_Controller
                 'name'        => $row->employee_name ?? '',
                 'login_code'  => $row->login_code ?? '',
                 'mobile'      => $row->mobile_number ?? '',
+                'designation' => $designation,
+                'profile_img' => $profileImg,
                 'is_admin'    => $row->is_admin ?? 0,
                 'permission'  => $row->permission ?? '',
             ],
@@ -213,7 +233,7 @@ class Api extends CI_Controller
     // ─── Protected Endpoints ─────────────────────────────────────────
 
     /**
-     * Get current authenticated user profile
+     * Get current authenticated user profile (full employee data)
      * GET api/profile
      * Header: Authorization: Bearer {token}
      */
@@ -221,17 +241,113 @@ class Api extends CI_Controller
     {
         $this->authGuard();
         $u = $this->authUser;
+        $employeeId = $u->employee_id ?? 0;
+
+        // Fetch detailed employee record if employee_id exists
+        $empData = null;
+        if (!empty($employeeId)) {
+            $sql = "SELECT E.*, MD.designation AS designation_name, B.branch AS branch_name,
+                           DATE_FORMAT(E.dob, '%d - %m - %Y') AS dobFormat,
+                           DATE_FORMAT(E.doj, '%d - %m - %Y') AS dojFormat
+                    FROM employee E
+                    LEFT JOIN master_branch B ON B.id = E.branch
+                    LEFT JOIN master_designation MD ON MD.id = E.designation
+                    WHERE E.id = ? AND E.delete_status = 0
+                    LIMIT 1";
+            $empData = $this->db->query($sql, [$employeeId])->row();
+        }
+
+        if ($empData) {
+            $formatImg = function($path) {
+                if (empty($path)) return '';
+                if (filter_var($path, FILTER_VALIDATE_URL)) return $path;
+                return base_url() . ltrim($path, './');
+            };
+
+            $profileResponse = [
+                'employee_id'            => $empData->id,
+                'employee_code'          => $empData->employee_code,
+                'login_code'             => $u->login_code,
+                'permission'             => $empData->permission ?: $u->permission,
+                'company_name'           => $empData->company_name,
+                'payslip_location'       => $empData->branch_location,
+                'zone'                   => $empData->zone,
+                'branch'                 => $empData->branch,
+                'branch_name'            => $empData->branch_name ?? '',
+                'employee_name'          => $empData->employee_name,
+                'email'                  => $empData->email,
+                'mobile_number'          => $empData->mobile_number,
+                'designation'            => $empData->designation_name ?? $u->designation ?? '',
+                'doj'                    => $empData->doj,
+                'doj_formatted'          => $empData->dojFormat,
+                'payslip_status'         => $empData->payslip_status,
+                'basic_pay'              => $empData->basic_pay,
+                'allowance_amount'       => $empData->allowance_amount,
+                'mobile_recharge'        => $empData->mobile_recharge,
+                'esi_status'             => $empData->esi_status,
+                'esi_number'             => $empData->esi_number,
+                'pf_status'              => $empData->pf_status,
+                'pf_number'              => $empData->pf_number,
+                'pf_amount'              => $empData->pf_amount,
+                'pan_number'             => $empData->pan_number,
+                'aadhar_number'          => $empData->aadhar_number,
+                'aadharcard_img'         => $formatImg($empData->aadharcard_img),
+                'pancard_img'            => $formatImg($empData->pancard_img),
+                'licence_img'            => $formatImg($empData->licence_img),
+                'licence_number'         => $empData->licence_number,
+                'electrical_licence'     => $empData->electrical_licence,
+                'electrical_licence_img' => $formatImg($empData->electrical_licence_img),
+                'bank_details' => [
+                    'account_number'     => $empData->account_number,
+                    'ifsc_code'          => $empData->ifsc_code,
+                    'bank_name'          => $empData->bank_name,
+                    'bank_branch_name'   => $empData->bank_branch_name,
+                    'bankbook_img'       => $formatImg($empData->bankbook_img),
+                    'status'             => $empData->status,
+                ],
+                'personal_details' => [
+                    'dob'                => $empData->dob,
+                    'dob_formatted'      => $empData->dobFormat,
+                    'education'          => $empData->education,
+                    'employee_photo'     => $formatImg($empData->profile_img),
+                    'house_no'           => $empData->house_no,
+                    'street'             => $empData->street,
+                    'city'               => $empData->city,
+                    'district'           => $empData->district,
+                    'pincode'            => $empData->pincode,
+                ],
+                'contact_details' => [
+                    'relative_type'               => $empData->contact_relative,
+                    'contact_person_name'        => $empData->contact_name,
+                    'contact_person_phone_number' => $empData->contact_phone_number,
+                    'contact_house_no'            => $empData->contact_house_no,
+                    'contact_street'              => $empData->contact_street,
+                    'contact_city'                => $empData->contact_city,
+                    'contact_district'            => $empData->contact_district,
+                    'contact_pincode'             => $empData->contact_pincode,
+                ]
+            ];
+        } else {
+            // Fallback for Admin / users without employee row
+            $designation = $u->designation ?? '';
+            if (empty($designation) && ($u->is_admin ?? 0) == 1) {
+                $designation = 'Administrator';
+            }
+            $profileResponse = [
+                'id'                 => $u->login_id,
+                'name'               => $u->employee_name,
+                'login_code'         => $u->login_code,
+                'mobile'             => $u->mobile_number,
+                'designation'        => $designation,
+                'is_admin'           => $u->is_admin,
+                'permission'         => $u->permission,
+                'token_expires_at'   => $u->expires_at,
+            ];
+        }
+
         $this->respond([
             'isError' => false,
-            'data' => [
-                'id'         => $u->login_id,
-                'name'       => $u->employee_name,
-                'login_code' => $u->login_code,
-                'mobile'     => $u->mobile_number,
-                'is_admin'   => $u->is_admin,
-                'permission' => $u->permission,
-                'token_expires_at' => $u->expires_at,
-            ],
+            'data'    => $profileResponse,
         ]);
     }
 
@@ -301,10 +417,16 @@ class Api extends CI_Controller
         if ($action === 'list') {
             $year = $this->input->get('year') ?: '';
             
-            // If they are not admin/manager, filter payslips by their own employee ID
-            $targetEmployeeId = '';
-            if (!$isAdminOrManager) {
+            // Determine target employee ID
+            $targetEmployeeId = $this->input->get('employee_id');
+            if (!$isAdminOrManager || empty($targetEmployeeId)) {
+                // Default to self for regular employees or when no ID is explicitly requested
                 $targetEmployeeId = $this->authUser->employee_id;
+            }
+
+            // If employee ID is empty/0 (e.g. administrator with no employee record), return empty list
+            if (empty($targetEmployeeId)) {
+                $this->respond(['isError' => false, 'data' => []]);
             }
 
             $data = $this->employeemodel->getPayslipList($year, $targetEmployeeId);
@@ -328,6 +450,116 @@ class Api extends CI_Controller
             }
 
             $this->respond(['isError' => false, 'data' => $payslip]);
+        } elseif ($action === 'pdf') {
+            $payslipId = $id ?: $this->input->get('id');
+            if (empty($payslipId)) {
+                $this->respond(['isError' => true, 'message' => 'Payslip ID is required.'], 400);
+            }
+
+            $payslipData = $this->employeemodel->getPayslipData($payslipId);
+            if (empty($payslipData)) {
+                $this->respond(['isError' => true, 'message' => 'Payslip not found.'], 404);
+            }
+
+            $row = $payslipData[0];
+
+            // If not admin/manager, ensure the payslip belongs to the logged-in employee
+            if (!$isAdminOrManager && $row->employee_id != $this->authUser->employee_id) {
+                $this->respond(['isError' => true, 'message' => 'Access denied. You can only view your own payslips.'], 403);
+            }
+
+            $data = [
+                'payslipId'              => $row->id,
+                'payslipYear'            => $row->year,
+                'payslipMonth'           => $row->month,
+                'employeeId'             => $row->employee_code,
+                'joiningDate'            => $row->joining_date,
+                'employeeName'           => $row->employee_name,
+                'employeeDesignation'    => $row->designation,
+                'companyName'            => $row->company_name,
+                'employeeBranch'         => $row->branch_location,
+                'employeeEsiNumber'      => $row->esi_number,
+                'employeePfNumber'       => $row->pf_number,
+                'employeeBank_name'      => $row->bank_name,
+                'employeeAccountNumber'  => $row->account_number,
+                'employeeIfscCode'       => $row->ifsc_code,
+                'employeePanNumber'      => $row->pan_number,
+                'employeePayableDays'    => $row->day_count,
+                'employeePresentDays'    => $row->present_count,
+                'employeeAbsentDays'     => $row->absent_count,
+                'employeeOtDays'         => $row->ot_count,
+                'basicPay'               => $row->basic_pay,
+                'presentBasicePay'       => $row->month_basic_pay,
+                'allowanceAmount'        => $row->allowance_amount,
+                'presentAllowanceAmount' => $row->month_allowance_amount,
+                'overtimePay'            => $row->ot_amount,
+                'mobileRecharge'         => $row->mobile_recharge,
+                'travellingAmount'       => $row->travelling_amount,
+                'incentiveAmount'        => $row->incentive_amount,
+                'foodExpenses'           => $row->food_expenses,
+                'esiAmount'              => $row->esi_amount,
+                'basicPfAmount'          => $row->pf_amount,
+                'pfAmount'               => $row->month_pf_amount,
+                'advanceCash'            => $row->advance_cash,
+                'professionalTax'        => $row->professional_tax,
+                'totalEarning'           => $row->total_earning,
+                'deductionAmount'        => $row->deduction_amount,
+                'salaryAmount'           => $row->salary_amount,
+                'salaryInWord'           => $row->salary_in_word,
+            ];
+
+            // Render HTML view string
+            $html = $this->load->view('employee-payslip/payslip-view-pdf', $data, true);
+
+            // If format=html is requested explicitly
+            if ($this->input->get('format') === 'html') {
+                header('Content-Type: text/html; charset=utf-8');
+                echo $html;
+                exit();
+            }
+
+            // Locate Dompdf autoloader across standard paths
+            $autoloaderPaths = [
+                APPPATH . 'third_party/dompdf/vendor/autoload.php',
+                APPPATH . 'third_party/dompdf/autoload.inc.php',
+                FCPATH . 'vendor/autoload.php',
+                FCPATH . 'application/third_party/dompdf/vendor/autoload.php',
+            ];
+
+            $loaded = false;
+            foreach ($autoloaderPaths as $path) {
+                if (file_exists($path)) {
+                    require_once $path;
+                    $loaded = true;
+                    break;
+                }
+            }
+
+            if ($loaded && class_exists('\Dompdf\Dompdf')) {
+                $dompdf = new \Dompdf\Dompdf([
+                    'isRemoteEnabled' => true,
+                    'isHtml5ParserEnabled' => true
+                ]);
+                $dompdf->loadHtml($html);
+                $dompdf->setPaper('A4', 'portrait');
+                $dompdf->render();
+
+                $fileName = $row->employee_name . ' - ' . $row->month . ' ' . $row->year . ' payslip.pdf';
+
+                // Send PDF headers and stream binary output
+                header('Content-Type: application/pdf');
+                header('Content-Disposition: inline; filename="' . $fileName . '"');
+                header('Cache-Control: private, max-age=0, must-revalidate');
+                header('Pragma: public');
+
+                echo $dompdf->output();
+                exit();
+            } else {
+                // If Dompdf is not installed/uploaded on server, output HTML payslip layout directly
+                header('Content-Type: text/html; charset=utf-8');
+                echo $html;
+                exit();
+            }
         } else {
             $this->respond(['isError' => true, 'message' => 'Unknown action.'], 404);
         }
