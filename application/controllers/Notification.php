@@ -24,11 +24,11 @@ class Notification extends CI_Controller {
         if (in_array('admin', $userPermission) || in_array('employee_management', $userPermission) || in_array('attendance_management', $userPermission)) {
             
             $data['title'] = "All Notifications";
-            $data['menu_status'] = 'notification';
+            $data["menu_open"] = 'master';
+            $data["menu_status"] = 'notification';
             $empName = $this->session->userdata('username');
             $empId = $this->session->userdata('userid');
         
-            $data['menu_open'] = '';
             $data['employeeComplaintList'] = $this->complaintmodel->employeeComplaintList($empName);
             $data['checkEmployeeExpensesList'] = $this->employeemodel->getCheckEmployeeExpensesList($empId);
             $data['checkEmployeeAttendanceList'] = $this->attendancemodel->getCheckEmployeeAttendanceList($empId);

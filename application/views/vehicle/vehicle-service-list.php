@@ -100,7 +100,7 @@
                             </td>
                             <td>
                                 <p class="mb-1"><?php echo $row->service_dateFormat; ?></p>
-                                <p class="mb-0"><?php echo $row->next_service_dateFormat; ?></p>
+                                <p class="mb-0 date-check" data-date-check="<?php echo $row->next_service_date; ?>"><?php echo $row->next_service_dateFormat; ?></p>
                             </td>
                             <td>
                                 <?php

@@ -68,6 +68,7 @@ $route['terms-and-conditions'] = 'web/terms_and_conditions';
 $route['privacy-policy'] = 'web/privacy_policy';
 $route['locations'] = 'web/locations';
 $route['locations/(:any)'] = 'web/location_detail/$1';
+$route['submit-enquiry'] = 'web/submit_enquiry';
 
 $route["^(".implode('|', $language_alias).")/(".implode('|', $controller_exceptions).")(.*)"] = '$2';
 $route["^(".implode('|', $language_alias).")?/(.*)"] = $default_controller.'/$2';

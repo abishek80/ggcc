@@ -20,6 +20,7 @@ class Web extends CI_Controller {
             'electrical-contracting' => array(
                 'slug' => 'electrical-contracting',
                 'title' => 'Electrical Contracting Services',
+                'image' => 'service_electrical_contracting.jpg',
                 'meta_title' => 'Turnkey Electrical Contracting Services in India | GGCC',
                 'meta_description' => 'George General Construction Company (GGCC) provides end-to-end turnkey electrical contracting services for industrial, commercial, and infrastructure projects across India.',
                 'short_desc' => 'Comprehensive turnkey electrical contracting solutions, power distribution, design execution, and project commissioning.',
@@ -42,6 +43,7 @@ class Web extends CI_Controller {
             'industrial-electrical-installation' => array(
                 'slug' => 'industrial-electrical-installation',
                 'title' => 'Industrial Electrical Installation',
+                'image' => 'service_industrial_electrical.jpg',
                 'meta_title' => 'Industrial Electrical Installation Services in India | GGCC',
                 'meta_description' => 'GGCC offers robust industrial electrical installation, heavy motor wiring, sub-station setup, and plant electrification across major industrial hubs in India.',
                 'short_desc' => 'Industrial UPS installation, VRLA/Lithium battery bank cabling, ATS panel integration, and clean power distribution.',
@@ -64,6 +66,7 @@ class Web extends CI_Controller {
             'commercial-electrical-installation' => array(
                 'slug' => 'commercial-electrical-installation',
                 'title' => 'Commercial Electrical Installation',
+                'image' => 'service_commercial_electrical.jpg',
                 'meta_title' => 'Commercial Electrical Installation Services | GGCC',
                 'meta_description' => 'GGCC delivers modern electrical installation services for office complexes, shopping malls, IT parks, hotels, and commercial buildings across India.',
                 'short_desc' => 'Complete electrification for corporate offices, IT parks, retail malls, hotels, and institutional commercial spaces.',
@@ -86,6 +89,7 @@ class Web extends CI_Controller {
             'annual-maintenance-contract-amc' => array(
                 'slug' => 'annual-maintenance-contract-amc',
                 'title' => 'Annual Maintenance Contract (AMC)',
+                'image' => 'service_annual_maintenance.jpg',
                 'meta_title' => 'Electrical AMC Services for Industrial & Commercial Facilities | GGCC',
                 'meta_description' => 'Ensure continuous uptime with GGCC Electrical Annual Maintenance Contracts (AMC). Preventive maintenance, thermography, and 24/7 breakdown support.',
                 'short_desc' => 'Comprehensive electrical preventive maintenance contracts for transformers, panels, cable networks, and backup systems.',
@@ -108,6 +112,7 @@ class Web extends CI_Controller {
             'ht-lt-cable-laying' => array(
                 'slug' => 'ht-lt-cable-laying',
                 'title' => 'HT & LT Cable Laying Services',
+                'image' => 'service_ht_lt_cabling.jpg',
                 'meta_title' => 'HT & LT Cable Laying Services in India | GGCC',
                 'meta_description' => 'GGCC specializes in high voltage (HT) and low voltage (LT) cable laying, trenching, cable jointing, and megger testing across India.',
                 'short_desc' => 'High-voltage HT underground cable laying, trenching, HDD crossings, cable tray pathways, and heat-shrink jointing.',
@@ -130,6 +135,7 @@ class Web extends CI_Controller {
             'lt-control-panel-installation' => array(
                 'slug' => 'lt-control-panel-installation',
                 'title' => 'LT Control Panel Installation',
+                'image' => 'service_lt_control_panel.jpg',
                 'meta_title' => 'LT Control Panel Installation & Fabrication Services | GGCC',
                 'meta_description' => 'Professional installation of Low Tension (LT) main distribution boards, PCC, MCC, APFC, and custom control panels by GGCC.',
                 'short_desc' => 'Fabrication and site installation of PCC, MCC, APFC, PDB, and main LT power distribution switchboards.',
@@ -152,6 +158,7 @@ class Web extends CI_Controller {
             'flameproof-electrical-installation' => array(
                 'slug' => 'flameproof-electrical-installation',
                 'title' => 'Flameproof Electrical Installation',
+                'image' => 'service_flameproof_installation.jpg',
                 'meta_title' => 'Flameproof Electrical Installation Services | GGCC',
                 'meta_description' => 'GGCC provides certified explosion-proof (Ex-d) and flameproof electrical installations for chemical, pharma, oil & gas, and hazardous industrial environments.',
                 'short_desc' => 'PESO & CIMFR certified explosion-proof flameproof electrical installations for Zone 1 & Zone 2 hazardous areas.',
@@ -174,6 +181,7 @@ class Web extends CI_Controller {
             'street-lighting-installation' => array(
                 'slug' => 'street-lighting-installation',
                 'title' => 'Street Lighting Installation',
+                'image' => 'service_street_lighting.jpg',
                 'meta_title' => 'Street Lighting & Municipal Electrification Services | GGCC',
                 'meta_description' => 'GGCC delivers turnkey street lighting installations, octagonal pole erections, smart LED lighting controls, and feeder pillar setup across India.',
                 'short_desc' => 'Turnkey street lighting projects, smart LED lighting, octagonal pole installation, underground cabling, and automated timer pillars.',
@@ -196,6 +204,7 @@ class Web extends CI_Controller {
             'area-lighting-installation' => array(
                 'slug' => 'area-lighting-installation',
                 'title' => 'Area Lighting & High Mast Installation',
+                'image' => 'service_area_high_mast_lighting.jpg',
                 'meta_title' => 'High Mast & Area Lighting Installation Services | GGCC',
                 'meta_description' => 'GGCC provides high mast lighting towers, floodlighting, stadium lighting, and large area illumination solutions across India.',
                 'short_desc' => 'Octagonal pole erection, 30m high mast tower winch assembly, LED floodlight aiming, and automated timer control.',
@@ -218,6 +227,7 @@ class Web extends CI_Controller {
             'electrical-panel-installation' => array(
                 'slug' => 'electrical-panel-installation',
                 'title' => 'Electrical Panel Installation',
+                'image' => 'petrol_pump_electrical_panel.jpg',
                 'meta_title' => 'Industrial Electrical Panel Installation Services | GGCC',
                 'meta_description' => 'GGCC offers custom installation, busbar alignment, cable glanding, and testing for all types of electrical distribution and control panels.',
                 'short_desc' => 'Main electrical room layout design, busbar riser trunking (BBT), riser cable pulling, and floor distribution boards.',
@@ -240,6 +250,7 @@ class Web extends CI_Controller {
             'underground-cable-laying' => array(
                 'slug' => 'underground-cable-laying',
                 'title' => 'Underground Cable Laying Services',
+                'image' => 'service_underground_cabling.jpg',
                 'meta_title' => 'Underground Cable Laying & Trenching Services | GGCC',
                 'meta_description' => 'Expert underground HT & LT cable laying, HDD trenchless drilling, cable fault locating, and jointing by GGCC across India.',
                 'short_desc' => 'Preventive maintenance, transformer oil filtration, thermography audits, and 24/7 emergency power restoration.',
@@ -262,6 +273,7 @@ class Web extends CI_Controller {
             'electrical-maintenance-services' => array(
                 'slug' => 'electrical-maintenance-services',
                 'title' => 'Electrical Maintenance Services',
+                'image' => 'petrol_pump_canopy_light_maintenance.jpg',
                 'meta_title' => 'On-Call & Breakdown Electrical Maintenance Services | GGCC',
                 'meta_description' => 'GGCC delivers responsive electrical maintenance, power fault diagnosis, transformer servicing, thermal audits, and repair services.',
                 'short_desc' => 'Comprehensive breakdown repairs, preventive electrical maintenance, diagnostic testing, and system health checks.',
@@ -284,6 +296,7 @@ class Web extends CI_Controller {
             'cable-tray-installation' => array(
                 'slug' => 'cable-tray-installation',
                 'title' => 'Cable Tray Installation Services',
+                'image' => 'service_cable_tray.jpg',
                 'meta_title' => 'Industrial Cable Tray Installation Services | GGCC',
                 'meta_description' => 'GGCC supplies and installs ladder, perforated, and wire mesh cable trays with hot-dip galvanized finishes for industrial & commercial plants.',
                 'short_desc' => 'Perforated, ladder-type, and mesh cable tray installation with custom bends, reducers, and heavy structural supports.',
@@ -306,6 +319,7 @@ class Web extends CI_Controller {
             'apfc-panel-installation' => array(
                 'slug' => 'apfc-panel-installation',
                 'title' => 'APFC Panel Installation & Power Factor Correction',
+                'image' => 'service_apfc_panel.jpg',
                 'meta_title' => 'APFC Panel Installation & Power Factor Correction | GGCC',
                 'meta_description' => 'GGCC installs Automatic Power Factor Correction (APFC) panels to optimize electrical power factor near unity and eliminate utility penalty charges.',
                 'short_desc' => 'Automatic Power Factor Correction panel fabrication, capacitor bank integration, and harmonic filter installation.',
@@ -328,6 +342,7 @@ class Web extends CI_Controller {
             'ups-installation-maintenance' => array(
                 'slug' => 'ups-installation-maintenance',
                 'title' => 'UPS Installation & Maintenance Services',
+                'image' => 'service_ups_installation.jpg',
                 'meta_title' => 'Industrial & Commercial UPS Installation & AMC | GGCC',
                 'meta_description' => 'GGCC delivers online industrial UPS system installation, battery bank integration, battery maintenance, and static bypass cabling.',
                 'short_desc' => 'Turnkey installation and maintenance for 3-phase industrial UPS systems, battery bank racks, and isolation transformers.',
@@ -350,6 +365,7 @@ class Web extends CI_Controller {
             'servo-voltage-stabilizer-installation' => array(
                 'slug' => 'servo-voltage-stabilizer-installation',
                 'title' => 'Servo Voltage Stabilizer Installation',
+                'image' => 'service_servo_stabilizer.jpg',
                 'meta_title' => 'Industrial Servo Voltage Stabilizer Installation | GGCC',
                 'meta_description' => 'GGCC installs heavy-duty oil-cooled & air-cooled servo voltage stabilizers to protect sensitive machinery from grid voltage fluctuations.',
                 'short_desc' => 'Heavy-duty 3-phase Servo Controlled Voltage Stabilizer (SCVS) installation, isolation transformers, and voltage regulation.',
@@ -745,5 +761,55 @@ class Web extends CI_Controller {
             'current_page' => 'locations'
         );
         $this->_render_page('location_detail', $data);
+    }
+
+    // 12. Submit Enquiry AJAX Endpoint (Saves to MySQL Database)
+    public function submit_enquiry()
+    {
+        header('Content-Type: application/json');
+
+        $full_name = trim($this->input->post('full_name', TRUE));
+        if (empty($full_name)) {
+            $full_name = trim($this->input->post('name', TRUE));
+        }
+        $phone     = trim($this->input->post('phone', TRUE));
+        $email     = trim($this->input->post('email', TRUE));
+        $service   = trim($this->input->post('service', TRUE));
+        $location  = trim($this->input->post('location', TRUE));
+        $message   = trim($this->input->post('message', TRUE));
+        $source    = trim($this->input->post('source_page', TRUE));
+
+        if (empty($full_name) || empty($phone) || empty($email)) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Please fill in all required fields (Full Name, Phone Number, and Email Address).'
+            ]);
+            return;
+        }
+
+        $insert_data = array(
+            'full_name'   => $full_name,
+            'phone'       => $phone,
+            'email'       => $email,
+            'service'     => !empty($service) ? $service : 'General Electrical Enquiry',
+            'location'    => !empty($location) ? $location : 'Main Branch',
+            'message'     => $message,
+            'source_page' => !empty($source) ? $source : 'Website',
+            'created_at'  => date('Y-m-d H:i:s')
+        );
+
+        $this->db->insert('website_enquiries', $insert_data);
+
+        if ($this->db->affected_rows() > 0) {
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Thank you, ' . htmlspecialchars($full_name) . '! Your enquiry has been saved successfully. Our project engineering team will contact you shortly.'
+            ]);
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Database save error. Please call our main desk directly at 099206 67756.'
+            ]);
+        }
     }
 }

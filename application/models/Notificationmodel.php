@@ -223,4 +223,253 @@ class Notificationmodel extends CI_Model {
             ]);
         }
     }
+
+    // ─── App Notification Methods (for mobile app) ───────────────────
+
+    /**
+     * Get app notifications for a specific employee (or global ones)
+     */
+    public function getAppNotifications($employeeId, $limit = 20, $offset = 0)
+    {
+        $sql = "SELECT AN.*, 
+                       IF(ANR.id IS NOT NULL, 1, 0) AS is_read
+                FROM app_notifications AN
+                LEFT JOIN app_notification_reads ANR 
+                       ON ANR.notification_id = AN.id AND ANR.employee_id = ?
+                WHERE AN.delete_status = 0 
+                  AND (AN.target_employee_id IS NULL OR AN.target_employee_id = ?)
+                ORDER BY AN.created_at DESC 
+                LIMIT ? OFFSET ?";
+        return $this->db->query($sql, [(int)$employeeId, (int)$employeeId, (int)$limit, (int)$offset])->result();
+    }
+
+    /**
+     * Get total count of app notifications for an employee
+     */
+    public function getAppNotificationTotalCount($employeeId)
+    {
+        $sql = "SELECT COUNT(*) as total FROM app_notifications 
+                WHERE delete_status = 0 
+                  AND (target_employee_id IS NULL OR target_employee_id = ?)";
+        $row = $this->db->query($sql, [$employeeId])->row();
+        return $row ? (int) $row->total : 0;
+    }
+
+    /**
+     * Get unread count for mobile app badge
+     */
+    public function getAppNotificationUnreadCount($employeeId)
+    {
+        $sql = "SELECT COUNT(*) as cnt FROM app_notifications 
+                WHERE delete_status = 0 
+                  AND sent_status = 1 
+                  AND (target_employee_id IS NULL OR target_employee_id = ?)
+                  AND id NOT IN (
+                      SELECT notification_id FROM app_notification_reads 
+                      WHERE employee_id = ?
+                  )";
+        $row = $this->db->query($sql, [$employeeId, $employeeId])->row();
+        return $row ? (int) $row->cnt : 0;
+    }
+
+    /**
+     * Mark app notification(s) as read for a specific employee
+     */
+    public function markAppNotificationRead($notificationId = null, $employeeId = null)
+    {
+        if ($notificationId) {
+            // Mark a single notification as read
+            $exists = $this->db->where('notification_id', $notificationId)
+                               ->where('employee_id', $employeeId)
+                               ->count_all_results('app_notification_reads');
+            if ($exists == 0) {
+                $this->db->insert('app_notification_reads', [
+                    'notification_id' => $notificationId,
+                    'employee_id' => $employeeId,
+                    'read_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        } else {
+            // Mark all unread notifications as read
+            $sql = "SELECT id FROM app_notifications 
+                    WHERE delete_status = 0 
+                      AND (target_employee_id IS NULL OR target_employee_id = ?)
+                      AND id NOT IN (
+                          SELECT notification_id FROM app_notification_reads 
+                          WHERE employee_id = ?
+                      )";
+            $unread = $this->db->query($sql, [$employeeId, $employeeId])->result();
+            foreach ($unread as $row) {
+                $this->db->insert('app_notification_reads', [
+                    'notification_id' => $row->id,
+                    'employee_id' => $employeeId,
+                    'read_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Create a new app notification record
+     */
+    public function createAppNotification($data)
+    {
+        $data['created_at'] = date('Y-m-d H:i:s');
+        $this->db->insert('app_notifications', $data);
+        return $this->db->insert_id();
+    }
+
+    /**
+     * Send FCM push notification using Firebase Legacy HTTP API
+     * 
+     * @param string $title Notification title
+     * @param string $body Notification body text
+     * @param array $tokens Array of FCM device tokens
+     */
+    public function sendFcmNotification($title, $body, $tokens)
+    {
+        $serviceAccountPath = FCPATH . 'service-account.json';
+        if (!file_exists($serviceAccountPath)) {
+            log_message('error', 'FCM service-account.json not found in ' . $serviceAccountPath);
+            return false;
+        }
+
+        try {
+            $credentials = json_decode(file_get_contents($serviceAccountPath), true);
+            if (!$credentials || !isset($credentials['private_key']) || !isset($credentials['client_email']) || !isset($credentials['project_id'])) {
+                log_message('error', 'Invalid FCM service-account.json format.');
+                return false;
+            }
+
+            $projectId = $credentials['project_id'];
+            $accessToken = $this->getGoogleAccessToken($credentials);
+            if (!$accessToken) {
+                log_message('error', 'FCM: Failed to get OAuth access token.');
+                return false;
+            }
+
+            $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
+            $headers = [
+                'Authorization: Bearer ' . $accessToken,
+                'Content-Type: application/json',
+            ];
+
+            $successCount = 0;
+            foreach ($tokens as $token) {
+                if (empty($token)) continue;
+
+                $payload = [
+                    'message' => [
+                        'token' => $token,
+                        'notification' => [
+                            'title' => $title,
+                            'body' => $body,
+                        ],
+                        'data' => [
+                            'title' => $title,
+                            'body' => $body,
+                            'notification_type' => 'custom',
+                        ],
+                        'android' => [
+                            'priority' => 'HIGH',
+                            'notification' => [
+                                'notification_channel_id' => 'ggcc_notifications',
+                                'sound' => 'default',
+                                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                            ]
+                        ],
+                        'apns' => [
+                            'headers' => [
+                                'apns-priority' => '10',
+                            ],
+                            'payload' => [
+                                'aps' => [
+                                    'sound' => 'default',
+                                ]
+                            ]
+                        ]
+                    ]
+                ];
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+
+                $result = curl_exec($ch);
+                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($httpCode === 200) {
+                    $successCount++;
+                    log_message('info', "FCM HTTP v1 Push Success for token ($token) - HTTP `$httpCode`: `$result`");
+                } else {
+                    log_message('error', "FCM HTTP v1 Push Failed for token ($token) - HTTP `$httpCode`: `$result`");
+                }
+            }
+
+            return $successCount > 0;
+        } catch (Exception $e) {
+            log_message('error', 'FCM HTTP v1 Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Generate Google OAuth 2.0 Access Token using Service Account credentials
+     */
+    private function getGoogleAccessToken($credentials)
+    {
+        $privateKey = $credentials['private_key'];
+        $clientEmail = $credentials['client_email'];
+
+        $header = json_encode(['alg' => 'RS256', 'typ' => 'JWT']);
+        
+        $now = time();
+        $payload = json_encode([
+            'iss' => $clientEmail,
+            'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
+            'aud' => 'https://oauth2.googleapis.com/token',
+            'iat' => $now,
+            'exp' => $now + 3600
+        ]);
+
+        $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
+        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
+
+        $signatureInput = $base64UrlHeader . "." . $base64UrlPayload;
+        $signature = '';
+        
+        if (!openssl_sign($signatureInput, $signature, $privateKey, 'SHA256')) {
+            throw new Exception("Failed to sign JWT assertion token using openssl_sign.");
+        }
+        
+        $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+        $jwt = $signatureInput . "." . $base64UrlSignature;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://oauth2.googleapis.com/token');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            'assertion' => $jwt
+        ]));
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            throw new Exception("Google Token API returned HTTP status {$httpCode}: {$response}");
+        }
+
+        $json = json_decode($response, true);
+        return $json['access_token'];
+    }
 }
+

@@ -474,14 +474,6 @@ if ($CI->db->table_exists('menu_control')) {
                         <li class="px-3 py-2 mt-2 border-top w-100">
                             <p class="mb-0 fw-semibold text-dark">Admin Management</p>
                         </li>
-                        <?php if (($menuStates['notification'] ?? 'enabled') === 'enabled') { ?>
-                        <li class="menu-item <?php echo $menu_status == 'notification' ? 'active' : ''; ?>">
-                            <a href="<?php echo base_url() . 'notification'; ?>" class="menu-link">
-                                <i class="menu-icon tf-icons bx bx-bell"></i>
-                                <div data-i18n="Notification">Notification</div>
-                            </a>
-                        </li>
-                        <?php } ?>
                         <?php if (($menuStates['thirdparty_loan'] ?? 'enabled') === 'enabled') { ?>
                         <li class="menu-item <?php echo $menu_status == 'thirdparty_loan' ? 'active' : ''; ?>">
                             <a href="<?php echo base_url(); ?>loan/thirdparty-loan-list" class="menu-link">
@@ -522,6 +514,14 @@ if ($CI->db->table_exists('menu_control')) {
                             </a>
                         </li>
                         <?php } ?>
+                        <?php if (($menuStates['app_notification'] ?? 'enabled') === 'enabled') { ?>
+                        <li class="menu-item <?php echo $menu_status == 'app_notification' ? 'active' : ''; ?>">
+                            <a href="<?php echo base_url() . 'master/app-notification-list'; ?>" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-bell"></i>
+                                <div data-i18n="App Notification">App Notification</div>
+                            </a>
+                        </li>
+                        <?php } ?>
                     <?php } ?>
                     <?php if (($menuStates['group_access_control'] ?? 'enabled') === 'enabled' && (in_array('admin', $userPermission) || in_array('employee_management', $userPermission) || in_array('attendance_management', $userPermission) || in_array('complaint_management', $userPermission))) { ?>
                         <li class="menu-item <?php echo $menu_open == 'access_control' ? 'active open' : ''; ?>">
@@ -530,13 +530,6 @@ if ($CI->db->table_exists('menu_control')) {
                                 <div data-i18n="Access Control">Access Control</div>
                             </a>
                             <ul class="menu-sub">
-                                <?php if(in_array('admin', $userPermission)) { ?>
-                                    <li class="menu-item <?php echo $menu_status == 'menu_control' ? 'active' : ''; ?>">
-                                        <a href="<?php echo base_url(); ?>master/menu_control" class="menu-link">
-                                            <div data-i18n="Menu Control">Menu Control</div>
-                                        </a>
-                                    </li>
-                                <?php } ?>
                                 <?php if (($menuStates['login_permission'] ?? 'enabled') === 'enabled' && in_array('admin', $userPermission)) { ?>
                                     <li class="menu-item <?php echo $menu_status == 'login_permission' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>admin/permission-list" class="menu-link">
@@ -555,6 +548,13 @@ if ($CI->db->table_exists('menu_control')) {
                                     <li class="menu-item <?php echo $menu_status == 'incharge' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>master/incharge-list" class="menu-link">
                                             <div data-i18n="Complaint Incharge">Complaint Incharge</div>
+                                        </a>
+                                    </li>
+                                <?php } ?>
+                                <?php if(in_array('admin', $userPermission)) { ?>
+                                    <li class="menu-item <?php echo $menu_status == 'menu_control' ? 'active' : ''; ?>">
+                                        <a href="<?php echo base_url(); ?>master/menu_control" class="menu-link">
+                                            <div data-i18n="Menu Control">Menu Control</div>
                                         </a>
                                     </li>
                                 <?php } ?>
@@ -606,6 +606,13 @@ if ($CI->db->table_exists('menu_control')) {
                                 <div data-i18n="Master">Master</div>
                             </a>
                             <ul class="menu-sub">
+                                <?php if (in_array('admin', $userPermission)) { ?>
+                                    <li class="menu-item <?php echo $menu_status == 'notification' ? 'active' : ''; ?>">
+                                        <a href="<?php echo base_url(); ?>notification" class="menu-link">
+                                            <div data-i18n="Notification">Notification</div>
+                                        </a>
+                                    </li>
+                                <?php } ?>
                                 <?php if (($menuStates['master_material'] ?? 'enabled') === 'enabled' && (in_array('admin', $userPermission) || in_array('stock_management', $userPermission))) { ?>
                                     <li class="menu-item <?php echo $menu_status == 'material' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>master/material-list" class="menu-link">
@@ -687,6 +694,13 @@ if ($CI->db->table_exists('menu_control')) {
                                     <li class="menu-item <?php echo $menu_status == 'pan' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>master/pan-list" class="menu-link">
                                             <div data-i18n="PAN">PAN</div>
+                                        </a>
+                                    </li>
+                                <?php } ?>
+                                <?php if (in_array('admin', $userPermission)) { ?>
+                                    <li class="menu-item <?php echo $menu_status == 'app_version' ? 'active' : ''; ?>">
+                                        <a href="<?php echo base_url(); ?>master/app-version-list" class="menu-link">
+                                            <div data-i18n="App Version Control">App Version Control</div>
                                         </a>
                                     </li>
                                 <?php } ?>

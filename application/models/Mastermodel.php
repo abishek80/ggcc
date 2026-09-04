@@ -1186,5 +1186,73 @@ class Mastermodel extends CI_Model
         $row = $res->row();
         return $row->cnt;
     }
+
+    // App Version Control List
+    public function appVersionList($status = '')
+    {
+        $where = "WHERE 1=1";
+        if ($status > '') {
+            $where .= " AND status = '" . $status . "'";
+        }
+        $sql = "SELECT AVC.*, LP.employee_name 
+                FROM app_version_control AVC 
+                LEFT JOIN login_permission LP ON LP.id = AVC.created_by 
+                $where 
+                ORDER BY AVC.id DESC";
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+
+    // App Version Control Detail
+    public function getAppVersionInfo($id)
+    {
+        $sql = "SELECT * FROM app_version_control WHERE id = ?";
+        $res = $this->db->query($sql, [$id]);
+        return $res->result();
+    }
+
+    // Save App Version Data (Insert or Update)
+    public function saveAppVersionData($id, $platform, $latest_version, $update_url, $release_notes, $is_force, $status)
+    {
+        $userId = $this->session->userdata('userid');
+        $data = array(
+            'platform'       => $platform,
+            'latest_version' => $latest_version,
+            'update_url'     => $update_url,
+            'release_notes'  => $release_notes,
+            'is_force'       => (int)$is_force,
+            'status'         => $status
+        );
+
+        if ($id > 0) {
+            $this->db->where('id', (int)$id);
+            $this->db->update('app_version_control', $data);
+        } else {
+            $data['created_by'] = $userId;
+            $this->db->insert('app_version_control', $data);
+            return $this->db->insert_id();
+        }
+    }
+
+    // Get App Notification List
+    public function getAppNotificationList($pageStatus = '')
+    {
+        $sql = "SELECT AN.*, E.employee_name, LP.employee_name as created_by_name 
+                FROM app_notifications AN 
+                LEFT JOIN employee E ON E.id = AN.target_employee_id 
+                LEFT JOIN login_permission LP ON LP.id = AN.created_by 
+                WHERE AN.delete_status = 0";
+
+        if ($pageStatus === 'custom') {
+            $sql .= " AND AN.notification_type = 'custom'";
+        } elseif ($pageStatus === 'payslip') {
+            $sql .= " AND AN.notification_type = 'payslip'";
+        }
+
+        $sql .= " ORDER BY AN.id DESC";
+
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
 }
 ?>

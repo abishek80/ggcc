@@ -58,5 +58,59 @@ class Apimodel extends CI_Model
     {
         $this->db->where('token', $token)->delete('api_tokens');
     }
+
+    /**
+     * Store/update FCM device token for a login user
+     */
+    public function updateFcmToken($loginId, $fcmToken)
+    {
+        $this->db->where('login_id', $loginId)
+                 ->update('api_tokens', ['fcm_token' => $fcmToken]);
+    }
+
+    /**
+     * Get all active FCM tokens for broadcasting (Only for Active Employees)
+     */
+    public function getAllActiveFcmTokens()
+    {
+        $sql = "SELECT DISTINCT AT.fcm_token 
+                FROM api_tokens AT
+                INNER JOIN login_permission LP ON LP.id = AT.login_id
+                LEFT JOIN employee E ON (
+                    (AT.employee_id IS NOT NULL AND AT.employee_id > 0 AND E.id = AT.employee_id)
+                    OR (LP.employee_id IS NOT NULL AND LP.employee_id > 0 AND E.id = LP.employee_id)
+                    OR (LP.login_code IS NOT NULL AND LP.login_code != '' AND E.employee_code = LP.login_code)
+                    OR (LP.mobile_number IS NOT NULL AND LP.mobile_number != '' AND E.mobile_number = LP.mobile_number)
+                )
+                WHERE AT.fcm_token IS NOT NULL 
+                  AND AT.fcm_token != '' 
+                  AND LP.status = 'active'
+                  AND LP.delete_status = 0
+                  AND (E.id IS NULL OR (E.status = 'active' AND E.delete_status = 0))";
+        $results = $this->db->query($sql)->result();
+        return array_map(function($row) { return $row->fcm_token; }, $results);
+    }
+
+    /**
+     * Get FCM token(s) for a specific employee (Only if Active)
+     */
+    public function getFcmTokensByEmployeeId($employeeId)
+    {
+        $sql = "SELECT DISTINCT AT.fcm_token 
+                FROM api_tokens AT
+                INNER JOIN employee E ON E.id = ?
+                INNER JOIN login_permission LP ON LP.id = AT.login_id
+                WHERE (AT.employee_id = E.id OR LP.employee_id = E.id OR LP.login_code = E.employee_code OR LP.mobile_number = E.mobile_number)
+                  AND AT.fcm_token IS NOT NULL 
+                  AND AT.fcm_token != '' 
+                  AND E.status = 'active'
+                  AND E.delete_status = 0
+                  AND LP.status = 'active'
+                  AND LP.delete_status = 0";
+        $results = $this->db->query($sql, [(int)$employeeId])->result();
+        return array_map(function($row) { return $row->fcm_token; }, $results);
+    }
+
 }
+
 ?>

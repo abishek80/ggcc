@@ -18,6 +18,9 @@
     <link rel="icon" type="image/png" href="<?php echo base_url('themes/images/fav-icon.png'); ?>">
     <link rel="shortcut icon" type="image/png" href="<?php echo base_url('themes/images/fav-icon.png'); ?>">
 
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
     <!-- CSS Stylesheet -->
     <link rel="stylesheet" href="<?php echo base_url('themes/site/css/style.css'); ?>">
 

@@ -16,6 +16,12 @@
         <div class="detail-layout">
             <!-- Main Content Area -->
             <div class="detail-main">
+                <?php if (!empty($service['image'])): ?>
+                    <div style="height:320px; overflow:hidden; border-radius:var(--radius-md); margin-bottom:25px; border:1px solid var(--border-color); box-shadow:var(--shadow-md);">
+                        <img src="<?php echo base_url('themes/images/' . $service['image']); ?>" alt="<?php echo htmlspecialchars($service['title']); ?>" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                <?php endif; ?>
+
                 <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
                     <?php if (!empty($service['icon'])): ?>
                         <div style="font-size:2.5rem; background:var(--bg-light); width:65px; height:65px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); border:1px solid var(--border-color);">

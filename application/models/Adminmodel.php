@@ -140,9 +140,53 @@ class Adminmodel extends CI_Model
         $this->db->update('login_permission', $data);
     }
 
+    // Check and Migrate plain_password columns if not present
+    public function checkPlainPasswordColumns()
+    {
+        static $checked = false;
+        if ($checked) return;
+        $checked = true;
+
+        try {
+            if (!$this->db->field_exists('plain_password', 'login_permission')) {
+                $this->db->query("ALTER TABLE `login_permission` ADD COLUMN `plain_password` VARCHAR(255) NULL AFTER `password`");
+            }
+            if (!$this->db->field_exists('plain_password', 'employee')) {
+                $this->db->query("ALTER TABLE `employee` ADD COLUMN `plain_password` VARCHAR(255) NULL AFTER `password`");
+            }
+
+            // Sync legacy plain_password from login_passwords.txt if any empty plain_password rows exist
+            $emptyCheck = $this->db->query("SELECT id FROM login_permission WHERE plain_password IS NULL OR plain_password = '' LIMIT 1");
+            if ($emptyCheck && $emptyCheck->num_rows() > 0) {
+                $filePath = FCPATH . 'login_passwords.txt';
+                if (file_exists($filePath)) {
+                    $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                    foreach ($lines as $line) {
+                        $parts = array_map('trim', explode('-', $line));
+                        if (count($parts) >= 3) {
+                            $plainPass = $parts[1];
+                            $h = strtolower($parts[2]);
+                            if (!empty($plainPass) && !empty($h)) {
+                                $this->db->where('password', $h);
+                                $this->db->update('login_permission', array('plain_password' => $plainPass));
+
+                                $this->db->where('password', $h);
+                                $this->db->update('employee', array('plain_password' => $plainPass));
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            // Ignore if already existing
+        }
+    }
+
     // Get Permission List 
     public function getPermissionList($pageStatus)
     {
+        $this->checkPlainPasswordColumns();
+
         if ($pageStatus) {
             $where = "status = '$pageStatus' AND";
         }
@@ -195,6 +239,7 @@ class Adminmodel extends CI_Model
                 'employee_name' => $name,
                 'mobile_number' => $mobileNumber,
                 'password' => md5($password),
+                'plain_password' => $password,
                 'permission' => $permissionsString,
                 'status' => $status,
                 'created_by' => $userId,
@@ -203,6 +248,62 @@ class Adminmodel extends CI_Model
             $this->db->insert('login_permission', $data);
             $this->db->insert_id();
         }
+    }
+
+    // Update Permission & Employee Password
+    public function updatePermissionPassword($permissionId, $newPassword)
+    {
+        $userId = $this->session->userdata('userid');
+        $md5Password = md5($newPassword);
+
+        $permissionInfo = $this->getPermissionInfo($permissionId);
+        if (empty($permissionInfo)) {
+            return false;
+        }
+
+        $permissionRow = $permissionInfo[0];
+
+        // 1. Update login_permission table
+        $dataLogin = array(
+            'password' => $md5Password,
+            'plain_password' => $newPassword,
+            'updated_by' => $userId,
+            'updated_at' => date('Y-m-d H:i:s')
+        );
+        $this->db->where('id', (int) $permissionId);
+        $this->db->update('login_permission', $dataLogin);
+
+        // 2. Update employee table
+        $dataEmployee = array(
+            'password' => $md5Password,
+            'plain_password' => $newPassword,
+            'updated_by' => $userId,
+            'updated_at' => date('Y-m-d H:i:s')
+        );
+
+        $empId = isset($permissionRow->employee_id) ? (int)$permissionRow->employee_id : 0;
+        if ($empId > 0) {
+            $this->db->where('id', $empId);
+            $this->db->update('employee', $dataEmployee);
+        } else {
+            if (!empty($permissionRow->login_code)) {
+                $this->db->where('employee_code', $permissionRow->login_code);
+                $this->db->update('employee', $dataEmployee);
+            } elseif (!empty($permissionRow->mobile_number)) {
+                $this->db->where('mobile_number', $permissionRow->mobile_number);
+                $this->db->update('employee', $dataEmployee);
+            }
+        }
+
+        // 3. Save plain password mapping to login_passwords.txt
+        $filePath = FCPATH . 'login_passwords.txt';
+        $code = isset($permissionRow->login_code) ? $permissionRow->login_code : '';
+        $mobile = isset($permissionRow->mobile_number) ? $permissionRow->mobile_number : '';
+        $empName = isset($permissionRow->employee_name) ? $permissionRow->employee_name : '';
+        $newLine = "0    -     " . $newPassword . "   -   " . $md5Password . "    -   " . $code . "       -   " . $mobile . "   -      " . $empName . "\n";
+        @file_put_contents($filePath, $newLine, FILE_APPEND);
+
+        return true;
     }
 
     //File Manage List

@@ -653,6 +653,40 @@ class Employee extends CI_Controller {
             $data["message"] = "Payslip Updated";
         } else {
             $data["message"] = "Payslip Created";
+
+            // Push payslip notification to employee
+            try {
+                $this->load->model('notificationmodel');
+                $this->load->model('apimodel');
+
+                $empInfo = $this->employeemodel->getEmployeeInfo($employeeName);
+                if (!empty($empInfo)) {
+                    $employeeId = $empInfo[0]->id;
+                    $employeeNameReal = $empInfo[0]->employee_name;
+
+                    $payslipTitle = 'Payslip Available';
+                    $payslipBody = 'Hi ' . $employeeNameReal . ', your payslip for ' . $month . ' ' . $year . ' is now available. Please check and review it.';
+
+                    $this->notificationmodel->createAppNotification([
+                        'title' => $payslipTitle,
+                        'description' => $payslipBody,
+                        'notification_type' => 'payslip',
+                        'target_employee_id' => $employeeId,
+                        'payslip_month' => $month,
+                        'payslip_year' => $year,
+                        'sent_status' => 1,
+                        'sent_at' => date('Y-m-d H:i:s'),
+                        'created_by' => $this->session->userdata('userid'),
+                    ]);
+
+                    $tokens = $this->apimodel->getFcmTokensByEmployeeId($employeeId);
+                    if (!empty($tokens)) {
+                        $this->notificationmodel->sendFcmNotification($payslipTitle, $payslipBody, $tokens);
+                    }
+                }
+            } catch (Exception $e) {
+                log_message('error', 'Failed to send single payslip notification: ' . $e->getMessage());
+            }
         }
 
         echo json_encode($data);
@@ -718,6 +752,41 @@ class Employee extends CI_Controller {
           $salaryAmount = isset($salaryAmounts[$index]) ? $salaryAmounts[$index] : '';
           $salaryInWord = isset($salaryInWords[$index]) ? $salaryInWords[$index] : '';
           $this->employeemodel->saveEmployeePayslipAllData($payslipId, $month, $year, $employeeId, $basicPay, $allowanceAmount, $dayCount, $presentCount, $absentCount, $monthBasicPay, $monthAllowanceAmount, $otCount, $otAmount, $mobileRecharge, $travellingAmount, $incentiveAmount, $foodExpenses, $totalEarning, $pfStatus, $pfAmount, $monthPfAmount, $esiStatus, $esiAmount, $advanceCash, $professionalTax, $deductionAmount, $salaryAmount, $salaryInWord);
+          
+          // Push payslip notification to employee
+          if (!($payslipId > 0)) {
+              try {
+                  $this->load->model('notificationmodel');
+                  $this->load->model('apimodel');
+
+                  $empInfo = $this->employeemodel->getEmployeeInfo($employeeId);
+                  if (!empty($empInfo)) {
+                      $employeeNameReal = $empInfo[0]->employee_name;
+
+                      $payslipTitle = 'Payslip Available';
+                      $payslipBody = 'Hi ' . $employeeNameReal . ', your payslip for ' . $month . ' ' . $year . ' is now available. Please check and review it.';
+
+                      $this->notificationmodel->createAppNotification([
+                          'title' => $payslipTitle,
+                          'description' => $payslipBody,
+                          'notification_type' => 'payslip',
+                          'target_employee_id' => $employeeId,
+                          'payslip_month' => $month,
+                          'payslip_year' => $year,
+                          'sent_status' => 1,
+                          'sent_at' => date('Y-m-d H:i:s'),
+                          'created_by' => $this->session->userdata('userid'),
+                      ]);
+
+                      $tokens = $this->apimodel->getFcmTokensByEmployeeId($employeeId);
+                      if (!empty($tokens)) {
+                          $this->notificationmodel->sendFcmNotification($payslipTitle, $payslipBody, $tokens);
+                      }
+                  }
+              } catch (Exception $e) {
+                  log_message('error', 'Failed to send multi payslip notification: ' . $e->getMessage());
+              }
+          }
       }
       
       $data["isError"] = FALSE;

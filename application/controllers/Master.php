@@ -1475,4 +1475,204 @@ class Master extends CI_Controller {
             return;
         }
     }
+
+
+    // App Version Control List
+    public function app_version_list($pageStatus = '')
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'master';
+            $data["menu_status"] = 'app_version';
+            $data['activeLink'] = $pageStatus;
+
+            $data['appVersionList'] = $this->mastermodel->appVersionList($pageStatus);
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/app_version/app-version-list', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    // App Version Control Add
+    public function app_version_add()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'master';
+            $data["menu_status"] = 'app_version';
+            $data['formTitle'] = "Add App Version";
+
+            $data['appVersionId'] = '';
+            $data['platform'] = 'android';
+            $data['latestVersion'] = '';
+            $data['updateUrl'] = '';
+            $data['releaseNotes'] = '';
+            $data['isForce'] = '0';
+            $data['status'] = 'active';
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/app_version/app-version-add', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    // App Version Control Edit
+    public function app_version_edit($id)
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'master';
+            $data["menu_status"] = 'app_version';
+            $data['formTitle'] = "Edit App Version";
+
+            $info = $this->mastermodel->getAppVersionInfo($id);
+            foreach ($info as $row) {
+                $data['appVersionId'] = $row->id;
+                $data['platform'] = $row->platform;
+                $data['latestVersion'] = $row->latest_version;
+                $data['updateUrl'] = $row->update_url;
+                $data['releaseNotes'] = $row->release_notes;
+                $data['isForce'] = $row->is_force;
+                $data['status'] = $row->status;
+            }
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/app_version/app-version-add', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    // App Version Control Save Form
+    public function appVersionFormSave()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $id = $this->input->post('app_version_id');
+            $platform = $this->input->post('platform');
+            $latest_version = trim($this->input->post('latest_version'));
+            $update_url = trim($this->input->post('update_url'));
+            $release_notes = trim($this->input->post('release_notes'));
+            $is_force = $this->input->post('is_force');
+            $status = $this->input->post('status');
+
+            if ($latest_version == '' || $update_url == '') {
+                echo json_encode(["isError" => TRUE, "message" => "Please fill all required fields"]);
+                return;
+            }
+
+            $this->mastermodel->saveAppVersionData($id, $platform, $latest_version, $update_url, $release_notes, $is_force, $status);
+
+            echo json_encode([
+                "isError" => FALSE,
+                "message" => ($id > 0) ? "Version Updated Successfully" : "Version Added Successfully"
+            ]);
+            return;
+        } else {
+            echo json_encode(["isError" => TRUE, "message" => "No permission"]);
+            return;
+        }
+    }
+
+    // App Notification Control
+    public function app_notification_list($pageStatus='')
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'app_notification';
+            $data["menu_status"] = 'app_notification';
+            $data['activeLink'] = $pageStatus;
+
+            $data['appNotificationList'] = $this->mastermodel->getAppNotificationList($pageStatus);
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/app_notification/app-notification-list', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    public function app_notification_add()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'app_notification';
+            $data["menu_status"] = 'app_notification';
+            $data['formTitle'] = "Push Custom App Notification";
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/app_notification/app-notification-add', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    public function appNotificationFormSave()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $title = trim($this->input->post('title'));
+            $description = trim($this->input->post('description'));
+
+            if ($title == '' || $description == '') {
+                echo json_encode(["isError" => TRUE, "message" => "Title and Description are required"]);
+                return;
+            }
+
+            $this->load->model('notificationmodel');
+            $this->load->model('apimodel');
+
+            // 1. Insert into database
+            $notifId = $this->notificationmodel->createAppNotification([
+                'title' => $title,
+                'description' => $description,
+                'notification_type' => 'custom',
+                'target_employee_id' => null,
+                'created_by' => $this->session->userdata('userid'),
+            ]);
+
+            // 2. Fetch all active FCM tokens and send push
+            $tokens = $this->apimodel->getAllActiveFcmTokens();
+            $sent = false;
+            if (!empty($tokens)) {
+                $sent = $this->notificationmodel->sendFcmNotification($title, $description, $tokens);
+            }
+
+            // 3. Mark notification as sent if tokens were processed
+            if (!empty($tokens)) {
+                $this->db->where('id', $notifId)->update('app_notifications', [
+                    'sent_status' => 1,
+                    'sent_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            echo json_encode([
+                "isError" => FALSE,
+                "message" => !empty($tokens) ? "Notification Pushed to " . count($tokens) . " device(s) & Saved Successfully" : "Notification saved in database, but no active device tokens found."
+            ]);
+            return;
+        } else {
+            echo json_encode(["isError" => TRUE, "message" => "No permission"]);
+            return;
+        }
+    }
+
 }

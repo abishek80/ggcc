@@ -72,9 +72,20 @@ class Api extends CI_Controller
      */
     private function getBearerToken()
     {
-        $header = $this->input->server('HTTP_AUTHORIZATION')
-                  ?? apache_request_headers()['Authorization']
-                  ?? '';
+        $header = $_SERVER['HTTP_AUTHORIZATION'] 
+               ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+               ?? $this->input->server('HTTP_AUTHORIZATION')
+               ?? '';
+
+        if (empty($header) && function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+            foreach ($headers as $key => $val) {
+                if (strtolower($key) === 'authorization') {
+                    $header = $val;
+                    break;
+                }
+            }
+        }
 
         if (preg_match('/Bearer\s+(.+)/i', $header, $matches)) {
             return trim($matches[1]);
@@ -626,5 +637,217 @@ class Api extends CI_Controller
             $this->respond(['isError' => true, 'message' => 'Unknown action.'], 404);
         }
     }
+
+    /**
+     * Check App Version
+     * GET api/check_version?platform=android&current_version=1.0.0
+     */
+    public function check_version()
+    {
+        $platform = trim($this->input->get('platform'));
+        $current_version = trim($this->input->get('current_version'));
+
+        if (empty($platform) || empty($current_version)) {
+            $this->respond([
+                'isError' => true,
+                'message' => 'platform and current_version parameters are required.'
+            ], 400);
+        }
+
+        // Get the latest active version for the platform
+        $sql = "SELECT * FROM app_version_control 
+                WHERE platform = ? AND status = 'active' 
+                ORDER BY id DESC LIMIT 1";
+        $latest = $this->db->query($sql, [$platform])->row();
+
+        if (!$latest) {
+            $this->respond([
+                'isError' => false,
+                'update_available' => false,
+                'message' => 'No version configuration found.'
+            ]);
+        }
+
+        // Compare versions using version_compare
+        $update_available = version_compare($current_version, $latest->latest_version, '<');
+
+        $this->respond([
+            'isError'          => false,
+            'update_available' => $update_available,
+            'latest_version'   => $latest->latest_version,
+            'is_force'         => (int)$latest->is_force,
+            'update_url'       => $latest->update_url,
+            'release_notes'    => $latest->release_notes ? $latest->release_notes : ''
+        ]);
+    }
+
+    // ─── App Notification Endpoints ─────────────────────────────────
+
+    /**
+     * App Notifications
+     * GET  api/notification/list?page=1&limit=20
+     * GET  api/notification/unread-count
+     * POST api/notification/mark-read  {id: optional}
+     * POST api/notification/send       {title, description} (admin only)
+     * Header: Authorization: Bearer {token}
+     */
+    public function notification($action = 'list')
+    {
+        $this->authGuard();
+        $this->load->model('notificationmodel');
+
+        $employeeId = $this->authUser->employee_id;
+
+        if ($action === 'list') {
+            $page = max(1, (int) ($this->input->get('page') ?: 1));
+            $limit = max(1, min(100, (int) ($this->input->get('limit') ?: 20)));
+            $offset = ($page - 1) * $limit;
+
+            $notifications = $this->notificationmodel->getAppNotifications($employeeId, $limit, $offset);
+            $total = $this->notificationmodel->getAppNotificationTotalCount($employeeId);
+
+            $this->respond([
+                'isError' => false,
+                'data' => $notifications,
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'total' => $total,
+                ]
+            ]);
+        } elseif ($action === 'unread-count') {
+            $count = $this->notificationmodel->getAppNotificationUnreadCount($employeeId);
+            $this->respond([
+                'isError' => false,
+                'count' => $count,
+            ]);
+        } elseif ($action === 'mark-read') {
+            if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+                $this->respond(['isError' => true, 'message' => 'Method not allowed.'], 405);
+            }
+
+            $body = $this->jsonBody();
+            $id = $body['id'] ?? null;
+            $this->notificationmodel->markAppNotificationRead($id, $employeeId);
+            $this->respond([
+                'isError' => false,
+                'message' => 'Notifications marked as read.',
+            ]);
+        } elseif ($action === 'send') {
+            // Admin-only: create and push a custom notification to all users
+            if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+                $this->respond(['isError' => true, 'message' => 'Method not allowed.'], 405);
+            }
+
+            $permissions = json_decode($this->authUser->permission, true) ?: [];
+            $isAdmin = ($this->authUser->is_admin == 1) || in_array('admin', $permissions);
+            if (!$isAdmin) {
+                $this->respond(['isError' => true, 'message' => 'Access denied. Admin only.'], 403);
+            }
+
+            $body = $this->jsonBody();
+            $title = trim($body['title'] ?? '');
+            $description = trim($body['description'] ?? '');
+
+            if (empty($title) || empty($description)) {
+                $this->respond(['isError' => true, 'message' => 'Title and description are required.'], 422);
+            }
+
+            $notifId = $this->notificationmodel->createAppNotification([
+                'title' => $title,
+                'description' => $description,
+                'notification_type' => 'custom',
+                'target_employee_id' => null,
+                'created_by' => $this->authUser->login_id,
+            ]);
+
+            // Push FCM notification to all registered devices
+            $tokens = $this->apimodel->getAllActiveFcmTokens();
+            if (!empty($tokens)) {
+                $this->notificationmodel->sendFcmNotification($title, $description, $tokens);
+            }
+
+            // Mark as sent
+            $this->db->where('id', $notifId)->update('app_notifications', [
+                'sent_status' => 1,
+                'sent_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            $this->respond([
+                'isError' => false,
+                'message' => 'Notification sent successfully.',
+                'notification_id' => $notifId,
+            ]);
+        } else {
+            $this->respond(['isError' => true, 'message' => 'Unknown action.'], 404);
+        }
+    }
+
+    /**
+     * Mobile compatibility endpoint: PATCH api/notifications
+     * Marks notifications as read (single or all)
+     */
+    public function notifications()
+    {
+        $this->authGuard();
+        $this->load->model('notificationmodel');
+        $employeeId = $this->authUser->employee_id;
+
+        $method = $this->input->server('REQUEST_METHOD');
+        if ($method === 'PATCH') {
+            $body = $this->jsonBody();
+            $action = $body['action'] ?? '';
+            
+            if ($action === 'markRead') {
+                $notificationId = $body['notificationId'] ?? null;
+                $this->notificationmodel->markAppNotificationRead($notificationId, $employeeId);
+            } elseif ($action === 'markAllRead') {
+                $this->notificationmodel->markAppNotificationRead(null, $employeeId);
+            }
+
+            $this->respond([
+                'success' => true,
+                'isError' => false,
+                'message' => 'Notifications marked as read.',
+            ]);
+        } else {
+            $this->respond(['isError' => true, 'message' => 'Method not allowed.'], 405);
+        }
+    }
+
+
+    /**
+     * FCM Token Management
+     * POST api/fcm/register  {fcm_token: "..."}
+     * Header: Authorization: Bearer {token}
+     */
+    public function fcm($action = 'register')
+    {
+        $this->authGuard();
+
+        if ($action === 'register') {
+            if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+                $this->respond(['isError' => true, 'message' => 'Method not allowed.'], 405);
+            }
+
+            $body = $this->jsonBody();
+            $fcmToken = trim($body['fcm_token'] ?? '');
+
+            if (empty($fcmToken)) {
+                $this->respond(['isError' => true, 'message' => 'fcm_token is required.'], 422);
+            }
+
+            $this->apimodel->updateFcmToken($this->authUser->login_id, $fcmToken);
+
+            $this->respond([
+                'isError' => false,
+                'message' => 'FCM token registered successfully.',
+            ]);
+        } else {
+            $this->respond(['isError' => true, 'message' => 'Unknown action.'], 404);
+        }
+    }
+
 }
+
 ?>

@@ -1218,3 +1218,19 @@ textarea.form-control {
     grid-template-columns: 1fr;
   }
 }
+
+/* Swiper Custom Pagination Dots */
+.swiper-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  background: var(--primary-navy);
+  opacity: 0.35;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  width: 28px;
+  border-radius: 6px;
+  background: var(--primary-dark) !important;
+  opacity: 1 !important;
+}

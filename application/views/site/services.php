@@ -19,12 +19,16 @@
 
         <div class="grid-3">
             <?php foreach($services as $s): ?>
-                <div class="card">
-                    <?php if(!empty($s['icon'])): ?><div class="card-icon-box"><?php echo $s['icon']; ?></div><?php endif; ?>
+                <div class="card" style="display:flex; flex-direction:column;">
+                    <?php if(!empty($s['image'])): ?>
+                        <div style="height:190px; overflow:hidden; border-radius:var(--radius-sm); margin-bottom:18px; border:1px solid var(--border-color);">
+                            <img src="<?php echo base_url('themes/images/' . $s['image']); ?>" alt="<?php echo htmlspecialchars($s['title']); ?>" style="width:100%; height:100%; object-fit:cover; transition:transform 0.4s ease;">
+                        </div>
+                    <?php endif; ?>
                     <h3 class="card-title"><?php echo htmlspecialchars($s['title']); ?></h3>
                     <p class="card-desc"><?php echo htmlspecialchars($s['short_desc']); ?></p>
 
-                    <div style="margin-bottom:15px;">
+                    <div style="margin-bottom:15px; margin-top:auto;">
                         <strong style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.5px;">Key Applications:</strong>
                         <div class="card-tags" style="margin-top:6px;">
                             <?php foreach(array_slice($s['applications'], 0, 3) as $app): ?>
@@ -33,22 +37,11 @@
                         </div>
                     </div>
 
-                    <a href="<?php echo base_url('services/' . $s['slug']); ?>" class="card-link" style="margin-top:auto;">
+                    <a href="<?php echo base_url('services/' . $s['slug']); ?>" class="card-link">
                         View Scope & Specifications &rarr;
                     </a>
                 </div>
             <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-
-<!-- CTA -->
-<section class="section-padding bg-white">
-    <div class="container">
-        <div class="cta-banner">
-            <h2>Need Custom Electrical Engineering Solutions?</h2>
-            <p>Our licensed electrical engineers provide tailored technical proposals, load designs, and cost estimations for industrial and commercial projects.</p>
-            <a href="<?php echo base_url('contact'); ?>" class="btn btn-primary">Contact GGCC Engineering Team</a>
         </div>
     </div>
 </section>

@@ -72,6 +72,8 @@
         </div>
     </footer>
 
+    <!-- Swiper JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <!-- JS Main Script -->
     <script src="<?php echo base_url('themes/site/js/main.js'); ?>"></script>
 </body>

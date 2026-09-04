@@ -431,6 +431,45 @@ class Admin extends CI_Controller {
         $data["message"] = $permissionId ? "Login Permission Updated" : "Login Permission Created";
         echo json_encode($data);
     }
+
+    // Update Permission Password
+    public function update_permission_password()
+    {
+        $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission) || in_array('employee_management', $userPermission)) {
+            $permissionId = $this->input->post('permission_id');
+            $newPassword = $this->input->post('new_password');
+            $confirmPassword = $this->input->post('confirm_password');
+
+            if (empty($permissionId) || empty($newPassword) || empty($confirmPassword)) {
+                $data["isError"] = TRUE;
+                $data["message"] = "All fields are required";
+                echo json_encode($data);
+                return;
+            }
+
+            if ($newPassword !== $confirmPassword) {
+                $data["isError"] = TRUE;
+                $data["message"] = "New password and confirm password do not match";
+                echo json_encode($data);
+                return;
+            }
+
+            $result = $this->adminmodel->updatePermissionPassword($permissionId, $newPassword);
+            if ($result) {
+                $data["isError"] = FALSE;
+                $data["message"] = "Password updated successfully";
+            } else {
+                $data["isError"] = TRUE;
+                $data["message"] = "Record not found or failed to update password";
+            }
+            echo json_encode($data);
+        } else {
+            $data["isError"] = TRUE;
+            $data["message"] = "Permission denied";
+            echo json_encode($data);
+        }
+    }
     
     public function file_manage_list($pageStatus='')
     {

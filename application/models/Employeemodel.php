@@ -51,7 +51,19 @@ class Employeemodel extends CI_Model
         $miNumberId = sprintf("%05d", $maxID + 1);
         $miNumber   = $year . '/' . $miNumberId;
 
+        // Ensure welcome_email_sent column exists in employee table
+        try {
+            if (!$this->db->field_exists('welcome_email_sent', 'employee')) {
+                $this->db->query("ALTER TABLE `employee` ADD COLUMN `welcome_email_sent` INT NOT NULL DEFAULT 0 AFTER `plain_password`");
+            }
+        } catch (Exception $e) {}
+
         if ($employeeId > 0) {
+            // Check if welcome email was already sent
+            $empInfo = $this->getEmployeeInfo($employeeId);
+            $existingEmp = (!empty($empInfo)) ? $empInfo[0] : null;
+            $wasEmailSent = ($existingEmp && isset($existingEmp->welcome_email_sent)) ? (int)$existingEmp->welcome_email_sent : 0;
+
             $data = array(
                 'employee_code' => $employeeCode,
                 'company_name' => $companyName,
@@ -105,6 +117,15 @@ class Employeemodel extends CI_Model
                 'updated_by' => $userId,
                 'updated_at' => date('Y-m-d H:i:s')
             );
+
+            // Send welcome email if email provided for the first time
+            if (!empty($employeeEmail) && $wasEmailSent == 0) {
+                $this->load->model('emailmodel');
+                $passToUse = !empty($employeePassword) ? $employeePassword : (($existingEmp && !empty($existingEmp->plain_password)) ? $existingEmp->plain_password : '');
+                $this->emailmodel->sendWelcomeEmail($companyName, $employeeName, $employeeEmail, $employeeNumber, $passToUse);
+                $data['welcome_email_sent'] = 1;
+            }
+
             $this->db->where('id', (int) $employeeId);
             $this->db->update('employee', $data);
 
@@ -135,6 +156,8 @@ class Employeemodel extends CI_Model
                 'sno' => $miNumber,
                 'employee_code' => $employeeCode,
                 'password' => md5($employeePassword),
+                'plain_password' => $employeePassword,
+                'welcome_email_sent' => (!empty($employeeEmail) ? 1 : 0),
                 'permission' => $employeePermission,
                 'company_name' => $companyName,
                 'zone' => $zone,
@@ -197,6 +220,7 @@ class Employeemodel extends CI_Model
                 'employee_name' => $employeeName,
                 'mobile_number' => $employeeNumber,
                 'password' => md5($employeePassword),
+                'plain_password' => $employeePassword,
                 'permission' => '["' . $employeePermission . '"]',
                 'status' => $status,
                 'created_by' => $userId,
@@ -204,6 +228,17 @@ class Employeemodel extends CI_Model
             );
             $this->db->insert('login_permission', $permissionData);
             $this->db->insert_id();
+
+            // Append password mapping to login_passwords.txt
+            $filePath = FCPATH . 'login_passwords.txt';
+            $newLine = "0    -     " . $employeePassword . "   -   " . md5($employeePassword) . "    -   " . $employeeCode . "       -   " . $employeeNumber . "   -      " . $employeeName . "\n";
+            @file_put_contents($filePath, $newLine, FILE_APPEND);
+
+            // Send Welcome Email if email is provided
+            if (!empty($employeeEmail)) {
+                $this->load->model('emailmodel');
+                $this->emailmodel->sendWelcomeEmail($companyName, $employeeName, $employeeEmail, $employeeNumber, $employeePassword);
+            }
 
             $attendanceData = array(
                 'employee_id' => $empMaxId,

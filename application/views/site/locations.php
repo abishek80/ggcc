@@ -40,14 +40,3 @@
         </div>
     </div>
 </section>
-
-<!-- CTA -->
-<section class="section-padding bg-white">
-    <div class="container">
-        <div class="cta-banner">
-            <h2>Planning an Industrial or Commercial Electrical Project?</h2>
-            <p>Connect with GGCC regional engineers for site surveys, load designs, and localized project estimates across all 13 locations.</p>
-            <a href="<?php echo base_url('contact'); ?>" class="btn btn-primary">Enquire for Your Project Location</a>
-        </div>
-    </div>
-</section>
