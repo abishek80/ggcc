@@ -98,7 +98,7 @@
                     <a href="<?php echo base_url('partners_customers'); ?>" class="btn btn-primary" style="background:#ED1C24; color:#FFF;">Explore HPCL Partnership & Projects &rarr;</a>
                 </div>
                 <div style="height: 100%; min-height: 380px; position: relative;">
-                    <img src="<?php echo base_url('themes/images/hpcl_partner_banner.jpg'); ?>" alt="HPCL Partnership GGCC Electrical Construction Work" style="width:100%; height:100%; object-fit:cover;">
+                    <img src="<?php echo base_url('themes/images/hpcl_partner_banner.jpg'); ?>" alt="HPCL Partnership GGCC Electrical Construction Work" loading="lazy" width="600" height="380" style="width:100%; height:100%; object-fit:cover;">
                 </div>
             </div>
         </div>
@@ -118,7 +118,7 @@
             <!-- Card 1: Petrol Pump Lighting -->
             <div style="background:#FFF; border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-md); border:1px solid var(--border-color); display:flex; flex-direction:column;">
                 <div style="height:240px; overflow:hidden; position:relative;">
-                    <img src="<?php echo base_url('themes/images/hpcl_petrol_pump_lighting.jpg'); ?>" alt="Indian Petrol Pump Electrical Lighting" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease;">
+                    <img src="<?php echo base_url('themes/images/hpcl_petrol_pump_lighting.jpg'); ?>" alt="Indian Petrol Pump Electrical Lighting" loading="lazy" width="600" height="240" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease;">
                     <span style="position:absolute; top:15px; right:15px; background:var(--primary-navy); color:#FFF; font-size:0.75rem; font-weight:700; padding:4px 12px; border-radius:20px;">ELECTRICAL LIGHTING</span>
                 </div>
                 <div style="padding:25px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
@@ -135,7 +135,7 @@
             <!-- Card 2: Electrical Panel Work -->
             <div style="background:#FFF; border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-md); border:1px solid var(--border-color); display:flex; flex-direction:column;">
                 <div style="height:240px; overflow:hidden; position:relative;">
-                    <img src="<?php echo base_url('themes/images/petrol_pump_electrical_panel.jpg'); ?>" alt="Petrol Pump Panel Electrical Work" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease;">
+                    <img src="<?php echo base_url('themes/images/petrol_pump_electrical_panel.jpg'); ?>" alt="Petrol Pump Panel Electrical Work" loading="lazy" width="600" height="240" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease;">
                     <span style="position:absolute; top:15px; right:15px; background:#ED1C24; color:#FFF; font-size:0.75rem; font-weight:700; padding:4px 12px; border-radius:20px;">PANEL ELECTRICAL WORK</span>
                 </div>
                 <div style="padding:25px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
@@ -152,7 +152,7 @@
             <!-- Card 3: Earthing Chamber Construction -->
             <div style="background:#FFF; border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-md); border:1px solid var(--border-color); display:flex; flex-direction:column;">
                 <div style="height:240px; overflow:hidden; position:relative;">
-                    <img src="<?php echo base_url('themes/images/earthing_chamber_construction.jpg'); ?>" alt="Earthing Chamber Pit Construction" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease;">
+                    <img src="<?php echo base_url('themes/images/earthing_chamber_construction.jpg'); ?>" alt="Earthing Chamber Pit Construction" loading="lazy" width="600" height="240" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease;">
                     <span style="position:absolute; top:15px; right:15px; background:#00529C; color:#FFF; font-size:0.75rem; font-weight:700; padding:4px 12px; border-radius:20px;">EARTHING CHAMPER CONSTRUCTION</span>
                 </div>
                 <div style="padding:25px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
@@ -169,7 +169,7 @@
             <!-- Card 4: Canopy Light Maintenance -->
             <div style="background:#FFF; border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-md); border:1px solid var(--border-color); display:flex; flex-direction:column;">
                 <div style="height:240px; overflow:hidden; position:relative;">
-                    <img src="<?php echo base_url('themes/images/petrol_pump_canopy_light_maintenance.jpg'); ?>" alt="Petrol Pump Maintenance Work" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease;">
+                    <img src="<?php echo base_url('themes/images/petrol_pump_canopy_light_maintenance.jpg'); ?>" alt="Petrol Pump Maintenance Work" loading="lazy" width="600" height="240" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease;">
                     <span style="position:absolute; top:15px; right:15px; background:#2e7d32; color:#FFF; font-size:0.75rem; font-weight:700; padding:4px 12px; border-radius:20px;">24/7 MAINTENANCE WORK</span>
                 </div>
                 <div style="padding:25px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
@@ -244,7 +244,7 @@
     <div class="container">
         <div class="section-title-wrap">
             <div class="section-subtitle">What We Do</div>
-            <h2 class="section-title">Comprehensive Electrical Services</h2>
+            <h2 class="section-title">Comprehensive Services</h2>
             <p class="section-desc">GGCC provides turnkey electrical contracting, cabling, panel installation, and maintenance tailored for HPCL petrol stations, industrial plants, and commercial complexes.</p>
         </div>
 
@@ -253,10 +253,10 @@
             $featured_services = array_slice($services, 0, 6, true);
             foreach($featured_services as $s): 
             ?>
-                <div class="card" style="display:flex; flex-direction:column;">
+                <a href="<?php echo base_url('services/' . $s['slug']); ?>" class="card">
                     <?php if(!empty($s['image'])): ?>
                         <div style="height:180px; overflow:hidden; border-radius:var(--radius-sm); margin-bottom:15px; border:1px solid var(--border-color);">
-                            <img src="<?php echo base_url('themes/images/' . $s['image']); ?>" alt="<?php echo htmlspecialchars($s['title']); ?>" style="width:100%; height:100%; object-fit:cover;">
+                            <img src="<?php echo base_url('themes/images/' . $s['image']); ?>" alt="<?php echo htmlspecialchars($s['title']); ?>" loading="lazy" width="400" height="225" style="width:100%; height:100%; object-fit:cover;">
                         </div>
                     <?php endif; ?>
                     <h3 class="card-title"><?php echo htmlspecialchars($s['title']); ?></h3>
@@ -266,15 +266,15 @@
                             <span class="card-tag"><?php echo htmlspecialchars($app); ?></span>
                         <?php endforeach; ?>
                     </div>
-                    <a href="<?php echo base_url('services/' . $s['slug']); ?>" class="card-link">
+                    <span class="card-link">
                         Explore Service Details &rarr;
-                    </a>
-                </div>
+                    </span>
+                </a>
             <?php endforeach; ?>
         </div>
 
         <div style="text-align:center; margin-top:40px;">
-            <a href="<?php echo base_url('services'); ?>" class="btn btn-navy">View All 16 Electrical Services &rarr;</a>
+            <a href="<?php echo base_url('services'); ?>" class="btn btn-navy">View All 16 Services &rarr;</a>
         </div>
     </div>
 </section>
@@ -290,7 +290,7 @@
 
         <div class="grid-4">
             <div style="background:var(--bg-light); padding:30px; border-radius:var(--radius-md); text-align:center; border:1px solid var(--border-color);">
-                <h4 style="margin-bottom:8px; color:#00529C;">HPCL & Petroleum Outlets</h4>
+                <h4 style="margin-bottom:8px;">HPCL & Petroleum Outlets</h4>
                 <p style="font-size:0.85rem; color:var(--text-muted);">Canopy lighting, earthing chambers, panels & maintenance.</p>
             </div>
             <div style="background:var(--bg-light); padding:30px; border-radius:var(--radius-md); text-align:center; border:1px solid var(--border-color);">

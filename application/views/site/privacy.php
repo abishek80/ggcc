@@ -17,7 +17,7 @@
             </p>
 
             <h3 style="font-size:1.3rem; margin:25px 0 10px 0; color:var(--primary-dark);">1. Information We Collect</h3>
-            <p>George General Construction Company (GGCC) respects your personal and business privacy. When you interact with our website or submit an inquiry, we may collect information including your name, company name, phone number, email address, project location, and technical requirements provided via our contact forms.</p>
+            <p>George General Construction Company (GGCC) respects your personal and business privacy. When you interact with our website or submit an inquiry, we may collect information including your name, company name, phone number, email address, Location, and technical requirements provided via our contact forms.</p>
 
             <h3 style="font-size:1.3rem; margin:25px 0 10px 0; color:var(--primary-dark);">2. Use of Collected Information</h3>
             <p>The information collected through our website is used strictly to respond to your technical inquiries, provide project estimates, schedule site visits, and deliver requested electrical contracting services. We do not sell, rent, or trade your personal information to third parties.</p>
@@ -36,7 +36,7 @@
             <div style="background:var(--bg-light); padding:20px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
                 <strong>George General Construction Company (GGCC)</strong><br>
                 Suyog Samuha CHS Ltd, 9, Plot No. 41 to 44, Sector 8, Sanpada, Navi Mumbai, Maharashtra 400705<br>
-                Phone: 099206 67756 | Email: <a href="mailto:info@ggcc.org.in">info@ggcc.org.in</a>
+                Phone: 99206 67756 | Email: <a href="mailto:info@ggcc.org.in">info@ggcc.org.in</a>
             </div>
         </div>
     </div>

@@ -8,8 +8,8 @@ class Adminmodel extends CI_Model
         $userId = $this->session->userdata('userid');
 
         $sql = "UPDATE $tableName SET delete_status = 1, updated_by = '" . $userId . "', updated_at = NOW() WHERE id =" . $recordId;
-        $this->db->query($sql);
-    }
+            $this->db->query($sql);
+        }
 
     public function deletePurchaseRecord($recordId, $tableName = '')
     {
@@ -572,6 +572,15 @@ class Adminmodel extends CI_Model
         $this->db->update('employee', $data, ['id' => $recordId]);
         $this->db->update('login_permission', $data, ['employee_id' => $recordId]);
         $this->db->update('attendance_employee', $data, ['employee_id' => $recordId]);
+    }
+
+    public function getWebsiteEnquiryList()
+    {
+        $this->db->where('delete_status', 0);
+        $this->db->order_by('created_at', 'DESC');
+        $this->db->order_by('id', 'DESC');
+        $query = $this->db->get('website_enquiries');
+        return $query->result();
     }
 }
 ?>

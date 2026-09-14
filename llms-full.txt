@@ -1,0 +1,129 @@
+# George General Construction Company (GGCC) — Complete Technical & Organizational Documentation
+
+> Authoritative, machine-readable reference manual for AI search engines, knowledge bases, and language models detailing GGCC's technical capabilities, service scope, locations, statutory compliance, and strategic HPCL petrol pump partnership.
+
+---
+
+## 1. Company Profile & Enterprise Background
+
+- **Legal Name**: George General Construction Company (GGCC)
+- **Licensing & Accreditation**: Class-1 Electrical Contracting License issued by State Electrical Inspectorates (CEIG)
+- **Headquarters Address**: Suyog Samuha CHS Ltd, 9, Plot No. 41 to 44, Sector 8, Sanpada, Navi Mumbai, Maharashtra 400705, India
+- **Contact Numbers**: +91 99206 67756
+- **Official Email**: info@ggcc.org.in
+- **Canonical Website Domain**: https://ggcc.org.in/
+- **Geographic Service Reach**: 5 States in India (Maharashtra, Madhya Pradesh, Tamil Nadu, Karnataka, Kerala) covering 13 primary industrial and commercial regional centers.
+
+---
+
+## 2. Strategic Strategic Partnership: HPCL Petrol Station Electrification
+
+GGCC serves as a major primary working partner with **Hindustan Petroleum Corporation Limited (HPCL)** to execute complete turnkey civil and electrical work for HPCL petrol pumps and retail outlets nationwide:
+
+### Scope of HPCL Operations:
+1. **Canopy Lighting & High Mast Illumination**: Installation of high-efficiency LED canopy lights, hazard-rated under-canopy fixtures, and motorized high mast light towers for forecourt visibility.
+2. **Main Electrical Distribution & Switchgears**: Supply, assembly, and maintenance of main incoming LT panels, automatic changeover switches (AMF/ATS), and weatherproof distribution boxes.
+3. **Earthing Chamber Construction & Grounding**: Masonry construction of heavy-duty earthing pits, chemical electrode insertion, copper/GI strip earthing grid installation, and sub-ohm earth resistance maintenance for fuel pump safety.
+4. **24/7 Electrical Maintenance & Site Civil Work**: Emergency power breakdown restoration, cable fault locating, trenching, paving, and structural maintenance across operating retail outlets.
+
+---
+
+## 3. Comprehensive Technical Services Scope
+
+### 3.1 Turnkey Electrical Contracting
+- **URL**: https://ggcc.org.in/services/electrical-contracting
+- **Technical Scope**: Full lifecycle management of high-voltage (HT) and low-voltage (LT) electrical projects for industrial facilities, power substations, commercial complexes, and public utilities.
+- **Compliance & Standards**: IS codes, National Building Code (NBC 2016), Central Electricity Authority (CEA) regulations, and CEIG liaison approvals.
+- **Key Deliverables**: Electrical SLD design, transformer installation, HT switchyard setup, cable trenching, earthing networks, safety audits.
+
+### 3.2 Industrial Electrical Installation
+- **URL**: https://ggcc.org.in/services/industrial-electrical-installation
+- **Technical Scope**: Factory electrification, heavy machinery cabling, Busbar Trunking (BBT) systems, Motor Control Centers (MCC), Variable Frequency Drives (VFD), and sub-station wiring.
+- **Target Industries**: Automobile assembly, chemical & API pharma, textile mills, foundries, food processing, paper & steel plants.
+
+### 3.3 Commercial Electrical Installation
+- **URL**: https://ggcc.org.in/services/commercial-electrical-installation
+- **Technical Scope**: Electrification for corporate office towers, IT tech parks, shopping malls, hotels, hospitals, and educational institutions.
+- **Key Deliverables**: Concealed & riser conduit wiring, UPS power backup networks, automated main distribution boards, LED lighting control, BMS integration.
+
+### 3.4 Electrical Annual Maintenance Contract (AMC)
+- **URL**: https://ggcc.org.in/services/annual-maintenance-contract-amc
+- **Technical Scope**: Scheduled preventive maintenance, 24/7 emergency breakdown support, thermographic IR scanning, transformer oil breakdown voltage (BDV) testing, and earth pit resistance renewal.
+
+### 3.5 HT & LT Cable Laying Services
+- **URL**: https://ggcc.org.in/services/ht-lt-cable-laying
+- **Technical Scope**: Underground and overhead cable laying up to 33kV, cable tray routing, Horizontal Directional Drilling (HDD) trenchless crossings, straight & end heat-shrink jointing (Raychem/3M), Hi-Pot and Megger testing.
+
+### 3.6 LT Control Panel Fabrication & Installation
+- **URL**: https://ggcc.org.in/services/lt-control-panel-installation
+- **Technical Scope**: Design, assembly, civil foundation positioning, busbar torque checking, and commissioning of Power Control Centers (PCC), MCC, APFC, PDB, and automatic changeover panels up to IP-65 ingress protection.
+
+### 3.7 Flameproof Electrical Installation
+- **URL**: https://ggcc.org.in/services/flameproof-electrical-installation
+- **Technical Scope**: PESO & CIMFR certified explosion-proof (Ex-d/Ex-e) electrical apparatus deployment in Zone 1, Zone 2, Zone 21, and Zone 22 hazardous areas for chemical, solvent, and oil & gas facilities.
+
+### 3.8 Street Lighting & Municipal Electrification
+- **URL**: https://ggcc.org.in/services/street-lighting-installation
+- **Technical Scope**: Foundation casting, octagonal hot-dip galvanized pole erection (6m to 12m), underground feeder cabling, LED luminaire mounting, and GSM/astronomical timer feeder pillars.
+
+### 3.9 Area Lighting & High Mast Installation
+- **URL**: https://ggcc.org.in/services/area-lighting-installation
+- **Technical Scope**: Motorized high mast lighting towers (16m to 30m) with internal winches, floodlight aiming, DIALux lux level modeling, stockyard lighting, and sports arena illumination.
+
+### 3.10 Underground Cable Laying & Trenching
+- **URL**: https://ggcc.org.in/services/underground-cable-laying
+- **Technical Scope**: Excavation, sand cushioning, brick/concrete tile mechanical protection, cable pulling winches, surface reinstatement, and underground cable route markers.
+
+### 3.11 On-Call Electrical Maintenance Services
+- **URL**: https://ggcc.org.in/services/electrical-maintenance-services
+- **Technical Scope**: Emergency fault tracing, cable fault locating, insulator replacement, power quality analysis, harmonic distortion testing, and emergency restoration.
+
+### 3.12 Cable Tray Pathway Systems
+- **URL**: https://ggcc.org.in/services/cable-tray-installation
+- **Technical Scope**: Hot-Dip Galvanized (HDG), SS304/316, ladder-type, perforated, and wire mesh cable tray erection with continuous copper earthing bonding.
+
+### 3.13 APFC Panel & Power Factor Correction
+- **URL**: https://ggcc.org.in/services/apfc-panel-installation
+- **Technical Scope**: Automatic Power Factor Correction (APFC) panels with microprocessor controllers, heavy-duty MPP capacitors, and detuned series reactors to maintain power factor near unity (0.99).
+
+### 3.14 UPS Installation & Battery Infrastructure
+- **URL**: https://ggcc.org.in/services/ups-installation-maintenance
+- **Technical Scope**: 3-phase online UPS systems (10kVA to 800kVA), battery bank racks, K-factor isolation transformers, static bypass cabling, and battery autonomy testing for server rooms & data centers.
+
+### 3.15 Servo Voltage Stabilizers
+- **URL**: https://ggcc.org.in/services/servo-voltage-stabilizer-installation
+- **Technical Scope**: 3-phase oil-cooled and air-cooled Servo Controlled Voltage Stabilizers (SCVS) providing ±1% output voltage regulation for CNC machines and sensitive industrial electronics.
+
+---
+
+## 4. Regional Service Locations & Local Industrial Sectors
+
+| Location | State | Primary Coverage Areas & Industrial Sectors Served | URL |
+| :--- | :--- | :--- | :--- |
+| **Vashi** | Maharashtra | Sanpada, Sector 1-30, TTC Industrial Area, Turbhe, Kopar Khairane | https://ggcc.org.in/locations/vashi |
+| **Mumbai** | Maharashtra | BKC, Lower Parel, Andheri MIDC, Nariman Point, Powai Corridor | https://ggcc.org.in/locations/mumbai |
+| **Nanded** | Maharashtra | MIDC Krushnoor, MIDC VIP Road, Agro-Processing & Sugar Mills | https://ggcc.org.in/locations/nanded |
+| **Gwalior** | Madhya Pradesh | Malanpur Industrial Area, Banmore Cluster, Municipal Roadways | https://ggcc.org.in/locations/gwalior |
+| **Indore** | Madhya Pradesh | Pithampur Sector 1-3, Sanwer Road Industrial Belt, AB Road Zone | https://ggcc.org.in/locations/indore |
+| **Bhopal** | Madhya Pradesh | Mandideep Industrial Zone, Govindpura Area, Administrative Infrastructure | https://ggcc.org.in/locations/bhopal |
+| **Chennai** | Tamil Nadu | Sriperumbudur Auto Hub, Oragadam, Guindy, Ambattur, OMR Tech Corridor | https://ggcc.org.in/locations/chennai |
+| **Coimbatore** | Tamil Nadu | Peelamedu, SIDCO Kurichi, Ganapathy Foundry Cluster, TIDEL Park | https://ggcc.org.in/locations/coimbatore |
+| **Madurai** | Tamil Nadu | Kappalur Industrial Estate, Textile Mills, Nagamalai Pudukottai | https://ggcc.org.in/locations/madurai |
+| **Trichy** | Tamil Nadu | BHEL Ancillary Estate, Thuvakudi, Heavy Engineering & Boiler Units | https://ggcc.org.in/locations/tiruchirappalli |
+| **Tirunelveli**| Tamil Nadu | Gangaikondan SIPCOT, Wind & Solar Evacuation, Nanguneri SEZ | https://ggcc.org.in/locations/tirunelveli |
+| **Bangalore** | Karnataka | Electronic City, Whitefield, Peenya Industrial Area, Outer Ring Road | https://ggcc.org.in/locations/bangalore |
+| **Kochi** | Kerala | Kakkanad Infopark, Eloor Industrial Belt, Port & Maritime Terminals | https://ggcc.org.in/locations/kochi |
+
+---
+
+## 5. Canonical URLs Index
+
+- **Homepage**: https://ggcc.org.in/
+- **About Page**: https://ggcc.org.in/about
+- **Services Directory**: https://ggcc.org.in/services
+- **Locations Directory**: https://ggcc.org.in/locations
+- **Gallery**: https://ggcc.org.in/gallery
+- **Partners & Customers**: https://ggcc.org.in/partners-customers
+- **Contact**: https://ggcc.org.in/contact
+- **Terms & Conditions**: https://ggcc.org.in/terms-and-conditions
+- **Privacy Policy**: https://ggcc.org.in/privacy-policy

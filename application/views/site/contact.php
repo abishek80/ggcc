@@ -36,7 +36,7 @@
                     <div>
                         <strong style="color:#ffeb3b; display:block; margin-bottom:4px; font-size:0.95rem; text-transform:uppercase; letter-spacing:0.5px;">Phone / Project Enquiry</strong>
                         <p style="color:#FFF; font-size:1.2rem; font-weight:800;">
-                            <a href="tel:09920667756" style="color:#FFF; text-decoration:underline;">099206 67756</a>
+                            <a href="tel:9920667756" style="color:#FFF; text-decoration:underline;">99206 67756</a>
                         </p>
                         <span style="font-size:0.85rem; color:rgba(255,255,255,0.9);">Available for business enquiries & breakdown assistance</span>
                     </div>
@@ -64,47 +64,47 @@
                 <h3 style="font-size:1.5rem; margin-bottom:8px; color:var(--primary-dark);">Send Us a Business Enquiry</h3>
                 <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:25px;">Fill out the form below and our electrical engineering project team will get back to you within 24 hours.</p>
 
-                <form id="siteContactForm">
+                <form id="siteContactForm" novalidate>
                     <div class="form-group">
-                        <label class="form-label">Full Name / Organization *</label>
-                        <input type="text" class="form-control" placeholder="Enter your full name or company name" required>
+                        <label class="form-label">Full Name / Organization <span style="color:#ff3838;">*</span></label>
+                        <input type="text" name="full_name" class="form-control" placeholder="Enter your full name or company name" required>
+                        <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Full Name</span>
                     </div>
 
                     <div class="grid-2" style="gap:15px;">
                         <div class="form-group">
-                            <label class="form-label">Phone Number *</label>
-                            <input type="tel" class="form-control" placeholder="099206 67756" required>
+                            <label class="form-label">Phone Number <span style="color:#ff3838;">*</span></label>
+                            <input type="tel" name="phone" class="form-control" placeholder="1234 123 123" required>
+                            <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Phone Number</span>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Email ID *</label>
-                            <input type="email" class="form-control" placeholder="info@ggcc.org.in" required>
+                            <label class="form-label">Email ID <span style="color:#ff3838;">*</span></label>
+                            <input type="email" name="email" class="form-control" placeholder="emailid@example.com" required>
+                            <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Email ID</span>
                         </div>
                     </div>
 
                     <div class="grid-2" style="gap:15px;">
                         <div class="form-group">
-                            <label class="form-label">Required Electrical Service</label>
-                            <select class="form-control">
+                            <label class="form-label">Required Services <span style="color:#ff3838;">*</span></label>
+                            <select name="service" class="form-control" required>
                                 <option value="">Select Service</option>
                                 <?php foreach($services_menu as $s): ?>
                                     <option value="<?php echo $s['slug']; ?>"><?php echo htmlspecialchars($s['title']); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Select Service</span>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Project Location</label>
-                            <select class="form-control">
-                                <option value="">Select Location</option>
-                                <?php foreach($locations_menu as $l): ?>
-                                    <option value="<?php echo $l['slug']; ?>"><?php echo htmlspecialchars($l['city_name']); ?> (<?php echo $l['state']; ?>)</option>
-                                <?php endforeach; ?>
-                            </select>
+                            <label class="form-label">Location <span style="color:#ff3838;">*</span></label>
+                            <input type="text" name="location" class="form-control" placeholder="Enter Location or city" required>
+                            <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Location</span>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Message / Technical Requirements</label>
-                        <textarea class="form-control" placeholder="Describe your project scope, load requirement, transformer capacity, or required service timeline..."></textarea>
+                        <textarea name="message" class="form-control" placeholder="Describe your project scope, load requirement, transformer capacity, or required service timeline..."></textarea>
                     </div>
 
                     <button type="submit" class="btn btn-navy" style="width:100%;">Submit Business Enquiry &rarr;</button>

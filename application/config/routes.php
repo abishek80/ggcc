@@ -69,6 +69,7 @@ $route['privacy-policy'] = 'web/privacy_policy';
 $route['locations'] = 'web/locations';
 $route['locations/(:any)'] = 'web/location_detail/$1';
 $route['submit-enquiry'] = 'web/submit_enquiry';
+$route['sitemap.xml'] = 'web/sitemap';
 
 $route["^(".implode('|', $language_alias).")/(".implode('|', $controller_exceptions).")(.*)"] = '$2';
 $route["^(".implode('|', $language_alias).")?/(.*)"] = $default_controller.'/$2';
@@ -83,6 +84,7 @@ $route['translate_uri_dashes'] = TRUE;
 // Admin Route Path
 $route['admin/dashboard'] = 'admin/index';
 $route['dashboard'] = 'admin/index';
+$route['admin/enquiries'] = 'admin/website_enquiries';
 
 // API Route Path
 $route['api'] = 'api/index';

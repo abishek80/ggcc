@@ -1,0 +1,27 @@
+# robots.txt for George General Construction Company (GGCC)
+# Canonical domain: https://ggcc.org.in/
+
+User-agent: *
+Allow: /
+
+# Private Administrative & Internal Endpoints
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /complaint/
+Disallow: /purchase/
+Disallow: /bill/
+Disallow: /employee/
+Disallow: /master/
+Disallow: /vehicle/
+Disallow: /outlet/
+Disallow: /stock/
+Disallow: /loan/
+Disallow: /report/
+Disallow: /attendance/
+Disallow: /cron/
+Disallow: /notification/
+Disallow: /api/
+Disallow: /login/
+
+# Sitemaps
+Sitemap: https://ggcc.org.in/sitemap.xml

@@ -18,7 +18,7 @@
             <div class="detail-main">
                 <?php if (!empty($service['image'])): ?>
                     <div style="height:320px; overflow:hidden; border-radius:var(--radius-md); margin-bottom:25px; border:1px solid var(--border-color); box-shadow:var(--shadow-md);">
-                        <img src="<?php echo base_url('themes/images/' . $service['image']); ?>" alt="<?php echo htmlspecialchars($service['title']); ?>" style="width:100%; height:100%; object-fit:cover;">
+                        <img src="<?php echo base_url('themes/images/' . $service['image']); ?>" alt="<?php echo htmlspecialchars($service['title']); ?>" loading="lazy" width="800" height="320" style="width:100%; height:100%; object-fit:cover;">
                     </div>
                 <?php endif; ?>
 
@@ -88,7 +88,7 @@
 
                 <!-- Service Locations Capability -->
                 <div style="margin-bottom:40px; background:var(--primary-dark); color:#FFF; padding:30px; border-radius:var(--radius-md);">
-                    <h4 style="color:var(--accent-gold); font-size:1.1rem; margin-bottom:10px;">Service Availability Across India</h4>
+                    <h4 style="color:#fff; font-size:1.1rem; margin-bottom:10px;">Service Availability Across India</h4>
                     <p style="font-size:0.9rem; color:rgba(255,255,255,0.85); margin-bottom:15px;">
                         GGCC provides <?php echo htmlspecialchars($service['title']); ?> across 13 major locations:
                     </p>
@@ -125,37 +125,38 @@
                 <div style="background:var(--bg-light); border:1px solid var(--border-color); padding:30px; border-radius:var(--radius-md);">
                     <h3 style="font-size:1.25rem; margin-bottom:15px; color:var(--primary-dark);">Request Technical Proposal for <?php echo htmlspecialchars($service['title']); ?></h3>
                     
-                    <form id="siteContactForm">
+                    <form id="siteContactForm" novalidate>
+                        <input type="hidden" name="service" value="<?php echo htmlspecialchars($service['title']); ?>">
+
                         <div class="grid-2" style="gap:15px;">
                             <div class="form-group">
-                                <label class="form-label">Full Name *</label>
-                                <input type="text" class="form-control" placeholder="Enter your name" required>
+                                <label class="form-label">Full Name <span style="color:#ff3838;">*</span></label>
+                                <input type="text" name="full_name" class="form-control" placeholder="Enter your name" required>
+                                <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Full Name</span>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Phone Number *</label>
-                                <input type="tel" class="form-control" placeholder="Enter phone number" required>
+                                <label class="form-label">Phone Number <span style="color:#ff3838;">*</span></label>
+                                <input type="tel" name="phone" class="form-control" placeholder="Enter phone number" required>
+                                <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Phone Number</span>
                             </div>
                         </div>
 
                         <div class="grid-2" style="gap:15px;">
                             <div class="form-group">
-                                <label class="form-label">Email Address *</label>
-                                <input type="email" class="form-control" placeholder="Enter email address" required>
+                                <label class="form-label">Email Address <span style="color:#ff3838;">*</span></label>
+                                <input type="email" name="email" class="form-control" placeholder="Enter email address" required>
+                                <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Email ID</span>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Project Location</label>
-                                <select class="form-control">
-                                    <option value="">Select Location</option>
-                                    <?php foreach($locations as $l): ?>
-                                        <option value="<?php echo $l['slug']; ?>"><?php echo htmlspecialchars($l['city_name']); ?> (<?php echo $l['state']; ?>)</option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <label class="form-label">Location <span style="color:#ff3838;">*</span></label>
+                                <input type="text" name="location" class="form-control" placeholder="Enter Location or city" required>
+                                <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Location</span>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Project Details / Scope Requirements</label>
-                            <textarea class="form-control" placeholder="Briefly describe your project, site location, load requirements, or timeline..."></textarea>
+                            <textarea name="message" class="form-control" placeholder="Briefly describe your project, site location, load requirements, or timeline..."></textarea>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Submit Business Enquiry &rarr;</button>
@@ -167,7 +168,7 @@
             <div class="detail-sidebar">
                 <!-- All Services Widget -->
                 <div class="sidebar-widget">
-                    <h4 class="widget-title">All Electrical Services</h4>
+                    <h4 class="widget-title">All Services</h4>
                     <div class="widget-links-list">
                         <?php foreach($services as $s): ?>
                             <a href="<?php echo base_url('services/' . $s['slug']); ?>" class="widget-link-item <?php echo ($s['slug'] == $service['slug']) ? 'active' : ''; ?>">
@@ -182,8 +183,8 @@
                 <div style="background:linear-gradient(135deg, var(--primary-dark), var(--primary-navy)); color:#FFF; padding:30px; border-radius:var(--radius-md); text-align:center;">
                     <h4 style="font-size:1.15rem; color:#FFF; margin-bottom:8px;">Have Questions?</h4>
                     <p style="font-size:0.85rem; color:rgba(255,255,255,0.8); margin-bottom:15px;">Speak directly with our senior electrical project engineers.</p>
-                    <a href="tel:09920667756" class="btn btn-primary" style="width:100%;">Call 099206 67756</a>
-                    <a href="mailto:info@ggcc.org.in" style="display:block; margin-top:12px; font-size:0.85rem; color:var(--accent-gold);">Email: info@ggcc.org.in</a>
+                    <a href="tel:9920667756" class="btn btn-primary" style="width:100%;">Call 99206 67756</a>
+                    <a href="mailto:info@ggcc.org.in" style="display:block; margin-top:12px; font-size:0.85rem; color:#fff;">Email: info@ggcc.org.in</a>
                 </div>
             </div>
         </div>

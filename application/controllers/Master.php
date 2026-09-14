@@ -1449,7 +1449,7 @@ class Master extends CI_Controller {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
         if (in_array('admin', $userPermission)) {
             $menuId = $this->input->post('menu_id');
-            $menuKey = trim($this->input->post('menu_key'));
+            $menuKey = strtolower(trim($this->input->post('menu_key')));
             $menuName = trim($this->input->post('menu_name'));
             $parentKey = $this->input->post('parent_key');
             $displayOrder = (int)$this->input->post('display_order');

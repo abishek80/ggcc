@@ -1130,8 +1130,9 @@ class Mastermodel extends CI_Model
     // Update Menu Status
     public function updateMenuStatus($menuKey, $status)
     {
+        $menuKey = strtolower(trim($menuKey));
         $data = array('status' => $status);
-        $this->db->where('menu_key', $menuKey);
+        $this->db->where('LOWER(menu_key)', $menuKey);
         return $this->db->update('menu_control', $data);
     }
 
@@ -1147,8 +1148,11 @@ class Mastermodel extends CI_Model
     public function saveMenuControlData($menuId, $menuKey, $menuName, $parentKey, $displayOrder, $status)
     {
         $userId = $this->session->userdata('userid');
+        $menuKey = strtolower(trim($menuKey));
         if ($parentKey == '') {
             $parentKey = NULL;
+        } else {
+            $parentKey = strtolower(trim($parentKey));
         }
 
         if ($menuId > 0) {

@@ -19,10 +19,10 @@
 
         <div class="grid-3">
             <?php foreach($services as $s): ?>
-                <div class="card" style="display:flex; flex-direction:column;">
+                <a href="<?php echo base_url('services/' . $s['slug']); ?>" class="card">
                     <?php if(!empty($s['image'])): ?>
                         <div style="height:190px; overflow:hidden; border-radius:var(--radius-sm); margin-bottom:18px; border:1px solid var(--border-color);">
-                            <img src="<?php echo base_url('themes/images/' . $s['image']); ?>" alt="<?php echo htmlspecialchars($s['title']); ?>" style="width:100%; height:100%; object-fit:cover; transition:transform 0.4s ease;">
+                            <img src="<?php echo base_url('themes/images/' . $s['image']); ?>" alt="<?php echo htmlspecialchars($s['title']); ?>" loading="lazy" width="400" height="240" style="width:100%; height:100%; object-fit:cover; transition:transform 0.4s ease;">
                         </div>
                     <?php endif; ?>
                     <h3 class="card-title"><?php echo htmlspecialchars($s['title']); ?></h3>
@@ -37,10 +37,10 @@
                         </div>
                     </div>
 
-                    <a href="<?php echo base_url('services/' . $s['slug']); ?>" class="card-link">
+                    <span class="card-link">
                         View Scope & Specifications &rarr;
-                    </a>
-                </div>
+                    </span>
+                </a>
             <?php endforeach; ?>
         </div>
     </div>

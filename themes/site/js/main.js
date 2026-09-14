@@ -66,11 +66,74 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Universal Real AJAX Form Submission to MySQL Database
+    // Universal Real AJAX Form Submission with Field Validation & Error Notes
     const formsToHandle = document.querySelectorAll('#siteContactForm, .ggcc-enquiry-form');
     formsToHandle.forEach(form => {
+        // Ensure all error notes are hidden on initial page load
+        form.querySelectorAll('.error-note').forEach(note => {
+            note.style.setProperty('display', 'none', 'important');
+        });
+
+        // Clear error notes on user input/change
+        const inputs = form.querySelectorAll('.form-control, select');
+        inputs.forEach(input => {
+            const clearError = function() {
+                const group = this.closest('.form-group');
+                if (group) {
+                    group.classList.remove('has-error');
+                    const note = group.querySelector('.error-note');
+                    if (note) note.style.setProperty('display', 'none', 'important');
+                }
+            };
+            input.addEventListener('input', clearError);
+            input.addEventListener('change', clearError);
+        });
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+
+            // Clear previous errors inside this form
+            let hasError = false;
+            const groups = form.querySelectorAll('.form-group');
+            groups.forEach(g => {
+                g.classList.remove('has-error');
+                const note = g.querySelector('.error-note');
+                if (note) note.style.setProperty('display', 'none', 'important');
+            });
+
+            // Validate all required inputs inside the form
+            const requiredInputs = form.querySelectorAll('.form-control[required], select[required]');
+            let firstErrorInput = null;
+
+            requiredInputs.forEach(input => {
+                const val = input.value.trim();
+                const group = input.closest('.form-group');
+                const note = group ? group.querySelector('.error-note') : null;
+
+                if (!val) {
+                    hasError = true;
+                    if (group) group.classList.add('has-error');
+                    if (note) note.style.setProperty('display', 'block', 'important');
+                    if (!firstErrorInput) firstErrorInput = input;
+                } else if (input.type === 'email') {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(val)) {
+                        hasError = true;
+                        if (group) group.classList.add('has-error');
+                        if (note) note.style.setProperty('display', 'block', 'important');
+                        if (!firstErrorInput) firstErrorInput = input;
+                    }
+                }
+            });
+
+            if (hasError) {
+                if (firstErrorInput) {
+                    firstErrorInput.focus();
+                    firstErrorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+
             const submitBtn = form.querySelector('button[type="submit"]');
             const originalText = submitBtn ? submitBtn.innerHTML : 'Submit Enquiry';
 

@@ -67,7 +67,8 @@
 
             <!-- Footer Bottom -->
             <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> George General Construction Company (GGCC). All Rights Reserved. | Professional Electrical Contracting & Infrastructure Services.</p>
+                <p>&copy; <?php echo date('Y'); ?> George General Construction Company (GGCC). All Rights Reserved.</p>
+                <p>Professional Electrical Contracting & Infrastructure Services.</p>
             </div>
         </div>
     </footer>

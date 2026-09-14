@@ -19,7 +19,7 @@
 
         <div class="grid-3">
             <?php foreach($locations as $loc): ?>
-                <div class="card">
+                <a href="<?php echo base_url('locations/' . $loc['slug']); ?>" class="card">
                     <h3 class="card-title"><?php echo htmlspecialchars($loc['city_name']); ?>, <?php echo htmlspecialchars($loc['state']); ?></h3>
                     <p class="card-desc"><?php echo htmlspecialchars($loc['industrial_highlights']); ?></p>
 
@@ -32,10 +32,10 @@
                         </div>
                     </div>
 
-                    <a href="<?php echo base_url('locations/' . $loc['slug']); ?>" class="card-link" style="margin-top:auto;">
-                        Explore <?php echo htmlspecialchars($loc['city_name']); ?> Electrical Services &rarr;
-                    </a>
-                </div>
+                    <span class="card-link" style="margin-top:auto;">
+                        Explore <?php echo htmlspecialchars($loc['city_name']); ?> Services &rarr;
+                    </span>
+                </a>
             <?php endforeach; ?>
         </div>
     </div>

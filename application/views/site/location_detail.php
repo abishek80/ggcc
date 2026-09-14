@@ -18,7 +18,7 @@
             <div class="detail-main">
                 <div style="margin-bottom:25px;">
                     <div>
-                        <h2 style="font-size:1.8rem; color:var(--primary-dark);">GGCC Regional Engineering in <?php echo htmlspecialchars($location['city_name']); ?></h2>
+                        <h2 style="margin-bottom: 10px; font-size:1.8rem; color:var(--primary-dark);">GGCC Regional Engineering in <?php echo htmlspecialchars($location['city_name']); ?></h2>
                         <span style="font-size:0.85rem; color:var(--accent-gold); font-weight:700; text-transform:uppercase;"><?php echo htmlspecialchars($location['state']); ?> Industrial & Commercial Region</span>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
 
                 <!-- Available Services Grid with Internal Links -->
                 <div style="margin-bottom:40px;">
-                    <h3 style="font-size:1.34rem; margin-bottom:15px; color:var(--primary-dark);">Electrical Services Offered in <?php echo htmlspecialchars($location['city_name']); ?></h3>
+                    <h3 style="font-size:1.34rem; margin-bottom:15px; color:var(--primary-dark);">Services Offered in <?php echo htmlspecialchars($location['city_name']); ?></h3>
                     <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:20px;">
                         GGCC provides certified turnkey electrical solutions tailored to the industrial and commercial requirements of <?php echo htmlspecialchars($location['city_name']); ?>:
                     </p>
@@ -67,16 +67,16 @@
                         $location_featured_services = array_slice($services, 0, 8, true);
                         foreach($location_featured_services as $s): 
                         ?>
-                            <div style="border:1px solid var(--border-color); padding:18px; border-radius:var(--radius-sm); background:#FFF;">
+                            <a href="<?php echo base_url('services/' . $s['slug']); ?>" style="display:block; border:1px solid var(--border-color); padding:18px; border-radius:var(--radius-sm); background:#FFF; text-decoration:none; color:inherit; transition:var(--transition);">
                                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
                                     <?php if(!empty($s['icon'])): ?><span><?php echo $s['icon']; ?></span><?php endif; ?>
-                                    <h4 style="font-size:1.05rem;"><a href="<?php echo base_url('services/' . $s['slug']); ?>" style="color:var(--primary-navy);"><?php echo htmlspecialchars($s['title']); ?> in <?php echo htmlspecialchars($location['city_name']); ?></a></h4>
+                                    <h4 style="font-size:1.05rem; color:var(--primary-navy);"><?php echo htmlspecialchars($s['title']); ?> in <?php echo htmlspecialchars($location['city_name']); ?></h4>
                                 </div>
                                 <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;"><?php echo htmlspecialchars($s['short_desc']); ?></p>
-                                <a href="<?php echo base_url('services/' . $s['slug']); ?>" style="font-size:0.8rem; font-weight:700; color:var(--accent-gold-hover);">
+                                <span style="font-size:0.8rem; font-weight:700; color:var(--accent-gold-hover);">
                                     Learn More &rarr;
-                                </a>
-                            </div>
+                                </span>
+                            </a>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -84,7 +84,7 @@
                 <!-- Location Specific FAQs -->
                 <?php if (!empty($location['faqs'])): ?>
                     <div style="margin-bottom:40px;">
-                        <h3 style="font-size:1.3rem; margin-bottom:15px; color:var(--primary-dark);"><?php echo htmlspecialchars($location['city_name']); ?> Electrical Service FAQs</h3>
+                        <h3 style="font-size:1.3rem; margin-bottom:15px; color:var(--primary-dark);"><?php echo htmlspecialchars($location['city_name']); ?> Services FAQs</h3>
                         <div class="accordion-container">
                             <?php foreach($location['faqs'] as $faq): ?>
                                 <div class="accordion-item">
@@ -105,39 +105,49 @@
                 <div style="background:var(--bg-light); border:1px solid var(--border-color); padding:30px; border-radius:var(--radius-md);">
                     <h3 style="font-size:1.25rem; margin-bottom:15px; color:var(--primary-dark);">Enquire for Electrical Projects in <?php echo htmlspecialchars($location['city_name']); ?></h3>
                     
-                    <form id="siteContactForm">
-                        <input type="hidden" name="location_slug" value="<?php echo $location['slug']; ?>">
+                    <form id="siteContactForm" novalidate>
+                        <input type="hidden" name="location" value="<?php echo htmlspecialchars($location['city_name']); ?>">
                         
                         <div class="grid-2" style="gap:15px;">
                             <div class="form-group">
-                                <label class="form-label">Full Name *</label>
-                                <input type="text" class="form-control" placeholder="Enter your name" required>
+                                <label class="form-label">Full Name <span style="color:#ff3838;">*</span></label>
+                                <input type="text" name="full_name" class="form-control" placeholder="Enter your name" required>
+                                <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Full Name</span>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Phone Number *</label>
-                                <input type="tel" class="form-control" placeholder="Enter phone number" required>
+                                <label class="form-label">Phone Number <span style="color:#ff3838;">*</span></label>
+                                <input type="tel" name="phone" class="form-control" placeholder="Enter phone number" required>
+                                <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Phone Number</span>
                             </div>
                         </div>
 
                         <div class="grid-2" style="gap:15px;">
                             <div class="form-group">
-                                <label class="form-label">Email ID *</label>
-                                <input type="email" class="form-control" placeholder="Enter email ID" required>
+                                <label class="form-label">Email ID <span style="color:#ff3838;">*</span></label>
+                                <input type="email" name="email" class="form-control" placeholder="Enter email ID" required>
+                                <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Email ID</span>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Required Service</label>
-                                <select class="form-control">
+                                <label class="form-label">Required Service <span style="color:#ff3838;">*</span></label>
+                                <select name="service" class="form-control" required>
                                     <option value="">Select Service</option>
                                     <?php foreach($services as $s): ?>
                                         <option value="<?php echo $s['slug']; ?>"><?php echo htmlspecialchars($s['title']); ?></option>
                                     <?php endforeach; ?>
                                 </select>
+                                <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Select Service</span>
                             </div>
                         </div>
 
                         <div class="form-group">
+                            <label class="form-label">Location <span style="color:#ff3838;">*</span></label>
+                            <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars($location['city_name']); ?>" placeholder="Enter Location or city" required>
+                            <span class="error-note" style="display:none; color:#ff3838; font-size:0.78rem; margin-top:4px; font-weight:500;">Please Enter Location</span>
+                        </div>
+
+                        <div class="form-group">
                             <label class="form-label">Project Details in <?php echo htmlspecialchars($location['city_name']); ?></label>
-                            <textarea class="form-control" placeholder="Briefly describe your project site location in <?php echo htmlspecialchars($location['city_name']); ?>, load requirement, or electrical scope..."></textarea>
+                            <textarea name="message" class="form-control" placeholder="Briefly describe your project site location in <?php echo htmlspecialchars($location['city_name']); ?>, load requirement, or electrical scope..."></textarea>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Submit <?php echo htmlspecialchars($location['city_name']); ?> Enquiry &rarr;</button>
@@ -164,7 +174,7 @@
                 <div style="background:linear-gradient(135deg, var(--primary-dark), var(--primary-navy)); color:#FFF; padding:30px; border-radius:var(--radius-md); text-align:center;">
                     <h4 style="font-size:1.15rem; color:#FFF; margin-bottom:8px;">Need Site Engineers in <?php echo htmlspecialchars($location['city_name']); ?>?</h4>
                     <p style="font-size:0.85rem; color:rgba(255,255,255,0.8); margin-bottom:15px;">Call our main project desk for immediate consultation.</p>
-                    <a href="tel:09920667756" class="btn btn-primary" style="width:100%;">Call 099206 67756</a>
+                    <a href="tel:9920667756" class="btn btn-primary" style="width:100%;">Call 99206 67756</a>
                 </div>
             </div>
         </div>

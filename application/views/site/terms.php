@@ -19,7 +19,7 @@
             <h3 style="font-size:1.3rem; margin:25px 0 10px 0; color:var(--primary-dark);">1. Acceptance of Terms</h3>
             <p>Welcome to the official website of George General Construction Company (GGCC, also referred to as George General Construction Co). By accessing or using this website, you agree to comply with and be bound by the following terms and conditions. If you do not agree to these terms, please refrain from using our website.</p>
 
-            <h3 style="font-size:1.3rem; margin:25px 0 10px 0; color:var(--primary-dark);">2. Electrical Service Information</h3>
+            <h3 style="font-size:1.3rem; margin:25px 0 10px 0; color:var(--primary-dark);">2. Services Information</h3>
             <p>All information provided on this website regarding GGCC’s electrical contracting, industrial electrical installation, HT/LT cable laying, LT control panels, flameproof wiring, and AMC services is provided for general informational and business inquiry purposes. Official project scopes, technical specifications, load designs, and commercial terms are finalized through formal written contracts executed between GGCC and the client.</p>
 
             <h3 style="font-size:1.3rem; margin:25px 0 10px 0; color:var(--primary-dark);">3. Intellectual Property Rights</h3>
@@ -39,7 +39,7 @@
             <div style="background:var(--bg-light); padding:20px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
                 <strong>George General Construction Company (GGCC)</strong><br>
                 Suyog Samuha CHS Ltd, 9, Plot No. 41 to 44, Sector 8, Sanpada, Navi Mumbai, Maharashtra 400705<br>
-                Phone: 099206 67756 | Email: <a href="mailto:info@ggcc.org.in">info@ggcc.org.in</a>
+                Phone: 99206 67756 | Email: <a href="mailto:info@ggcc.org.in">info@ggcc.org.in</a>
             </div>
         </div>
     </div>

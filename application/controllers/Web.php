@@ -505,7 +505,7 @@ class Web extends CI_Controller {
                 'local_sectors' => array('Wind & Solar Power Generation', 'SIPCOT Gangaikondan Industrial Park', 'Textile & Spinning Mills', 'Cement & Mineral Processing', 'Commercial Institutions'),
                 'coverage_areas' => array('Gangaikondan SIPCOT', 'Palayamkottai', 'Vannarpettai', 'Nanguneri SEZ Corridor', 'Thachanallur'),
                 'faqs' => array(
-                    array('q' => 'What electrical services do you offer for solar and wind power developers in Tirunelveli?', 'a' => 'We perform HT underground cable laying, yard transformer installation, ring main unit (RMU) connection, and grid earthing networks.'),
+                    array('q' => 'What Services do you offer for solar and wind power developers in Tirunelveli?', 'a' => 'We perform HT underground cable laying, yard transformer installation, ring main unit (RMU) connection, and grid earthing networks.'),
                     array('q' => 'Can GGCC execute electrical contracting for Gangaikondan SIPCOT units?', 'a' => 'Yes, we provide complete factory electrification, LT distribution panels, cable tray pathways, and earthing grids across Gangaikondan SIPCOT.')
                 )
             ),
@@ -621,7 +621,11 @@ class Web extends CI_Controller {
             'meta_title' => 'About GGCC — Licensed Electrical Contracting & Infrastructure Company',
             'meta_description' => 'Learn about GGCC expertise in electrical contracting, industrial installation, safety protocols, technical excellence, and multi-location project execution across India.',
             'canonical_url' => base_url('about'),
-            'current_page' => 'about'
+            'current_page' => 'about',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'About Us', 'url' => base_url('about'))
+            )
         );
         $this->_render_page('about', $data);
     }
@@ -630,12 +634,16 @@ class Web extends CI_Controller {
     public function services()
     {
         $data = array(
-            'page_title' => 'Our Electrical Services | George General Construction Company',
+            'page_title' => 'Our Services | George General Construction Company',
             'meta_title' => 'Electrical Contracting & Installation Services Directory | GGCC',
-            'meta_description' => 'Explore GGCC electrical services: Industrial installation, HT/LT cable laying, LT panels, flameproof wiring, AMC, street lighting, APFC panels, and UPS systems.',
+            'meta_description' => 'Explore GGCC Services: Industrial installation, HT/LT cable laying, LT panels, flameproof wiring, AMC, street lighting, APFC panels, and UPS systems.',
             'canonical_url' => base_url('services'),
             'services' => $this->services_data,
-            'current_page' => 'services'
+            'current_page' => 'services',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'Services', 'url' => base_url('services'))
+            )
         );
         $this->_render_page('services', $data);
     }
@@ -657,7 +665,12 @@ class Web extends CI_Controller {
             'service' => $service,
             'services' => $this->services_data,
             'locations' => $this->locations_data,
-            'current_page' => 'services'
+            'current_page' => 'services',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'Services', 'url' => base_url('services')),
+                array('name' => $service['title'], 'url' => base_url('services/' . $slug))
+            )
         );
         $this->_render_page('service_detail', $data);
     }
@@ -670,7 +683,11 @@ class Web extends CI_Controller {
             'meta_title' => 'GGCC Work Portfolio & Quality Certifications Gallery',
             'meta_description' => 'Explore GGCC project portfolio highlights, technical recognitions, quality safety standards, and project category showcases.',
             'canonical_url' => base_url('gallery'),
-            'current_page' => 'gallery'
+            'current_page' => 'gallery',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'Gallery', 'url' => base_url('gallery'))
+            )
         );
         $this->_render_page('gallery', $data);
     }
@@ -681,9 +698,13 @@ class Web extends CI_Controller {
         $data = array(
             'page_title' => 'Contact Us | George General Construction Company (GGCC)',
             'meta_title' => 'Contact GGCC — Sanpada Navi Mumbai Branch & Business Enquiries',
-            'meta_description' => 'Get in touch with George General Construction Company (GGCC) at Sanpada, Navi Mumbai. Phone: 099206 67756, Email: info@ggcc.org.in. Enquire for turnkey electrical projects.',
+            'meta_description' => 'Get in touch with George General Construction Company (GGCC) at Sanpada, Navi Mumbai. Phone: 99206 67756, Email: info@ggcc.org.in. Enquire for turnkey electrical projects.',
             'canonical_url' => base_url('contact'),
-            'current_page' => 'contact'
+            'current_page' => 'contact',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'Contact Us', 'url' => base_url('contact'))
+            )
         );
         $this->_render_page('contact', $data);
     }
@@ -696,7 +717,11 @@ class Web extends CI_Controller {
             'meta_title' => 'GGCC Business Relationships & Industry Partners',
             'meta_description' => 'Learn about GGCC business engagement models, industry relationships, client sector coverage, and strategic service partnerships.',
             'canonical_url' => base_url('partners-customers'),
-            'current_page' => 'partners'
+            'current_page' => 'partners',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'Partners & Customers', 'url' => base_url('partners-customers'))
+            )
         );
         $this->_render_page('partners_customers', $data);
     }
@@ -709,7 +734,11 @@ class Web extends CI_Controller {
             'meta_title' => 'GGCC Website Terms & Conditions of Service',
             'meta_description' => 'Read the original terms and conditions governing the use of GGCC corporate website and electrical contracting service information.',
             'canonical_url' => base_url('terms-and-conditions'),
-            'current_page' => 'terms'
+            'current_page' => 'terms',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'Terms & Conditions', 'url' => base_url('terms-and-conditions'))
+            )
         );
         $this->_render_page('terms', $data);
     }
@@ -722,7 +751,11 @@ class Web extends CI_Controller {
             'meta_title' => 'GGCC Website Privacy & Data Protection Policy',
             'meta_description' => 'Read how George General Construction Company collects, protects, and handles contact form information and website usage data.',
             'canonical_url' => base_url('privacy-policy'),
-            'current_page' => 'privacy'
+            'current_page' => 'privacy',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'Privacy Policy', 'url' => base_url('privacy-policy'))
+            )
         );
         $this->_render_page('privacy', $data);
     }
@@ -736,7 +769,11 @@ class Web extends CI_Controller {
             'meta_description' => 'GGCC provides certified electrical contracting services across 13 major hubs: Vashi, Mumbai, Gwalior, Madurai, Coimbatore, Trichy, Bangalore, Indore, Tirunelveli, Nanded, Chennai, Bhopal, and Kochi.',
             'canonical_url' => base_url('locations'),
             'locations' => $this->locations_data,
-            'current_page' => 'locations'
+            'current_page' => 'locations',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'Locations', 'url' => base_url('locations'))
+            )
         );
         $this->_render_page('locations', $data);
     }
@@ -758,7 +795,12 @@ class Web extends CI_Controller {
             'location' => $location,
             'services' => $this->services_data,
             'locations' => $this->locations_data,
-            'current_page' => 'locations'
+            'current_page' => 'locations',
+            'breadcrumbs' => array(
+                array('name' => 'Home', 'url' => base_url()),
+                array('name' => 'Locations', 'url' => base_url('locations')),
+                array('name' => $location['city_name'], 'url' => base_url('locations/' . $slug))
+            )
         );
         $this->_render_page('location_detail', $data);
     }
@@ -768,16 +810,21 @@ class Web extends CI_Controller {
     {
         header('Content-Type: application/json');
 
-        $full_name = trim($this->input->post('full_name', TRUE));
+        $full_name    = trim($this->input->post('full_name', TRUE));
         if (empty($full_name)) {
             $full_name = trim($this->input->post('name', TRUE));
         }
-        $phone     = trim($this->input->post('phone', TRUE));
-        $email     = trim($this->input->post('email', TRUE));
-        $service   = trim($this->input->post('service', TRUE));
-        $location  = trim($this->input->post('location', TRUE));
-        $message   = trim($this->input->post('message', TRUE));
-        $source    = trim($this->input->post('source_page', TRUE));
+        $phone        = trim($this->input->post('phone', TRUE));
+        $email        = strtolower(trim($this->input->post('email', TRUE)));
+        $service      = trim($this->input->post('service', TRUE));
+        $location     = trim($this->input->post('location', TRUE));
+        $project_date = trim($this->input->post('project_date', TRUE));
+        $message      = trim($this->input->post('message', TRUE));
+        $source       = trim($this->input->post('source_page', TRUE));
+
+        if (!empty($project_date)) {
+            $message = "Preferred Project Date: " . $project_date . ($message ? ("\n" . $message) : '');
+        }
 
         if (empty($full_name) || empty($phone) || empty($email)) {
             echo json_encode([
@@ -808,8 +855,56 @@ class Web extends CI_Controller {
         } else {
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Database save error. Please call our main desk directly at 099206 67756.'
+                'message' => 'Database save error. Please call our main desk directly at 99206 67756.'
             ]);
         }
+    }
+
+    // 13. Dynamic XML Sitemap Endpoint
+    public function sitemap()
+    {
+        $sitemap_path = FCPATH . 'sitemap.xml';
+        if (file_exists($sitemap_path)) {
+            header('Content-Type: application/xml; charset=utf-8');
+            readfile($sitemap_path);
+            return;
+        }
+
+        header('Content-Type: application/xml; charset=utf-8');
+        $xml  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+        $urls = array(
+            array('url' => base_url(), 'freq' => 'daily', 'priority' => '1.0'),
+            array('url' => base_url('about'), 'freq' => 'monthly', 'priority' => '0.8'),
+            array('url' => base_url('services'), 'freq' => 'weekly', 'priority' => '0.9'),
+            array('url' => base_url('locations'), 'freq' => 'weekly', 'priority' => '0.9'),
+            array('url' => base_url('gallery'), 'freq' => 'monthly', 'priority' => '0.7'),
+            array('url' => base_url('partners-customers'), 'freq' => 'monthly', 'priority' => '0.7'),
+            array('url' => base_url('contact'), 'freq' => 'monthly', 'priority' => '0.8'),
+            array('url' => base_url('terms-and-conditions'), 'freq' => 'yearly', 'priority' => '0.4'),
+            array('url' => base_url('privacy-policy'), 'freq' => 'yearly', 'priority' => '0.4'),
+        );
+
+        foreach ($this->services_data as $s) {
+            $urls[] = array('url' => base_url('services/' . $s['slug']), 'freq' => 'weekly', 'priority' => '0.8');
+        }
+
+        foreach ($this->locations_data as $l) {
+            $urls[] = array('url' => base_url('locations/' . $l['slug']), 'freq' => 'weekly', 'priority' => '0.8');
+        }
+
+        $date = date('Y-m-d');
+        foreach ($urls as $u) {
+            $xml .= '    <url>' . "\n";
+            $xml .= '        <loc>' . htmlspecialchars($u['url']) . '</loc>' . "\n";
+            $xml .= '        <lastmod>' . $date . '</lastmod>' . "\n";
+            $xml .= '        <changefreq>' . $u['freq'] . '</changefreq>' . "\n";
+            $xml .= '        <priority>' . $u['priority'] . '</priority>' . "\n";
+            $xml .= '    </url>' . "\n";
+        }
+        $xml .= '</urlset>';
+
+        echo $xml;
     }
 }

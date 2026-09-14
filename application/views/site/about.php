@@ -35,7 +35,7 @@
 
                 <div style="display:flex; flex-direction:column; gap:20px;">
                     <div>
-                        <h4 style="color:#00529C; font-size:1.1rem; margin-bottom:5px;">HPCL Major Partner Specialization</h4>
+                        <h4 style="color:var(--primary-navy); font-size:1.1rem; margin-bottom:5px;">HPCL Major Partner Specialization</h4>
                         <p style="font-size:0.9rem; color:var(--text-muted);">Trusted partner working together with HPCL company for petrol station canopy lighting, panels & civil earthing chambers.</p>
                     </div>
 

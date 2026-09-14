@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($meta_title) ? htmlspecialchars($meta_title) : 'GGCC — Electrical Contracting Company'; ?></title>
-    <meta name="description" content="<?php echo isset($meta_description) ? htmlspecialchars($meta_description) : 'George General Construction Company (GGCC) provides electrical contracting and installation services across India.'; ?>">
-    <link rel="canonical" href="<?php echo isset($canonical_url) ? $canonical_url : base_url(); ?>">
-    
-    <!-- Open Graph Metadata -->
-    <meta property="og:title" content="<?php echo isset($meta_title) ? htmlspecialchars($meta_title) : 'GGCC'; ?>">
-    <meta property="og:description" content="<?php echo isset($meta_description) ? htmlspecialchars($meta_description) : 'Turnkey Electrical Contracting & Installation Services across India.'; ?>">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="<?php echo isset($canonical_url) ? $canonical_url : base_url(); ?>">
-    <meta property="og:site_name" content="George General Construction Company (GGCC)">
+<?php
+$seo_vars = array(
+    'meta_title' => isset($meta_title) ? $meta_title : null,
+    'page_title' => isset($page_title) ? $page_title : null,
+    'meta_description' => isset($meta_description) ? $meta_description : null,
+    'canonical_url' => isset($canonical_url) ? $canonical_url : null,
+    'breadcrumbs' => isset($breadcrumbs) ? $breadcrumbs : null,
+    'service' => isset($service) ? $service : null,
+    'location' => isset($location) ? $location : null
+);
+echo render_seo_meta($seo_vars);
+?>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="<?php echo base_url('themes/images/fav-icon.png'); ?>">
@@ -24,35 +26,8 @@
     <!-- CSS Stylesheet -->
     <link rel="stylesheet" href="<?php echo base_url('themes/site/css/style.css'); ?>">
 
-    <!-- JSON-LD Structured Data (Schema Markup) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "ElectricalContractor",
-      "name": "George General Construction Company",
-      "alternateName": "GGCC",
-      "legalName": "George General Construction Co",
-      "url": "<?php echo base_url(); ?>",
-      "telephone": "+919920667756",
-      "email": "info@ggcc.org.in",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Suyog Samuha CHS Ltd, 9, Plot No. 41 to 44, Sector 8, Sanpada",
-        "addressLocality": "Navi Mumbai",
-        "addressRegion": "Maharashtra",
-        "postalCode": "400705",
-        "addressCountry": "IN"
-      },
-      "areaServed": [
-        "Vashi", "Gwalior", "Madurai", "Coimbatore", "Tiruchirappalli", 
-        "Bangalore", "Indore", "Tirunelveli", "Mumbai", "Nanded", "Chennai", "Bhopal", "Kochi"
-      ],
-      "knowsAbout": [
-        "Electrical Contracting", "Industrial Electrical Installation", "Commercial Electrical Installation", 
-        "HT & LT Cable Laying", "Electrical Panels", "Annual Maintenance Contract", "Flameproof Electrical Installation"
-      ]
-    }
-    </script>
+    <!-- Dynamic JSON-LD Structured Data -->
+    <?php echo generate_json_ld_schemas($seo_vars); ?>
 </head>
 <body>
 
@@ -61,11 +36,11 @@
         <div class="container">
             <div class="top-bar-content">
                 <div class="top-info">
-                    <span><strong>Call Us:</strong> <a href="tel:09920667756" style="color:#FFFFFF; font-weight:700;">099206 67756</a></span>
+                    <span><strong>Call Us:</strong> <a href="tel:9920667756" style="color:#FFFFFF; font-weight:700;">99206 67756</a></span>
                     <span><strong>Email:</strong> <a href="mailto:info@ggcc.org.in">info@ggcc.org.in</a></span>
                 </div>
                 <div class="top-locations">
-                    Serving 13 Locations Across India (Mumbai, Chennai, Bangalore, Kochi & More)
+                    Serving 5 States Across India (Maharashtra, Madhya Pradesh, Tamil Nadu, Karnataka, Kerala)
                 </div>
             </div>
         </div>

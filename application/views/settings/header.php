@@ -42,7 +42,7 @@ if ($CI->db->table_exists('menu_control')) {
     $menuStatesQuery = $CI->db->select('menu_key, status')->get('menu_control');
     if ($menuStatesQuery && $menuStatesQuery->num_rows() > 0) {
         foreach ($menuStatesQuery->result() as $mRow) {
-            $menuStates[$mRow->menu_key] = $mRow->status;
+            $menuStates[strtolower(trim($mRow->menu_key))] = $mRow->status;
         }
     }
 }
@@ -514,6 +514,14 @@ if ($CI->db->table_exists('menu_control')) {
                             </a>
                         </li>
                         <?php } ?>
+                        <?php if (($menuStates['website_enquiries'] ?? 'enabled') === 'enabled') { ?>
+                        <li class="menu-item <?php echo $menu_status == 'website_enquiries' ? 'active' : ''; ?>">
+                            <a href="<?php echo base_url(); ?>admin/enquiries" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-globe"></i>
+                                <div data-i18n="Website Enquiries">Website Enquiries</div>
+                            </a>
+                        </li>
+                        <?php } ?>
                         <?php if (($menuStates['app_notification'] ?? 'enabled') === 'enabled') { ?>
                         <li class="menu-item <?php echo $menu_status == 'app_notification' ? 'active' : ''; ?>">
                             <a href="<?php echo base_url() . 'master/app-notification-list'; ?>" class="menu-link">
@@ -551,7 +559,7 @@ if ($CI->db->table_exists('menu_control')) {
                                         </a>
                                     </li>
                                 <?php } ?>
-                                <?php if(in_array('admin', $userPermission)) { ?>
+                                <?php if (($menuStates['menu_control'] ?? 'enabled') === 'enabled' && in_array('admin', $userPermission)) { ?>
                                     <li class="menu-item <?php echo $menu_status == 'menu_control' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>master/menu_control" class="menu-link">
                                             <div data-i18n="Menu Control">Menu Control</div>
@@ -606,7 +614,7 @@ if ($CI->db->table_exists('menu_control')) {
                                 <div data-i18n="Master">Master</div>
                             </a>
                             <ul class="menu-sub">
-                                <?php if (in_array('admin', $userPermission)) { ?>
+                                <?php if (($menuStates['notification'] ?? 'enabled') === 'enabled' && in_array('admin', $userPermission)) { ?>
                                     <li class="menu-item <?php echo $menu_status == 'notification' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>notification" class="menu-link">
                                             <div data-i18n="Notification">Notification</div>
@@ -697,7 +705,7 @@ if ($CI->db->table_exists('menu_control')) {
                                         </a>
                                     </li>
                                 <?php } ?>
-                                <?php if (in_array('admin', $userPermission)) { ?>
+                                <?php if (($menuStates['master_app_version'] ?? 'enabled') === 'enabled' && in_array('admin', $userPermission)) { ?>
                                     <li class="menu-item <?php echo $menu_status == 'app_version' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>master/app-version-list" class="menu-link">
                                             <div data-i18n="App Version Control">App Version Control</div>

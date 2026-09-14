@@ -846,4 +846,30 @@ class Admin extends CI_Controller {
       echo json_encode($data);
       return;
     }
+
+    public function website_enquiries()
+    {
+        $data['menu_open'] = "admin_mgmt";
+        $data['menu_status'] = "website_enquiries";
+        $data['enquiryList'] = $this->adminmodel->getWebsiteEnquiryList();
+
+        $this->load->view('settings/header', $data);
+        $this->load->view('website_enquiries', $data);
+        $this->load->view('settings/footer');
+    }
+
+    public function deleteWebsiteEnquiry()
+    {
+        $fieldId = $this->input->post('fieldId');
+        if (!empty($fieldId)) {
+            $this->db->where('id', $fieldId);
+            $this->db->delete('website_enquiries');
+            $data["isError"] = FALSE;
+            $data["message"] = "Enquiry Removed Successfully.";
+        } else {
+            $data["isError"] = TRUE;
+            $data["message"] = "Enquiry record not deleted";
+        }
+        echo json_encode($data);
+    }
 }
