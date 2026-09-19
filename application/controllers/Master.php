@@ -1640,34 +1640,57 @@ class Master extends CI_Controller {
             $this->load->model('notificationmodel');
             $this->load->model('apimodel');
 
+            $adminId = $this->session->userdata('userid');
+            log_message('info', "App Notification: requested by admin userid={$adminId} title=\"{$title}\"");
+
             // 1. Insert into database
             $notifId = $this->notificationmodel->createAppNotification([
                 'title' => $title,
                 'description' => $description,
                 'notification_type' => 'custom',
                 'target_employee_id' => null,
-                'created_by' => $this->session->userdata('userid'),
+                'created_by' => $adminId,
             ]);
 
-            // 2. Fetch all active FCM tokens and send push
+            // 2. Fetch all active FCM tokens (active employees only) and send push
+            $eligibleCount = $this->apimodel->getActiveEligibleLoginCount();
             $tokens = $this->apimodel->getAllActiveFcmTokens();
-            $sent = false;
+            log_message('info', "App Notification #{$notifId}: eligibleActiveLogins={$eligibleCount} validFcmTokens=" . count($tokens));
+
+            $fcmResult = [
+                'success' => false, 'successCount' => 0, 'failureCount' => 0,
+                'invalidTokens' => [], 'error' => 'No active device tokens found.',
+            ];
             if (!empty($tokens)) {
-                $sent = $this->notificationmodel->sendFcmNotification($title, $description, $tokens);
+                $fcmResult = $this->notificationmodel->sendFcmNotification($title, $description, $tokens);
             }
 
-            // 3. Mark notification as sent if tokens were processed
-            if (!empty($tokens)) {
-                $this->db->where('id', $notifId)->update('app_notifications', [
-                    'sent_status' => 1,
-                    'sent_at' => date('Y-m-d H:i:s'),
-                ]);
+            // 3. Clear tokens Firebase reported as permanently invalid/unregistered
+            foreach ($fcmResult['invalidTokens'] as $badToken) {
+                $this->apimodel->clearInvalidFcmToken($badToken);
+            }
+            if (!empty($fcmResult['invalidTokens'])) {
+                log_message('info', "App Notification #{$notifId}: cleared " . count($fcmResult['invalidTokens']) . " invalid token(s)");
             }
 
-            echo json_encode([
-                "isError" => FALSE,
-                "message" => !empty($tokens) ? "Notification Pushed to " . count($tokens) . " device(s) & Saved Successfully" : "Notification saved in database, but no active device tokens found."
+            // 4. Mark notification as sent ONLY if Firebase actually accepted at least one message
+            $this->db->where('id', $notifId)->update('app_notifications', [
+                'sent_status' => $fcmResult['success'] ? 1 : 0,
+                'sent_at' => $fcmResult['success'] ? date('Y-m-d H:i:s') : null,
             ]);
+
+            log_message('info', "App Notification #{$notifId}: result success={$fcmResult['success']} sent={$fcmResult['successCount']} failed={$fcmResult['failureCount']}");
+
+            if ($fcmResult['success']) {
+                $message = "Notification pushed to {$fcmResult['successCount']} of " . count($tokens) . " device(s) & saved successfully";
+                if ($fcmResult['failureCount'] > 0) {
+                    $message .= " ({$fcmResult['failureCount']} device(s) failed - see logs)";
+                }
+                echo json_encode(["isError" => FALSE, "message" => $message]);
+            } else {
+                $reason = !empty($tokens) ? ($fcmResult['lastError'] ?? ($fcmResult['error'] ?: 'Firebase rejected all devices - see application logs for details')) : 'No active device tokens found for eligible employees.';
+                echo json_encode(["isError" => TRUE, "message" => "Notification saved, but push was NOT delivered: " . $reason]);
+            }
             return;
         } else {
             echo json_encode(["isError" => TRUE, "message" => "No permission"]);

@@ -52,12 +52,23 @@
                 submitButton.text('Submitting...'); // Optional: Change button text
             });
         }
-        
-        const inputFields = document.querySelectorAll('input[type="text"], textarea');
 
-        inputFields.forEach(input => {
-            input.addEventListener('input', function() {
-                this.value = this.value.replace(/\b\w/g, char => char.toUpperCase());
+        // Sentence-case auto-capitalize: first letter of the field, and the
+        // first letter after ". "/"! "/"? ". Cursor position is saved and
+        // restored so rewriting the value never jumps it to the end.
+        document.querySelectorAll('input[type="text"], textarea').forEach(function (input) {
+            input.addEventListener('input', function () {
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                const value = this.value;
+
+                let newValue = value.replace(/^([a-z])/, m => m.toUpperCase());
+                newValue = newValue.replace(/([.!?]\s+)([a-z])/g, (m, sep, letter) => sep + letter.toUpperCase());
+
+                if (newValue !== value) {
+                    this.value = newValue;
+                    this.setSelectionRange(start, end);
+                }
             });
         });
 

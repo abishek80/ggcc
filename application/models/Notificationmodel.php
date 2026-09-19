@@ -320,32 +320,63 @@ class Notificationmodel extends CI_Model {
     }
 
     /**
-     * Send FCM push notification using Firebase Legacy HTTP API
-     * 
+     * Send FCM push notification using Firebase HTTP v1 API
+     *
      * @param string $title Notification title
      * @param string $body Notification body text
      * @param array $tokens Array of FCM device tokens
+     * @return array{
+     *   success: bool,
+     *   successCount: int,
+     *   failureCount: int,
+     *   invalidTokens: string[],   // tokens Firebase reported as unregistered/invalid - safe to clear
+     *   error: string|null         // set when the whole batch could not be attempted (config/auth/network)
+     * }
      */
     public function sendFcmNotification($title, $body, $tokens)
     {
+        $result = [
+            'success'       => false,
+            'successCount'  => 0,
+            'failureCount'  => 0,
+            'invalidTokens' => [],
+            'error'         => null,
+        ];
+
+        $tokens = array_values(array_unique(array_filter($tokens)));
+        log_message('info', 'FCM: send requested - tokenCount=' . count($tokens));
+
+        if (empty($tokens)) {
+            $result['error'] = 'No FCM tokens supplied.';
+            return $result;
+        }
+
         $serviceAccountPath = FCPATH . 'service-account.json';
         if (!file_exists($serviceAccountPath)) {
             log_message('error', 'FCM service-account.json not found in ' . $serviceAccountPath);
-            return false;
+            $result['error'] = 'service-account.json not found.';
+            $result['failureCount'] = count($tokens);
+            return $result;
         }
 
         try {
             $credentials = json_decode(file_get_contents($serviceAccountPath), true);
             if (!$credentials || !isset($credentials['private_key']) || !isset($credentials['client_email']) || !isset($credentials['project_id'])) {
                 log_message('error', 'Invalid FCM service-account.json format.');
-                return false;
+                $result['error'] = 'Invalid service-account.json format.';
+                $result['failureCount'] = count($tokens);
+                return $result;
             }
 
             $projectId = $credentials['project_id'];
+            log_message('info', "FCM: using Firebase project_id={$projectId}");
+
             $accessToken = $this->getGoogleAccessToken($credentials);
             if (!$accessToken) {
                 log_message('error', 'FCM: Failed to get OAuth access token.');
-                return false;
+                $result['error'] = 'Failed to obtain Firebase OAuth access token.';
+                $result['failureCount'] = count($tokens);
+                return $result;
             }
 
             $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
@@ -354,9 +385,8 @@ class Notificationmodel extends CI_Model {
                 'Content-Type: application/json',
             ];
 
-            $successCount = 0;
             foreach ($tokens as $token) {
-                if (empty($token)) continue;
+                $maskedToken = substr($token, 0, 10) . '...' . substr($token, -6);
 
                 $payload = [
                     'message' => [
@@ -373,7 +403,7 @@ class Notificationmodel extends CI_Model {
                         'android' => [
                             'priority' => 'HIGH',
                             'notification' => [
-                                'notification_channel_id' => 'ggcc_notifications',
+                                'channel_id' => 'ggcc_notifications',
                                 'sound' => 'default',
                                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                             ]
@@ -399,22 +429,51 @@ class Notificationmodel extends CI_Model {
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
 
-                $result = curl_exec($ch);
+                $response = curl_exec($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlError = curl_error($ch);
                 curl_close($ch);
 
                 if ($httpCode === 200) {
-                    $successCount++;
-                    log_message('info', "FCM HTTP v1 Push Success for token ($token) - HTTP `$httpCode`: `$result`");
-                } else {
-                    log_message('error', "FCM HTTP v1 Push Failed for token ($token) - HTTP `$httpCode`: `$result`");
+                    $result['successCount']++;
+                    $decoded = json_decode($response, true);
+                    $messageId = $decoded['name'] ?? 'unknown';
+                    log_message('info', "FCM: send OK token={$maskedToken} messageId={$messageId}");
+                    continue;
+                }
+
+                $result['failureCount']++;
+
+                if ($curlError) {
+                    log_message('error', "FCM: network error sending to token={$maskedToken} - {$curlError}");
+                    $result['lastError'] = "Network error: {$curlError}";
+                    continue;
+                }
+
+                $decoded = json_decode($response, true);
+                $errorStatus = $decoded['error']['status'] ?? null;
+                $errorMessage = $decoded['error']['message'] ?? $response;
+
+                log_message('error', "FCM: send failed token={$maskedToken} httpCode={$httpCode} status={$errorStatus} message={$errorMessage}");
+                $result['lastError'] = "HTTP {$httpCode} " . ($errorStatus ? "{$errorStatus}: " : '') . $errorMessage;
+
+                // Firebase reports a dead/invalid registration token this way -
+                // safe to drop so we stop retrying it on every future broadcast.
+                if (in_array($errorStatus, ['UNREGISTERED', 'NOT_FOUND', 'INVALID_ARGUMENT'], true)) {
+                    $result['invalidTokens'][] = $token;
+                    log_message('info', "FCM: token={$maskedToken} marked invalid (status={$errorStatus}) and will be cleared");
                 }
             }
 
-            return $successCount > 0;
+            $result['success'] = $result['successCount'] > 0;
+            log_message('info', "FCM: batch complete - success={$result['successCount']} failed={$result['failureCount']} invalid=" . count($result['invalidTokens']));
+
+            return $result;
         } catch (Exception $e) {
-            log_message('error', 'FCM HTTP v1 Error: ' . $e->getMessage());
-            return false;
+            log_message('error', 'FCM: unexpected error - ' . $e->getMessage());
+            $result['error'] = $e->getMessage();
+            $result['failureCount'] = count($tokens);
+            return $result;
         }
     }
 
@@ -423,7 +482,7 @@ class Notificationmodel extends CI_Model {
      */
     private function getGoogleAccessToken($credentials)
     {
-        $privateKey = $credentials['private_key'];
+        $privateKey = str_replace('\n', "\n", $credentials['private_key']);
         $clientEmail = $credentials['client_email'];
 
         $header = json_encode(['alg' => 'RS256', 'typ' => 'JWT']);

@@ -10,6 +10,17 @@ class Apimodel extends CI_Model
      */
     public function generateToken($loginId, $employeeId)
     {
+        // Carry over any previously registered FCM token for this login,
+        // otherwise it gets wiped every time the session token is rotated
+        // (login expires every 6 hours), silently dropping the device from
+        // all future push notifications until the app re-registers it.
+        $existing = $this->db->select('fcm_token')
+                              ->where('login_id', $loginId)
+                              ->where('fcm_token IS NOT NULL')
+                              ->where('fcm_token !=', '')
+                              ->get('api_tokens')->row();
+        $existingFcmToken = $existing ? $existing->fcm_token : null;
+
         // Remove old tokens for this user
         $this->db->where('login_id', $loginId)->delete('api_tokens');
 
@@ -21,6 +32,7 @@ class Apimodel extends CI_Model
             'login_id'    => $loginId,
             'employee_id' => $employeeId,
             'token'       => $token,
+            'fcm_token'   => $existingFcmToken,
             'created_at'  => $now,
             'expires_at'  => $expiresAt,
         ]);
@@ -89,6 +101,28 @@ class Apimodel extends CI_Model
                   AND (E.id IS NULL OR (E.status = 'active' AND E.delete_status = 0))";
         $results = $this->db->query($sql)->result();
         return array_map(function($row) { return $row->fcm_token; }, $results);
+    }
+
+    /**
+     * Count active, non-deleted logins eligible for push (regardless of
+     * whether they currently have a registered FCM token). Used purely for
+     * debug logging so we can tell "eligible active users" apart from
+     * "valid FCM token count" when a broadcast is sent.
+     */
+    public function getActiveEligibleLoginCount()
+    {
+        $this->db->where('status', 'active')->where('delete_status', 0);
+        return $this->db->count_all_results('login_permission');
+    }
+
+    /**
+     * Clear a specific FCM token after Firebase reports it as
+     * invalid/unregistered, so it isn't retried on every future broadcast.
+     */
+    public function clearInvalidFcmToken($fcmToken)
+    {
+        if (empty($fcmToken)) return;
+        $this->db->where('fcm_token', $fcmToken)->update('api_tokens', ['fcm_token' => null]);
     }
 
     /**

@@ -667,22 +667,33 @@ class Employee extends CI_Controller {
                     $payslipTitle = 'Payslip Available';
                     $payslipBody = 'Hi ' . $employeeNameReal . ', your payslip for ' . $month . ' ' . $year . ' is now available. Please check and review it.';
 
-                    $this->notificationmodel->createAppNotification([
+                    $notifId = $this->notificationmodel->createAppNotification([
                         'title' => $payslipTitle,
                         'description' => $payslipBody,
                         'notification_type' => 'payslip',
                         'target_employee_id' => $employeeId,
                         'payslip_month' => $month,
                         'payslip_year' => $year,
-                        'sent_status' => 1,
-                        'sent_at' => date('Y-m-d H:i:s'),
                         'created_by' => $this->session->userdata('userid'),
                     ]);
 
                     $tokens = $this->apimodel->getFcmTokensByEmployeeId($employeeId);
+                    log_message('info', "Payslip Notification #{$notifId}: employeeId={$employeeId} validFcmTokens=" . count($tokens));
+
+                    $fcmResult = ['success' => false, 'invalidTokens' => []];
                     if (!empty($tokens)) {
-                        $this->notificationmodel->sendFcmNotification($payslipTitle, $payslipBody, $tokens);
+                        $fcmResult = $this->notificationmodel->sendFcmNotification($payslipTitle, $payslipBody, $tokens);
+                        foreach ($fcmResult['invalidTokens'] as $badToken) {
+                            $this->apimodel->clearInvalidFcmToken($badToken);
+                        }
                     }
+
+                    $this->db->where('id', $notifId)->update('app_notifications', [
+                        'sent_status' => $fcmResult['success'] ? 1 : 0,
+                        'sent_at' => $fcmResult['success'] ? date('Y-m-d H:i:s') : null,
+                    ]);
+
+                    log_message('info', "Payslip Notification #{$notifId}: success=" . ($fcmResult['success'] ? 1 : 0));
                 }
             } catch (Exception $e) {
                 log_message('error', 'Failed to send single payslip notification: ' . $e->getMessage());
@@ -766,22 +777,33 @@ class Employee extends CI_Controller {
                       $payslipTitle = 'Payslip Available';
                       $payslipBody = 'Hi ' . $employeeNameReal . ', your payslip for ' . $month . ' ' . $year . ' is now available. Please check and review it.';
 
-                      $this->notificationmodel->createAppNotification([
+                      $notifId = $this->notificationmodel->createAppNotification([
                           'title' => $payslipTitle,
                           'description' => $payslipBody,
                           'notification_type' => 'payslip',
                           'target_employee_id' => $employeeId,
                           'payslip_month' => $month,
                           'payslip_year' => $year,
-                          'sent_status' => 1,
-                          'sent_at' => date('Y-m-d H:i:s'),
                           'created_by' => $this->session->userdata('userid'),
                       ]);
 
                       $tokens = $this->apimodel->getFcmTokensByEmployeeId($employeeId);
+                      log_message('info', "Payslip Notification #{$notifId}: employeeId={$employeeId} validFcmTokens=" . count($tokens));
+
+                      $fcmResult = ['success' => false, 'invalidTokens' => []];
                       if (!empty($tokens)) {
-                          $this->notificationmodel->sendFcmNotification($payslipTitle, $payslipBody, $tokens);
+                          $fcmResult = $this->notificationmodel->sendFcmNotification($payslipTitle, $payslipBody, $tokens);
+                          foreach ($fcmResult['invalidTokens'] as $badToken) {
+                              $this->apimodel->clearInvalidFcmToken($badToken);
+                          }
                       }
+
+                      $this->db->where('id', $notifId)->update('app_notifications', [
+                          'sent_status' => $fcmResult['success'] ? 1 : 0,
+                          'sent_at' => $fcmResult['success'] ? date('Y-m-d H:i:s') : null,
+                      ]);
+
+                      log_message('info', "Payslip Notification #{$notifId}: success=" . ($fcmResult['success'] ? 1 : 0));
                   }
               } catch (Exception $e) {
                   log_message('error', 'Failed to send multi payslip notification: ' . $e->getMessage());
