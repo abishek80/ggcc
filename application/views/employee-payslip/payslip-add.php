@@ -175,8 +175,7 @@
             var dayAllowanceAmount = allowanceAmount / daysInMonth;
             $('.dayAllowanceAmount').val(dayAllowanceAmount);
             
-            var pfAmount = $('.pfAmount').val();
-            var dayPfAmount = pfAmount / daysInMonth;
+            var dayPfAmount = dayBasicPay;
             $('.dayPfAmount').val(dayPfAmount);
 
             $('.dayCount').val(daysInMonth);
@@ -325,8 +324,8 @@
         $(".foodExpenses").on("blur", function(){
             var pfStatus = $('.pfStatus').val();
             if (pfStatus == 'yes') {
-                var presentPfAmount = parseFloat($('.presentPfAmount').val());
-                var monthPfAmount = presentPfAmount * 0.12;
+                var monthBasicPay = parseFloat($('.monthBasicPay').val()) || 0;
+                var monthPfAmount = monthBasicPay * 0.12;
                 var roundedMonthPfAmount = Number(monthPfAmount.toFixed(0));
                 $('.monthPfAmount').val(roundedMonthPfAmount);
             } else {

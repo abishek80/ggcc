@@ -197,11 +197,10 @@
 
             const basicPay = parseFloat($(row).find('.basicPay').val());
             const allowanceAmount = parseFloat($(row).find('.allowanceAmount').val());
-            const pfAmount = parseFloat($(row).find('.pfAmount').val());
 
             const dayBasicPay = basicPay / daysInMonth;
             const dayAllowanceAmount = allowanceAmount / daysInMonth;
-            const dayPfAmount = pfAmount / daysInMonth;
+            const dayPfAmount = basicPay / daysInMonth;
 
             $(row).find('.dayBasicPay').val(dayBasicPay.toFixed(2));
             $(row).find('.dayAllowanceAmount').val(dayAllowanceAmount.toFixed(2));
@@ -317,8 +316,8 @@
 
             var pfStatus = row.find('.pfStatus').val();
             if (pfStatus == 'yes') {
-                const presentPfAmount = parseFloat(row.find('.presentPfAmount').val());
-                const monthPfAmount = presentPfAmount * 0.12;
+                const presentBasicPay = parseFloat(row.find('.presentBasicPay').val()) || 0;
+                const monthPfAmount = presentBasicPay * 0.12;
                 const roundedMonthPfAmount = Number(monthPfAmount.toFixed(0));
                 row.find('.monthPfAmount').val(roundedMonthPfAmount); // Update the current row only
             } else {
