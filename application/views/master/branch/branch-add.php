@@ -25,13 +25,17 @@
                 </div>
                 <div class="col-lg-4 col-md-6">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Branch Name <span class="text-danger">*</span></label>
-                    <input name="branch" id="branch" type="text" class="form-control generate_token" placeholder="Enter Branch Name" value="<?php echo $branch; ?>">
+                    <input name="branch" id="branch" type="text" class="form-control generate_token" placeholder="Enter Branch Name" value="<?php echo isset($branch) ? $branch : ''; ?>">
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Branch Location URL</label>
+                    <input name="location_url" id="location_url" type="text" class="form-control" placeholder="Enter Branch Location URL" value="<?php echo isset($locationUrl) ? $locationUrl : ''; ?>">
                 </div>
                 <div class="col-lg-4 col-md-6">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Status</label>
                     <select name="status" id="status" class="form-select">
-                        <option value="active" <?php if($status == 'active') { echo 'selected'; } ?>>Active</option>
-                        <option value="inactive" <?php if($status == 'inactive') { echo 'selected'; } ?>>Inactive</option>
+                        <option value="active" <?php if(isset($status) && $status == 'active') { echo 'selected'; } ?>>Active</option>
+                        <option value="inactive" <?php if(isset($status) && $status == 'inactive') { echo 'selected'; } ?>>Inactive</option>
                     </select>
                 </div>
             </div>

@@ -965,6 +965,12 @@ class Master extends CI_Controller {
             $data["menu_status"] = 'branch';
 
             $data['formTitle'] = "Add Branch";
+            $data['branchId'] = '';
+            $data['branchToken'] = '';
+            $data['branchZone'] = '';
+            $data['branch'] = '';
+            $data['locationUrl'] = '';
+            $data['status'] = 'active';
 
             $this->load->view('settings/header', $data);
             $this->load->view('master/branch/branch-add', $data);
@@ -991,6 +997,7 @@ class Master extends CI_Controller {
                 $data['branchToken'] = $row->token;
                 $data['branchZone'] = $row->zone;
                 $data['branch'] = $row->branch;
+                $data['locationUrl'] = isset($row->location_url) ? $row->location_url : '';
                 $data['status'] = $row->status;
             }
             
@@ -1011,6 +1018,7 @@ class Master extends CI_Controller {
         $token = $this->input->post('token');
         $branchZone = $this->input->post('zone');
         $branch = $this->input->post('branch');
+        $locationUrl = $this->input->post('location_url');
         $status = $this->input->post('status');
 
         if ($branchId < 0 || $branchId == '') {
@@ -1023,7 +1031,7 @@ class Master extends CI_Controller {
             }
         }
 
-        $this->mastermodel->saveBranchData($branchId, $token, $branchZone, $branch, $status);
+        $this->mastermodel->saveBranchData($branchId, $token, $branchZone, $branch, $status, $locationUrl);
         
         $data["isError"] = FALSE;
         if ($branchId > 0) {

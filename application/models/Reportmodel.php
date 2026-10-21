@@ -91,7 +91,7 @@ class Reportmodel extends CI_Model
             $companyName = "";
         }
 
-		$sql = "SELECT year, month, employee_name, designation, day_count, present_count, absent_count, ot_count, basic_pay, month_basic_pay, allowance_amount, month_allowance_amount, ot_amount, mobile_recharge, incentive_amount, travelling_amount, food_expenses, month_pf_amount, esi_amount, professional_tax, advance_cash, total_earning, deduction_amount, salary_amount FROM employee_payslip WHERE delete_status = 0 $year $month $companyName ORDER BY id DESC";
+		$sql = "SELECT year, month, employee_name, designation, day_count, present_count, absent_count, ot_count, basic_pay, month_basic_pay, allowance_amount, month_allowance_amount, ot_amount, mobile_recharge, incentive_amount, travelling_amount, food_expenses, month_pf_amount, esi_amount, professional_tax, tds_amount, advance_cash, total_earning, deduction_amount, salary_amount FROM employee_payslip WHERE delete_status = 0 $year $month $companyName ORDER BY id DESC";
         
 		$res = $this->db->query($sql);
 		return $res->result_array();
@@ -115,7 +115,7 @@ class Reportmodel extends CI_Model
             $companyName = "";
         }
 
-		$sql = "SELECT SUM(day_count) AS payable_days, SUM(present_count) AS present_days, SUM(absent_count) AS absent_days, SUM(ot_count) AS ot_days, SUM(month_basic_pay) AS basic_amount, SUM(month_allowance_amount) AS allowance_amount, SUM(ot_amount) AS ot_amount, SUM(mobile_recharge) AS recharge_amount, SUM(incentive_amount) AS incentive_amount, SUM(travelling_amount) AS travelling_amount, SUM(food_expenses) AS foodexpenses_amount, SUM(month_pf_amount) AS pf_amount, SUM(esi_amount) AS esi_amount, SUM(professional_tax) AS professionaltax_amount, SUM(advance_cash) AS advancecash_amount, SUM(total_earning) AS earning_amount, SUM(deduction_amount) AS deduction_amount, SUM(salary_amount) AS salary_amount FROM employee_payslip WHERE delete_status = 0 $year $month $companyName";
+		$sql = "SELECT SUM(day_count) AS payable_days, SUM(present_count) AS present_days, SUM(absent_count) AS absent_days, SUM(ot_count) AS ot_days, SUM(month_basic_pay) AS basic_amount, SUM(month_allowance_amount) AS allowance_amount, SUM(ot_amount) AS ot_amount, SUM(mobile_recharge) AS recharge_amount, SUM(incentive_amount) AS incentive_amount, SUM(travelling_amount) AS travelling_amount, SUM(food_expenses) AS foodexpenses_amount, SUM(month_pf_amount) AS pf_amount, SUM(esi_amount) AS esi_amount, SUM(professional_tax) AS professionaltax_amount, SUM(tds_amount) AS tds_amount, SUM(advance_cash) AS advancecash_amount, SUM(total_earning) AS earning_amount, SUM(deduction_amount) AS deduction_amount, SUM(salary_amount) AS salary_amount FROM employee_payslip WHERE delete_status = 0 $year $month $companyName";
         
 		$res = $this->db->query($sql);
 		return $res->result_array();
@@ -251,6 +251,157 @@ class Reportmodel extends CI_Model
         return $res->result_array();
     }
 
+    public function getExportVehicleServiceData($fromDate = '', $toDate = '', $vehicleId = '', $category = '', $status = '', $branch = '')
+    {
+        $where = "";
+        if (!empty($fromDate) && !empty($toDate)) {
+            $where .= " AND VS.service_date BETWEEN '$fromDate' AND '$toDate'";
+        } elseif (!empty($fromDate)) {
+            $where .= " AND VS.service_date = '$fromDate'";
+        }
 
+        if (!empty($vehicleId)) {
+            $where .= " AND VS.vehicle_id = '$vehicleId'";
+        }
+
+        if (!empty($category)) {
+            $where .= " AND VS.service_category = '$category'";
+        }
+
+        if (!empty($status)) {
+            $where .= " AND VS.status = '$status'";
+        }
+
+        if (!empty($branch)) {
+            $where .= " AND V.branch = '$branch'";
+        }
+
+        $sql = "SELECT VS.*, 
+                       DATE_FORMAT(VS.service_date, '%d - %m - %Y') AS service_dateFormat, 
+                       DATE_FORMAT(VS.next_service_date, '%d - %m - %Y') AS next_service_dateFormat, 
+                       V.vehicle_name, 
+                       V.vehicle_number, 
+                       V.vehicle_type, 
+                       V.fuel_type, 
+                       V.zone, 
+                       MB.branch AS branch_name, 
+                       LP.employee_name AS created_by_name
+                FROM vehicle_service VS 
+                LEFT JOIN vehicle V ON V.id = VS.vehicle_id 
+                LEFT JOIN master_branch MB ON MB.id = V.branch 
+                LEFT JOIN login_permission LP ON LP.employee_id = VS.created_by
+                WHERE VS.delete_status = 0 $where 
+                ORDER BY VS.service_date DESC, VS.id DESC";
+
+        $res = $this->db->query($sql);
+        return $res->result_array();
+    }
+
+    public function calculateServiceSummary($fromDate = '', $toDate = '', $vehicleId = '', $category = '', $status = '', $branch = '')
+    {
+        $data = $this->getExportVehicleServiceData($fromDate, $toDate, $vehicleId, $category, $status, $branch);
+        $totalCost = 0;
+        $paidCost = 0;
+        $pendingCost = 0;
+        $categoryBreakdown = [];
+
+        foreach ($data as $row) {
+            $cost = floatval(str_replace(',', '', $row['service_cost']));
+            $totalCost += $cost;
+            if ($row['status'] == 'paid') {
+                $paidCost += $cost;
+            } else {
+                $pendingCost += $cost;
+            }
+            $cat = $row['service_category'];
+            if (!isset($categoryBreakdown[$cat])) {
+                $categoryBreakdown[$cat] = 0;
+            }
+            $categoryBreakdown[$cat] += $cost;
+        }
+
+        return [
+            'total_services'     => count($data),
+            'total_cost'         => $totalCost,
+            'paid_cost'          => $paidCost,
+            'pending_cost'       => $pendingCost,
+            'category_breakdown' => $categoryBreakdown
+        ];
+    }
+
+    public function getLatestServiceByCategory($vehicleId = '', $branch = '', $serviceReportList = [])
+    {
+        $cats = ['maintenance', 'oil_change', 'wheel_alignment', 'tyre_change', 'battery', 'fc_work'];
+        $latest = [];
+        foreach ($cats as $c) {
+            $latest[$c] = null;
+        }
+
+        // 1. First scan current list (which is already sorted desc by service_date)
+        if (!empty($serviceReportList)) {
+            foreach ($serviceReportList as $row) {
+                $c = $row['service_category'] ?? '';
+                if (in_array($c, $cats) && $latest[$c] === null) {
+                    $latest[$c] = [
+                        'date'           => $row['service_dateFormat'] ?? '',
+                        'service_date'   => $row['service_date'] ?? '',
+                        'vehicle_name'   => $row['vehicle_name'] ?? '',
+                        'vehicle_number' => $row['vehicle_number'] ?? '',
+                        'service_km'     => (!empty($row['service_km']) && $row['service_km'] != '0000') ? number_format((float)str_replace(',', '', $row['service_km'])) : '',
+                        'cost'           => $row['service_cost'] ?? '',
+                    ];
+                }
+            }
+        }
+
+        // 2. For any category not found in current filtered list, check all-time latest from database
+        $missingCats = [];
+        foreach ($cats as $c) {
+            if ($latest[$c] === null) {
+                $missingCats[] = $c;
+            }
+        }
+
+        if (!empty($missingCats)) {
+            $where = "";
+            if (!empty($vehicleId)) {
+                $where .= " AND VS.vehicle_id = " . $this->db->escape_str($vehicleId);
+            }
+            if (!empty($branch)) {
+                $where .= " AND V.branch = " . $this->db->escape_str($branch);
+            }
+            $catList = "'" . implode("','", $missingCats) . "'";
+
+            $sql = "SELECT VS.*, 
+                           DATE_FORMAT(VS.service_date, '%d - %m - %Y') AS service_dateFormat, 
+                           V.vehicle_name, 
+                           V.vehicle_number 
+                    FROM vehicle_service VS 
+                    LEFT JOIN vehicle V ON V.id = VS.vehicle_id 
+                    WHERE VS.delete_status = 0 
+                      AND VS.service_category IN ($catList) 
+                      $where 
+                    ORDER BY VS.service_date DESC, VS.id DESC";
+
+            $res = $this->db->query($sql);
+            if ($res) {
+                foreach ($res->result_array() as $row) {
+                    $c = $row['service_category'];
+                    if ($latest[$c] === null) {
+                        $latest[$c] = [
+                            'date'           => $row['service_dateFormat'] ?? '',
+                            'service_date'   => $row['service_date'] ?? '',
+                            'vehicle_name'   => $row['vehicle_name'] ?? '',
+                            'vehicle_number' => $row['vehicle_number'] ?? '',
+                            'service_km'     => (!empty($row['service_km']) && $row['service_km'] != '0000') ? number_format((float)str_replace(',', '', $row['service_km'])) : '',
+                            'cost'           => $row['service_cost'] ?? '',
+                        ];
+                    }
+                }
+            }
+        }
+
+        return $latest;
+    }
 }
 ?>

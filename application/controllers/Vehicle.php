@@ -160,45 +160,80 @@ class Vehicle extends CI_Controller {
         }
     }
 
-    public function vehicle_service_list($category = '')
+    public function vehicle_service_list($category = '', $year = '', $month = '')
     {
       $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
       if (in_array('admin', $userPermission) || in_array('vehicle_management', $userPermission)) {
         $data["menu_status"] = 'vehicle_service';
         $data['vehicleId'] = '';
-        $data['activeCategory'] = $category;
-        
-        // Fetch all services to calculate sums for each category
+        // 'all' is the URL placeholder for "no category filter"
+        if ($category === 'all') $category = '';
+        if (is_numeric($category) && strlen($category) === 4 && empty($year)) {
+            $year = $category;
+            $category = '';
+        }
+
+        // Fetch ALL services (unfiltered) to build year/month button lists
         $allServices = $this->vehiclemodel->getVehicleServiceList();
-        
-        $sums = [
-            'all' => 0,
-            'maintenance' => 0,
-            'oil_change' => 0,
-            'wheel_alignment' => 0,
-            'tyre_change' => 0,
-            'fc_work' => 0
-        ];
-        
+
+        // Collect available years and months-per-year
+        $availableYears  = [];
+        $availableMonths = []; // [ '2026' => ['01','03',...], ... ]
         foreach ($allServices as $row) {
+            if ($row->service_date) {
+                $yr = date('Y', strtotime($row->service_date));
+                $mo = date('m', strtotime($row->service_date));
+                if (!in_array($yr, $availableYears)) $availableYears[] = $yr;
+                $availableMonths[$yr][$mo] = true;
+            }
+        }
+        rsort($availableYears);
+        foreach ($availableMonths as $yr => &$months) { krsort($months); }
+        unset($months);
+        $data['availableYears']  = $availableYears;
+        $data['availableMonths'] = $availableMonths;
+
+        if (empty($year)) {
+            $year = !empty($availableYears) ? $availableYears[0] : date('Y');
+        }
+
+        $data['activeCategory'] = $category;
+        $data['activeYear']     = $year;
+        $data['activeMonth']    = $month;
+
+        // Build category sums filtered by selected year/month
+        $sums = [
+            'all'             => 0,
+            'maintenance'     => 0,
+            'oil_change'      => 0,
+            'wheel_alignment' => 0,
+            'tyre_change'     => 0,
+            'battery'         => 0,
+            'fc_work'         => 0
+        ];
+        foreach ($allServices as $row) {
+            if ($year && $row->service_date && date('Y', strtotime($row->service_date)) != $year) continue;
+            if ($month && $row->service_date && date('m', strtotime($row->service_date)) != $month) continue;
             $cost = floatval(str_replace(',', '', $row->service_cost));
             $sums['all'] += $cost;
             if (array_key_exists($row->service_category, $sums)) {
                 $sums[$row->service_category] += $cost;
             }
         }
-        
         $data['categorySums'] = $sums;
-        
-        // If a category is selected, filter the list, otherwise show all
-        if ($category) {
-            $data['allVehicleServiceList'] = $this->vehiclemodel->getVehicleServiceList('', $category);
-        } else {
-            $data['allVehicleServiceList'] = $allServices;
+
+        // Filtered list for the table (by category + year + month)
+        $filtered = [];
+        foreach ($allServices as $row) {
+            if ($category && $row->service_category !== $category) continue;
+            if ($year  && $row->service_date && date('Y', strtotime($row->service_date)) != $year)  continue;
+            if ($month && $row->service_date && date('m', strtotime($row->service_date)) != $month) continue;
+            $filtered[] = $row;
         }
-  
+        $data['allVehicleServiceList'] = $filtered;
+
         $this->load->view('settings/header', $data);
-        $this->load->view('vehicle/vehicle-service-list', $data);
+        $this->load->view('vehicle-service/vehicle-service-list', $data);
         $this->load->view('settings/footer');
       } else {
         $this->load->view('settings/header_link');
@@ -206,6 +241,7 @@ class Vehicle extends CI_Controller {
         $this->load->view('settings/footer');
       }
     }
+
 
     public function vehicle_service_add($vehicleId = '')
     {
@@ -216,11 +252,12 @@ class Vehicle extends CI_Controller {
             $data['vehicleId'] = $vehicleId;
             $data['formTitle'] = "Add Vehicle Service";
             $data['nextServiceKM'] = '';
+            $data['serviceBills'] = [];
             
             $data['vehicleDropdown'] = $this->mastermodel->getVehicleDropdown();
 
             $this->load->view('settings/header', $data);
-            $this->load->view('vehicle/vehicle-service-add', $data);
+            $this->load->view('vehicle-service/vehicle-service-add', $data);
             $this->load->view('settings/footer');
         } else {
             $this->load->view('settings/header_link');
@@ -249,13 +286,25 @@ class Vehicle extends CI_Controller {
                 $data['nextServiceKM'] = $row->next_service_km;
                 $data['serviceCost'] = $row->service_cost;
                 $data['serviceBill'] = $row->service_bill;
+                
+                $serviceBills = [];
+                if (!empty($row->service_bill)) {
+                    $decoded = json_decode($row->service_bill, true);
+                    if (is_array($decoded)) {
+                        $serviceBills = $decoded;
+                    } else {
+                        $serviceBills = [['title' => 'Service Bill', 'file' => $row->service_bill]];
+                    }
+                }
+                $data['serviceBills'] = $serviceBills;
+
                 $data['description'] = $row->description;
                 $data['status'] = $row->status;
                 $data['method'] = $row->method;
             }
 
             $this->load->view('settings/header', $data);
-            $this->load->view('vehicle/vehicle-service-add', $data);
+            $this->load->view('vehicle-service/vehicle-service-add', $data);
             $this->load->view('settings/footer');
         } else {
             $this->load->view('settings/header_link');
@@ -327,6 +376,7 @@ class Vehicle extends CI_Controller {
                 'oil_change' => 'Oil Change',
                 'wheel_alignment' => 'Wheel Alignment',
                 'tyre_change' => 'Tyre Change',
+                'battery' => 'Battery',
                 'fc_work' => 'FC Work'
             ];
             $data['serviceCategory'] = isset($catMap[$row->service_category]) ? $catMap[$row->service_category] : ucwords(str_replace('_', ' ', $row->service_category));
@@ -470,22 +520,55 @@ class Vehicle extends CI_Controller {
         $status = $this->input->post('status');
         $method = $this->input->post('method');
 
-        $alterServiceBill = $this->input->post('alter_service_bill');
+        $billTitles = $this->input->post('bill_title');
+        $alterBillFiles = $this->input->post('alter_bill_file');
         
         $allowTypes = array('jpg', 'png', 'jpeg', 'pdf', 'doc', 'docx', 'xls', 'xlsx');
         $billUploadDir = './uploads/service_bill/';
+        if (!is_dir($billUploadDir)) {
+            mkdir($billUploadDir, 0777, true);
+        }
 
-        // Service Bill Photo
-        if (isset($_FILES['service_bill'])) {
+        $bills = [];
+        if (!empty($billTitles) && is_array($billTitles)) {
+            foreach ($billTitles as $idx => $title) {
+                $title = trim($title);
+                $filePath = isset($alterBillFiles[$idx]) ? $alterBillFiles[$idx] : '';
+
+                if (isset($_FILES['bill_file']['name'][$idx]) && !empty($_FILES['bill_file']['name'][$idx])) {
+                    $originalName = $_FILES['bill_file']['name'][$idx];
+                    $tmpName = $_FILES['bill_file']['tmp_name'][$idx];
+                    $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+
+                    if (in_array($ext, $allowTypes)) {
+                        $newName = $this->common->imageRename(basename($originalName));
+                        $targetPath = $billUploadDir . $newName;
+                        if (move_uploaded_file($tmpName, $targetPath)) {
+                            $filePath = $targetPath;
+                        }
+                    }
+                }
+
+                if (!empty($filePath) || !empty($title)) {
+                    $bills[] = [
+                        'title' => $title,
+                        'file'  => $filePath
+                    ];
+                }
+            }
+        } elseif (isset($_FILES['service_bill']) && !empty($_FILES['service_bill']['name'])) {
+            // Legacy single file fallback
             $filesArray = $_FILES['service_bill'];
             $uploadedFiles['service_bill'] = $this->common->fileUpload($filesArray, $billUploadDir, $allowTypes);
+            $serviceBill_img = $uploadedFiles['service_bill'][0] ?? '';
+            if ($serviceBill_img) {
+                $bills[] = ['title' => 'Service Bill', 'file' => $serviceBill_img];
+            }
+        } elseif ($this->input->post('alter_service_bill')) {
+            $bills[] = ['title' => 'Service Bill', 'file' => $this->input->post('alter_service_bill')];
         }
-        
-        $serviceBill_img = $uploadedFiles['service_bill'][0];
-        
-        if ($_FILES["service_bill"]["name"] == FALSE) {
-            $serviceBill_img = $alterServiceBill;
-        }
+
+        $serviceBill_img = !empty($bills) ? json_encode($bills) : '';
 
         $this->vehiclemodel->saveVehicleServiceData($vehicleId, $serviceId, $serviceDate, $nextServiceDate, $serviceCategory, $serviceKM, $nextServiceKM, $serviceCost, $description, $serviceBill_img, $status, $method);
         

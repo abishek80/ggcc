@@ -50,12 +50,15 @@
                             <td>
                                 <?php if($row->vehicle_rc) { ?>
                                     <a href="<?php echo base_url() . $row->vehicle_rc; ?>" class="iframe-popup d-block mb-1 doc-hover">View RC</a>
-                                <?php } else { echo '<p class="mb-1 lh-base">-</p>'; } ?>
+                                <?php } else { echo '<p class="mb-0 lh-base">-</p>'; } ?>
                                 <?php if($row->vehicle_insurance) { ?>
-                                    <a href="<?php echo base_url() . $row->vehicle_insurance; ?>" class="iframe-popup d-block mb-1 doc-hover">View Insurance</a>
+                                    <a href="<?php echo base_url() . $row->vehicle_insurance; ?>" class="iframe-popup d-block mb-1 doc-hover">View Insur</a>
+                                <?php } else { echo '<p class="mb-0 lh-base">-</p>'; } ?>
+                                <?php if($row->vehicle_fc_img) { ?>
+                                    <a href="<?php echo base_url() . $row->vehicle_fc_img; ?>" class="iframe-popup d-block mb-1 doc-hover">View FC</a>
                                 <?php } else { echo '<p class="mb-0 lh-base">-</p>'; } ?>
                                 <?php if($row->vehicle_puc_img) { ?>
-                                    <a href="<?php echo base_url() . $row->vehicle_puc_img; ?>" class="iframe-popup d-block mb-0 doc-hover">View PUC Doc</a>
+                                    <a href="<?php echo base_url() . $row->vehicle_puc_img; ?>" class="iframe-popup d-block mb-0 doc-hover">View PUC</a>
                                 <?php } else { echo '<p class="mb-0 lh-base">-</p>'; } ?>
                             </td>
                             <td class="date-check" data-date-check="<?php echo $row->renewal_date; ?>"><?php $insuranceDateFormat = new DateTime($row->renewal_date); echo $insuranceDateFormat->format('d - m - Y'); ?></td>
@@ -319,8 +322,29 @@
                     $('.service_Cost').addClass('d-none');
                 }
                 if (data.serviceBill) {
-                    $('#service_Bill').html('<div class="text-capitalize text-black"><a href="' + '<?php echo base_url(); ?>' + data.serviceBill + '" target="_blank" class="doc-hover">View Service Bill</a></div>');
-                    $('.service_Bill').removeClass('d-none');
+                    var billsHtml = '';
+                    try {
+                        var parsed = JSON.parse(data.serviceBill);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            billsHtml = '<div class="d-flex flex-column gap-1">';
+                            parsed.forEach(function(b) {
+                                if (b.file) {
+                                    var title = b.title ? b.title : 'Service Bill';
+                                    billsHtml += '<div><a href="' + '<?php echo base_url(); ?>' + b.file + '" target="_blank" class="doc-hover"><i class="bx bx-file me-1"></i>' + title + '</a></div>';
+                                }
+                            });
+                            billsHtml += '</div>';
+                        }
+                    } catch(e) {
+                        billsHtml = '<div class="text-capitalize text-black"><a href="' + '<?php echo base_url(); ?>' + data.serviceBill + '" target="_blank" class="doc-hover">View Service Bill</a></div>';
+                    }
+                    if (billsHtml) {
+                        $('#service_Bill').html(billsHtml);
+                        $('.service_Bill').removeClass('d-none');
+                    } else {
+                        $('#service_Bill').html('<div class="text-capitalize text-black">-</div>');
+                        $('.service_Bill').addClass('d-none');
+                    }
                 } else {
                     $('#service_Bill').html('<div class="text-capitalize text-black">-</div>');
                     $('.service_Bill').addClass('d-none');

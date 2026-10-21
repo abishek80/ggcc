@@ -112,13 +112,18 @@
 
         // Function to format number as Indian numbering system
         function formatIndianNumber(number) {
+            number = String(number).replace(/,/g, '').trim();
+            if (!number || isNaN(number)) return number;
             const parts = number.split(".");
             const intPart = parts[0];
             const decPart = parts.length > 1 ? "." + parts[1] : "";
             const lastThree = intPart.substring(intPart.length - 3);
             const otherNumbers = intPart.substring(0, intPart.length - 3);
-            const formattedNumber = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + lastThree + decPart;
-            return formattedNumber.startsWith(",") ? formattedNumber.substring(1) : formattedNumber;
+            if (otherNumbers !== '') {
+                const formattedNumber = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + lastThree + decPart;
+                return formattedNumber.startsWith(",") ? formattedNumber.substring(1) : formattedNumber;
+            }
+            return lastThree + decPart;
         }
 
         $(document).ready(function() {

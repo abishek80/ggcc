@@ -134,6 +134,7 @@
             if ($pfAmount > 0)          $deductionRows[] = ['label' => 'Provident Fund (' . htmlspecialchars($basicPfAmount) . ' * 12%)', 'amount' => $pfAmount];
             if ($esiAmount > 0)         $deductionRows[] = ['label' => 'Employee State Insurance (0.75%)', 'amount' => $esiAmount];
             if ($professionalTax > 0)   $deductionRows[] = ['label' => 'Professional Tax', 'amount' => $professionalTax];
+            if (isset($tdsAmount) && (float)$tdsAmount > 0) $deductionRows[] = ['label' => 'TDS Amount', 'amount' => $tdsAmount];
             if ($advanceCash > 0)       $deductionRows[] = ['label' => 'Adavnce In Cash', 'amount' => $advanceCash];
         ?>
         <table class="full-width" style="margin-bottom: 0;">

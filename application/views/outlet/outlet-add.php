@@ -54,6 +54,10 @@
                     <input name="outlet_location" id="outlet_location" pattern="[a-z]*" type="text" class="form-control" placeholder="Enter Outlet Location" value="<?php echo $outletLocation; ?>">
                 </div>
                 <div class="col-lg-3 col-md-4 col-sm-6">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Location URL</label>
+                    <input name="location_url" id="location_url" type="text" class="form-control" placeholder="Enter Outlet Location URL" value="<?php echo isset($locationUrl) ? $locationUrl : ''; ?>">
+                </div>
+                <div class="col-lg-3 col-md-4 col-sm-6">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Contact Name</label>
                     <input name="contact_name" id="contact_name" pattern="[a-z]*" type="text" class="form-control" placeholder="Enter Outlet Contact Name" value="<?php echo $contactName; ?>">
                 </div>

@@ -363,7 +363,7 @@ class Adminmodel extends CI_Model
             $where = "";
         }
 
-        $sql = "SELECT *, LOWER(DATE_FORMAT(date, '%Y')) as year, LOWER(DATE_FORMAT(date, '%M')) as month FROM yearly_plan WHERE delete_status = 0 $where GROUP BY LOWER(DATE_FORMAT(date, '%M')) ORDER BY FIELD(LOWER(DATE_FORMAT(date, '%M')), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'cctober', 'november', 'december')";
+        $sql = "SELECT *, LOWER(DATE_FORMAT(date, '%Y')) as year, LOWER(DATE_FORMAT(date, '%M')) as month FROM yearly_plan WHERE delete_status = 0 $where GROUP BY LOWER(DATE_FORMAT(date, '%M')) ORDER BY FIELD(LOWER(DATE_FORMAT(date, '%M')), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')";
 
         $res = $this->db->query($sql);
         return $res->result();

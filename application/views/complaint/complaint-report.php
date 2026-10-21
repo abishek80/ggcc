@@ -58,10 +58,26 @@
                             <td>
                                 <?php if(!empty($row->outlet_name)) { ?>
                                     <p class="mb-1"><?php echo $row->outlet_name; ?></p>
-                                    <p class="mb-0"><?php echo $row->outlet_location; ?></p>
+                                    <p class="mb-0">
+                                        <?php echo $row->outlet_location; ?>
+                                        <?php if (!empty($row->location_url)) { 
+                                            $locUrl = (preg_match('#^https?://#i', $row->location_url)) ? $row->location_url : 'https://' . $row->location_url;
+                                        ?>
+                                            <a href="<?php echo htmlspecialchars($locUrl); ?>" target="_blank" class="badge bg-label-primary ms-1" title="View Location"><i class="bx bx-map-pin"></i></a>
+                                        <?php } ?>
+                                    </p>
                                 <?php } elseif (!empty($row->old_outlet_name)) { ?>
                                     <p class="mb-1"><?php echo $row->old_outlet_name; ?></p>
-                                    <p class="mb-0"><?php echo $row->old_outlet_location; ?></p>
+                                    <p class="mb-0">
+                                        <?php echo $row->old_outlet_location; ?>
+                                        <?php 
+                                        $locUrlVal = !empty($row->old_location_url) ? $row->old_location_url : (!empty($row->location_url) ? $row->location_url : '');
+                                        if (!empty($locUrlVal)) { 
+                                            $locUrl = (preg_match('#^https?://#i', $locUrlVal)) ? $locUrlVal : 'https://' . $locUrlVal;
+                                        ?>
+                                            <a href="<?php echo htmlspecialchars($locUrl); ?>" target="_blank" class="badge bg-label-primary ms-1" title="View Location"><i class="bx bx-map-pin"></i></a>
+                                        <?php } ?>
+                                    </p>
                                 <?php } ?>
                             </td>
                             <td><?php echo $row->description; ?></td>
@@ -307,7 +323,13 @@
                     $('.outletName').addClass('d-none');
                 }
                 if (data.outletLocation) {
-                    $('#outletLocation').html(data.outletLocation);
+                    var outLocHtml = data.outletLocation;
+                    var locUrl = (data.locationUrl || '');
+                    if (locUrl && locUrl.trim() !== '' && locUrl !== '-' && locUrl !== 'null') {
+                        var validUrl = (locUrl.match(/^https?:\/\//i)) ? locUrl : 'https://' + locUrl;
+                        outLocHtml += ' <a href="' + encodeURI(validUrl) + '" target="_blank" class="badge bg-label-primary ms-1" title="View Location"><i class="bx bx-map-pin me-1"></i>View Location</a>';
+                    }
+                    $('#outletLocation').html(outLocHtml);
                     $('.outletLocation').removeClass('d-none');
                 } else {
                     $('.outletLocation').addClass('d-none');
@@ -331,7 +353,13 @@
                     $('.oldOutletName').addClass('d-none');
                 }
                 if (data.oldOutletLocation) {
-                    $('#oldOutletLocation').html(data.oldOutletLocation);
+                    var oldOutLocHtml = data.oldOutletLocation;
+                    var locUrl = (data.oldLocationUrl || data.locationUrl || '');
+                    if (locUrl && locUrl.trim() !== '' && locUrl !== '-' && locUrl !== 'null') {
+                        var validUrl = (locUrl.match(/^https?:\/\//i)) ? locUrl : 'https://' + locUrl;
+                        oldOutLocHtml += ' <a href="' + encodeURI(validUrl) + '" target="_blank" class="badge bg-label-primary ms-1" title="View Location"><i class="bx bx-map-pin me-1"></i>View Location</a>';
+                    }
+                    $('#oldOutletLocation').html(oldOutLocHtml);
                     $('.oldOutletLocation').removeClass('d-none');
                 } else {
                     $('.oldOutletLocation').addClass('d-none');

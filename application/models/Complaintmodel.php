@@ -101,7 +101,7 @@ class Complaintmodel extends CI_Model
     }
 
     //Save Complaint Form
-    public function saveComplaintData($date, $complaintId, $outletId, $token, $zone, $branch, $complainterName, $complainterNumber, $workType, $assignTo, $outletName, $outletLocation, $contactName, $contactNumber, $oldOutletName, $oldOutletLocation, $oldContactName, $oldContactNumber, $description, $alreadyExists)
+    public function saveComplaintData($date, $complaintId, $outletId, $token, $zone, $branch, $complainterName, $complainterNumber, $workType, $assignTo, $outletName, $outletLocation, $contactName, $contactNumber, $oldOutletName, $oldOutletLocation, $oldContactName, $oldContactNumber, $description, $alreadyExists, $locationUrl = '', $oldLocationUrl = '')
     {
         $userId = $this->session->userdata('userid');
 
@@ -165,11 +165,13 @@ class Complaintmodel extends CI_Model
                 'assign_to' => $assignTo,
                 'outlet_name' => $outletName,
                 'outlet_location' => $outletLocation,
+                'location_url' => $locationUrl,
                 'contact_name' => $contactName,
                 'contact_number' => $contactNumber,
                 'outlet_id' => $outletId,
                 'old_outlet_name' => $oldOutletName,
                 'old_outlet_location' => $oldOutletLocation,
+                'old_location_url' => $oldLocationUrl,
                 'old_contact_name' => $oldContactName,
                 'old_contact_number' => $oldContactNumber,
                 'description' => $description,
@@ -191,11 +193,13 @@ class Complaintmodel extends CI_Model
                 'assign_to' => $assignTo,
                 'outlet_name' => $outletName,
                 'outlet_location' => $outletLocation,
+                'location_url' => $locationUrl,
                 'contact_name' => $contactName,
                 'contact_number' => $contactNumber,
                 'outlet_id' => $outletId,
                 'old_outlet_name' => $oldOutletName,
                 'old_outlet_location' => $oldOutletLocation,
+                'old_location_url' => $oldLocationUrl,
                 'old_contact_name' => $oldContactName,
                 'old_contact_number' => $oldContactNumber,
                 'description' => $description,
@@ -216,6 +220,7 @@ class Complaintmodel extends CI_Model
             'branch' => $branch,
             'outlet_name' => $outletName,
             'outlet_location' => $outletLocation,
+            'location_url' => $locationUrl,
             'contact_name' => $contactName,
             'contact_number' => $contactNumber,
             'status' => 'active',
@@ -228,7 +233,7 @@ class Complaintmodel extends CI_Model
     }
 
     //Save Complaint Edit Form
-    public function saveComplaintEditData($date, $complaintId, $outletId, $token, $zone, $branch, $complainterName, $complainterNumber, $workType, $assignTo, $outletName, $outletLocation, $contactName, $contactNumber, $oldOutletName, $oldOutletLocation, $oldContactName, $oldContactNumber, $description, $alreadyExists, $status, $remarks, $checkingDate, $renewalDate, $jobReport_img, $earthingReport_img)
+    public function saveComplaintEditData($date, $complaintId, $outletId, $token, $zone, $branch, $complainterName, $complainterNumber, $workType, $assignTo, $outletName, $outletLocation, $contactName, $contactNumber, $oldOutletName, $oldOutletLocation, $oldContactName, $oldContactNumber, $description, $alreadyExists, $status, $remarks, $checkingDate, $renewalDate, $jobReport_img, $earthingReport_img, $locationUrl = '', $oldLocationUrl = '')
     {
         $userId = $this->session->userdata('userid');
 
@@ -267,11 +272,13 @@ class Complaintmodel extends CI_Model
                 'assign_to' => $assignTo,
                 'outlet_name' => $outletName,
                 'outlet_location' => $outletLocation,
+                'location_url' => $locationUrl,
                 'contact_name' => $contactName,
                 'contact_number' => $contactNumber,
                 'outlet_id' => $outletId,
                 'old_outlet_name' => $oldOutletName,
                 'old_outlet_location' => $oldOutletLocation,
+                'old_location_url' => $oldLocationUrl,
                 'old_contact_name' => $oldContactName,
                 'old_contact_number' => $oldContactNumber,
                 'description' => $description,
@@ -299,6 +306,9 @@ class Complaintmodel extends CI_Model
           if ($outletLocation) {
               $outletData['outlet_location'] = $outletLocation;
           }
+          if ($locationUrl) {
+              $outletData['location_url'] = $locationUrl;
+          }
           if ($contactName) {
               $outletData['contact_name'] = $contactName;
           }
@@ -310,6 +320,9 @@ class Complaintmodel extends CI_Model
           }
           if ($oldOutletLocation) {
               $outletData['outlet_location'] = $oldOutletLocation;
+          }
+          if ($oldLocationUrl) {
+              $outletData['location_url'] = $oldLocationUrl;
           }
           if ($oldContactName) {
               $outletData['contact_name'] = $oldContactName;

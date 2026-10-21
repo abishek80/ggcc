@@ -262,8 +262,14 @@
                     "render": function(data, type, row) {
                         var name = (data || row.old_outlet_name || '-');
                         var location = (row.outlet_location || row.old_outlet_location || '');
+                        var locUrl = (row.location_url || row.old_location_url || '');
+                        var locationHtml = location;
+                        if (locUrl && locUrl.trim() !== '' && locUrl !== 'null') {
+                            var validUrl = (locUrl.match(/^https?:\/\//i)) ? locUrl : 'https://' + locUrl;
+                            locationHtml += ' <a href="' + encodeURI(validUrl) + '" target="_blank" class="badge bg-label-primary ms-1" title="' + locUrl + '"><i class="bx bx-map-pin"></i> View</a>';
+                        }
                         return '<div class="fw-semibold">' + name + '</div>' +
-                               '<div class="secondary-text">' + location + '</div>';
+                               '<div class="secondary-text">' + locationHtml + '</div>';
                     }
                 },
                 { 
@@ -369,7 +375,13 @@
                     $('.outletName').addClass('d-none');
                 }
                 if (data.outletLocation) {
-                    $('#outletLocation').html(data.outletLocation);
+                    var outLocHtml = data.outletLocation;
+                    var locUrl = (data.locationUrl || '');
+                    if (locUrl && locUrl.trim() !== '' && locUrl !== '-' && locUrl !== 'null') {
+                        var validUrl = (locUrl.match(/^https?:\/\//i)) ? locUrl : 'https://' + locUrl;
+                        outLocHtml += ' <a href="' + encodeURI(validUrl) + '" target="_blank" class="badge bg-label-primary ms-1" title="View Location"><i class="bx bx-map-pin me-1"></i>View Location</a>';
+                    }
+                    $('#outletLocation').html(outLocHtml);
                     $('.outletLocation').removeClass('d-none');
                 } else {
                     $('.outletLocation').addClass('d-none');
@@ -393,7 +405,13 @@
                     $('.oldOutletName').addClass('d-none');
                 }
                 if (data.oldOutletLocation) {
-                    $('#oldOutletLocation').html(data.oldOutletLocation);
+                    var oldOutLocHtml = data.oldOutletLocation;
+                    var locUrl = (data.oldLocationUrl || data.locationUrl || '');
+                    if (locUrl && locUrl.trim() !== '' && locUrl !== '-' && locUrl !== 'null') {
+                        var validUrl = (locUrl.match(/^https?:\/\//i)) ? locUrl : 'https://' + locUrl;
+                        oldOutLocHtml += ' <a href="' + encodeURI(validUrl) + '" target="_blank" class="badge bg-label-primary ms-1" title="View Location"><i class="bx bx-map-pin me-1"></i>View Location</a>';
+                    }
+                    $('#oldOutletLocation').html(oldOutLocHtml);
                     $('.oldOutletLocation').removeClass('d-none');
                 } else {
                     $('.oldOutletLocation').addClass('d-none');

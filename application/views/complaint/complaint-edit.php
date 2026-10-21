@@ -76,6 +76,10 @@
                         <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Location <span class="text-danger">*</span></label>
                         <input name="outlet_location" id="outlet_location" type="text" class="form-control" placeholder="Enter Outlet Location" value="<?php echo $outletLocation; ?>">
                     </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Location URL</label>
+                        <input name="location_url" id="location_url" type="text" class="form-control" placeholder="Enter Outlet Location URL" value="<?php echo isset($locationUrl) ? $locationUrl : ''; ?>">
+                    </div>
                 <?php } ?>
                 
                 <?php if($contactName) { ?>
@@ -103,6 +107,10 @@
                     <div class="col-lg-4 col-md-6">
                         <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Location <span class="text-danger">*</span></label>
                         <input name="old_outlet_location" id="outlet_location" type="text" class="form-control outletLocation" placeholder="Enter Outlet Location" value="<?php echo $oldOutletLocation; ?>">
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Location URL</label>
+                        <input name="old_location_url" id="old_location_url" type="text" class="form-control outletLocationUrl" placeholder="Enter Outlet Location URL" value="<?php echo isset($oldLocationUrl) ? $oldLocationUrl : ''; ?>">
                     </div>
                 <?php } ?>
                 

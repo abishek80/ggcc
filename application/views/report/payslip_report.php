@@ -193,6 +193,7 @@
                                 <th class="w-min-100">PF Amount</th>
                                 <th class="w-min-100">ESI Amount</th>
                                 <th class="w-min-100">Professional Tax</th>
+                                <th class="w-min-100">TDS Amount</th>
                                 <th class="w-min-100">Adavnce In Cash</th>
                                 <th class="w-min-100">Earning Amount</th>
                                 <th class="w-min-100">Deduction Amount</th>
@@ -226,6 +227,7 @@
                                     <td><?php echo htmlspecialchars($row['month_pf_amount'] ?? '-'); ?></td>
                                     <td><?php echo htmlspecialchars($row['esi_amount'] ?? '-'); ?></td>
                                     <td><?php echo htmlspecialchars($row['professional_tax'] ?? '-'); ?></td>
+                                    <td><?php echo htmlspecialchars($row['tds_amount'] ?? '-'); ?></td>
                                     <td><?php echo htmlspecialchars($row['advance_cash'] ?? '-'); ?></td>
                                     <td><?php echo htmlspecialchars($row['total_earning'] ?? '-'); ?></td>
                                     <td><?php echo htmlspecialchars($row['deduction_amount'] ?? '-'); ?></td>

@@ -312,7 +312,7 @@ class Report extends CI_Controller {
         $output = fopen("php://output", "w");
 
         // Write summary header
-        fputcsv($output, ["Payable Days", "Present Days", "Absent Days", "OT Days", "Basic Amount", "Allowance Amount", "OT Amount", "Recharge Amount", "Incentive Amount", "Travelling Amount", "Food Expenses Amount", "PF Amount", "ESI Amount", "Professional Tax Amount", "Advance In Cash Amount", "Earning Amount", "Deduction Amount", "Salary Amount"], "\t");
+        fputcsv($output, ["Payable Days", "Present Days", "Absent Days", "OT Days", "Basic Amount", "Allowance Amount", "OT Amount", "Recharge Amount", "Incentive Amount", "Travelling Amount", "Food Expenses Amount", "PF Amount", "ESI Amount", "Professional Tax Amount", "TDS Amount", "Advance In Cash Amount", "Earning Amount", "Deduction Amount", "Salary Amount"], "\t");
         fputcsv($output, [
             $summary['payable_days']  ?? 0,
             $summary['present_days']  ?? 0,
@@ -328,6 +328,7 @@ class Report extends CI_Controller {
             $summary['pf_amount']  ?? 0,
             $summary['esi_amount']  ?? 0,
             $summary['professionaltax_amount']  ?? 0,
+            $summary['tds_amount']  ?? 0,
             $summary['advancecash_amount']  ?? 0,
             $summary['earning_amount']  ?? 0,
             $summary['deduction_amount']  ?? 0,
@@ -338,7 +339,7 @@ class Report extends CI_Controller {
         fputcsv($output, [], "\t");
 
         // Write details header
-        fputcsv($output, ["Year", "Month", "Employee Name", "Designation", "Payable Days", "Present Days", "Absent Days", "OT Days", "Actuals Basic Pay", "Earned Basic Pay", "Actuals Allowance", "Earned Allowance", "OT Amount", "Mobile Recharge", "Incentive", "Travelling", "Food Expenses", "PF Amount", "ESI Amount", "Professional Tax", "Adavnce In Cash", "Earning Amount", "Deduction Amount", "Salary Amount"], "\t");
+        fputcsv($output, ["Year", "Month", "Employee Name", "Designation", "Payable Days", "Present Days", "Absent Days", "OT Days", "Actuals Basic Pay", "Earned Basic Pay", "Actuals Allowance", "Earned Allowance", "OT Amount", "Mobile Recharge", "Incentive", "Travelling", "Food Expenses", "PF Amount", "ESI Amount", "Professional Tax", "TDS Amount", "Adavnce In Cash", "Earning Amount", "Deduction Amount", "Salary Amount"], "\t");
 
         foreach ($details as $row) {
             fputcsv($output, [
@@ -362,6 +363,7 @@ class Report extends CI_Controller {
                 $row['month_pf_amount'],
                 $row['esi_amount'],
                 $row['professional_tax'],
+                $row['tds_amount'],
                 $row['advance_cash'],
                 $row['total_earning'],
                 $row['deduction_amount'],
@@ -442,7 +444,7 @@ class Report extends CI_Controller {
 
         if($vehicleId) {
             // Write summary header
-            fputcsv($output, ["From Date", "To Date", "Vehicle Name", "Vehicle Number", "Fuel Type", "Total Kilometer", "Total Liter", "Rate Per Liter", "Kilometer Per Liter", "Rupees Per Kilometer", "Total Amount", "Average Percentage"], "\t");
+            fputcsv($output, ["From Date", "To Date", "Vehicle Name", "Vehicle Number", "Fuel Type", "Total Travel KM", "Total Billed Liter Qty", "Rate Per Liter", "Kilometer Per Liter", "Rupees Per Kilometer", "Total Amount", "Average Percentage"], "\t");
 
             // Format date values properly
             $fromDateFormatted = !empty($fromDate) ? date('d - m - Y', strtotime($fromDate)) : '';
@@ -463,11 +465,9 @@ class Report extends CI_Controller {
                 $summary['total_amount']?? '',
                 $summary['avg_percentage']?? ''
             ], "\t");
-        }
-
-        if($fromDate && $toDate) {
+        } elseif($fromDate && $toDate) {
             // Write summary header
-            fputcsv($output, ["From Date", "To Date", "Total Amount"], "\t");
+            fputcsv($output, ["From Date", "To Date", "Total Amount", "Total Travel KM", "Total Billed Liter Qty"], "\t");
 
             // Format date values properly
             $fromDateFormatted = !empty($fromDate) ? date('d - m - Y', strtotime($fromDate)) : '';
@@ -477,13 +477,14 @@ class Report extends CI_Controller {
             fputcsv($output, [
                 $fromDateFormatted,
                 $toDateFormatted,
-                $summary['total_amount']?? ''
+                $summary['total_amount']?? '',
+                $summary['total_kilometer']?? '',
+                $summary['total_liter']?? ''
             ], "\t");
 
         } elseif($fromDate) {
-
             // Write summary header
-            fputcsv($output, ["From Date", "Total Amount"], "\t");
+            fputcsv($output, ["From Date", "Total Amount", "Total Travel KM", "Total Billed Liter Qty"], "\t");
 
             // Format date values properly
             $fromDateFormatted = !empty($fromDate) ? date('d - m - Y', strtotime($fromDate)) : '';
@@ -491,15 +492,19 @@ class Report extends CI_Controller {
             // Write summary data
             fputcsv($output, [
                 $fromDateFormatted,
-                $summary['total_amount']?? ''
+                $summary['total_amount']?? '',
+                $summary['total_kilometer']?? '',
+                $summary['total_liter']?? ''
             ], "\t");
         } else {
             // Write summary header
-            fputcsv($output, ["Total Amount"], "\t");
+            fputcsv($output, ["Total Amount", "Total Travel KM", "Total Billed Liter Qty"], "\t");
 
             // Write summary data
             fputcsv($output, [
-                $summary['total_amount']?? ''
+                $summary['total_amount']?? '',
+                $summary['total_kilometer']?? '',
+                $summary['total_liter']?? ''
             ], "\t");
         }
 
@@ -667,6 +672,43 @@ class Report extends CI_Controller {
                     $summary['avg_percentage'] = round(($summary['km_per_ltr'] / 12) * 100, 2);
                 }
             }
+        } else {
+            // Group by vehicle to calculate total traveled km across all vehicles
+            $vehicleLogs = [];
+            foreach ($logs as $log) {
+                $vId = $log['vehicle_id'];
+                $vehicleLogs[$vId][] = $log;
+            }
+
+            $totalTravelKm = 0;
+            foreach ($vehicleLogs as $vId => $vLogs) {
+                $vKms = [];
+                foreach ($vLogs as $l) {
+                    $km = intval($l['vehicle_km']);
+                    if ($km > 0) $vKms[] = $km;
+                }
+                if (!empty($vKms)) {
+                    $maxKm = max($vKms);
+                    $minKm = min($vKms);
+
+                    $earliestDate = $vLogs[0]['filling_date'];
+                    $precedingKm = 0;
+                    if (!empty($fromDate)) {
+                        $sql = "SELECT vehicle_km FROM vehicle_fuel WHERE vehicle_id = ? AND delete_status = 0 AND vehicle_km > 0 AND filling_date < ? ORDER BY filling_date DESC, id DESC LIMIT 1";
+                        $query = $this->db->query($sql, [$vId, $earliestDate]);
+                        if ($query->num_rows() > 0) {
+                            $precedingKm = intval($query->row()->vehicle_km);
+                        }
+                    }
+
+                    if ($precedingKm > 0 && $maxKm >= $precedingKm) {
+                        $totalTravelKm += ($maxKm - $precedingKm);
+                    } else {
+                        $totalTravelKm += ($maxKm >= $minKm ? ($maxKm - $minKm) : 0);
+                    }
+                }
+            }
+            $summary['total_kilometer'] = $totalTravelKm;
         }
 
         return $summary;
@@ -741,6 +783,117 @@ class Report extends CI_Controller {
             ], "\t");
         }
     
+        fclose($output);
+        exit;
+    }
+
+    public function vehicle_service_report()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission) || in_array('vehicle_management', $userPermission)) {
+            $data['menu_open'] = 'report';
+            $data['menu_status'] = 'vehicle_service_report';
+
+            $fromDate = $data['fromDate'] = $this->input->get('from_date');
+            $toDate = $data['toDate'] = $this->input->get('to_date');
+            $vehicleId = $data['vehicleId'] = $this->input->get('vehicle_id');
+            $category = $data['category'] = $this->input->get('category');
+            $status = $data['status'] = $this->input->get('status');
+            $branch = $data['branchId'] = $this->input->get('branch');
+
+            $data['vehicleDropdown'] = $this->mastermodel->getVehicleDropdown();
+            $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
+
+            $data['serviceReportList'] = $this->reportmodel->getExportVehicleServiceData($fromDate, $toDate, $vehicleId, $category, $status, $branch);
+            $data['summary'] = $this->reportmodel->calculateServiceSummary($fromDate, $toDate, $vehicleId, $category, $status, $branch);
+            $data['latestServices'] = $this->reportmodel->getLatestServiceByCategory($vehicleId, $branch, $data['serviceReportList']);
+
+            $data['selectedVehicle'] = null;
+            if (!empty($vehicleId)) {
+                $vInfo = $this->vehiclemodel->getVehicleInfo($vehicleId);
+                if (!empty($vInfo)) {
+                    $data['selectedVehicle'] = $vInfo[0];
+                }
+            }
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('report/vehicle_service_report', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    public function getVehicleServiceReport()
+    {
+        $fromDate = $this->input->post('from_date') ?: $this->input->get('from_date');
+        $toDate = $this->input->post('to_date') ?: $this->input->get('to_date');
+        $vehicleId = $this->input->post('vehicle_id') ?: $this->input->get('vehicle_id');
+        $category = $this->input->post('category') ?: $this->input->get('category');
+        $status = $this->input->post('status') ?: $this->input->get('status');
+        $branch = $this->input->post('branch') ?: $this->input->get('branch');
+
+        $data = $this->reportmodel->getExportVehicleServiceData($fromDate, $toDate, $vehicleId, $category, $status, $branch);
+
+        if (empty($data)) {
+            echo json_encode(["isError" => true, "message" => "No data available for export"]);
+            return;
+        }
+
+        $fileName = "vehicle_maintenance_report_" . date("d-m-Y") . ".xls";
+
+        header("Content-Type: application/vnd.ms-excel");
+        header("Content-Disposition: attachment; filename=\"$fileName\"");
+        header("Pragma: no-cache");
+        header("Expires: 0");
+
+        $output = fopen("php://output", "w");
+
+        // Write header
+        fputcsv($output, [
+            "S. No",
+            "Service Date",
+            "Vehicle Name",
+            "Vehicle Number",
+            "Vehicle Type",
+            "Zone",
+            "Branch",
+            "Service Category",
+            "Service KM",
+            "Next Service KM",
+            "Next Service Date",
+            "Cost",
+            "Status",
+            "Payment Method",
+            "Description",
+            "Created By"
+        ], "\t");
+
+        $i = 1;
+        foreach ($data as $row) {
+            $catTitle = ucwords(str_replace('_', ' ', $row['service_category']));
+            fputcsv($output, [
+                $i++,
+                $row['service_dateFormat'],
+                $row['vehicle_name'],
+                $row['vehicle_number'],
+                $row['vehicle_type'],
+                $row['zone'],
+                $row['branch_name'],
+                $catTitle,
+                $row['service_km'],
+                $row['next_service_km'] ?: '-',
+                $row['next_service_dateFormat'] ?: '-',
+                $row['service_cost'],
+                ucfirst($row['status']),
+                ucfirst($row['method']),
+                str_replace(["\r", "\n", "\t"], ' ', $row['description']),
+                $row['created_by_name']
+            ], "\t");
+        }
+
         fclose($output);
         exit;
     }

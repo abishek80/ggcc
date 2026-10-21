@@ -75,7 +75,7 @@ class Vehiclemodel extends CI_Model
             $where .= " AND VS.service_category = '" . $this->db->escape_str($category) . "'";
         }
 
-        $sql = "SELECT VS.*, MB.branch, MB.zone, V.vehicle_name, V.vehicle_number, DATE_FORMAT(VS.created_at, '%d/%m/%Y %h:%i %p') AS created_at, DATE_FORMAT(VS.service_date, '%d - %m - %Y') AS service_dateFormat, DATE_FORMAT(VS.next_service_date, '%d - %m - %Y') AS next_service_dateFormat, LP.employee_name FROM vehicle_service VS LEFT JOIN vehicle V ON V.id = VS.vehicle_id LEFT JOIN master_branch MB ON MB.id = V.branch LEFT JOIN login_permission LP ON LP.employee_id = VS.created_by WHERE VS.delete_status = 0 $where ORDER BY VS.id DESC";
+        $sql = "SELECT VS.*, MB.branch, MB.zone, V.vehicle_name, V.vehicle_number, DATE_FORMAT(VS.created_at, '%d/%m/%Y %h:%i %p') AS created_at, DATE_FORMAT(VS.service_date, '%d - %m - %Y') AS service_dateFormat, DATE_FORMAT(VS.next_service_date, '%d - %m - %Y') AS next_service_dateFormat, LP.employee_name FROM vehicle_service VS LEFT JOIN vehicle V ON V.id = VS.vehicle_id LEFT JOIN master_branch MB ON MB.id = V.branch LEFT JOIN login_permission LP ON LP.employee_id = VS.created_by WHERE VS.delete_status = 0 $where ORDER BY VS.service_date DESC, VS.id DESC";
 
         $res = $this->db->query($sql);
         return $res->result();

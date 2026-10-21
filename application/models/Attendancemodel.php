@@ -622,15 +622,17 @@
         //Attendance Month List
         public function getAttendanceMonthList($year='', $employeeId='')
         {
+            $whereEmployeeId = '';
             if($employeeId) {
                 $whereEmployeeId = " AND employee_id = $employeeId ";
             }
 
+            $whereYear = '';
             if($year) {
                 $whereYear = " AND DATE_FORMAT(present_date, '%Y') = '$year' ";
             }
 
-            $sql = "SELECT *, LOWER(DATE_FORMAT(present_date, '%M')) AS month FROM employee_attendance WHERE delete_status = 0 $whereEmployeeId $whereYear GROUP BY DATE_FORMAT(present_date, '%M') ORDER BY FIELD(DATE_FORMAT(present_date, '%M'), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'cctober', 'november', 'december')";
+            $sql = "SELECT *, LOWER(DATE_FORMAT(present_date, '%M')) AS month FROM employee_attendance WHERE delete_status = 0 $whereEmployeeId $whereYear GROUP BY DATE_FORMAT(present_date, '%M') ORDER BY FIELD(LOWER(DATE_FORMAT(present_date, '%M')), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')";
             
             $res = $this->db->query($sql);
             return $res->result();
@@ -639,11 +641,12 @@
         //Present Month List
         public function getPresentMonthList($year='')
         {
+            $whereYear = '';
             if($year) {
                 $whereYear = " AND DATE_FORMAT(present_date, '%Y') = '$year' ";
             }
 
-            $sql = "SELECT *, LOWER(DATE_FORMAT(present_date, '%M')) AS month FROM employee_attendance WHERE delete_status = 0 $whereYear GROUP BY DATE_FORMAT(present_date, '%M') ORDER BY FIELD(DATE_FORMAT(present_date, '%M'), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'cctober', 'november', 'december')";
+            $sql = "SELECT *, LOWER(DATE_FORMAT(present_date, '%M')) AS month FROM employee_attendance WHERE delete_status = 0 $whereYear GROUP BY DATE_FORMAT(present_date, '%M') ORDER BY FIELD(LOWER(DATE_FORMAT(present_date, '%M')), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')";
             
             $res = $this->db->query($sql);
             return $res->result();

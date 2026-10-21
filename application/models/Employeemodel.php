@@ -382,7 +382,7 @@ class Employeemodel extends CI_Model
     }
 
     //Save Employee Payslip Form
-    public function savePayslipData($payslipId, $employeeId, $year, $month, $dayCount, $presentCount, $absentCount, $basicPay, $monthBasicPay, $allowanceAmount, $monthAllowanceAmount, $otCount, $otAmount, $mobileRecharge, $travellingAmount, $incentiveAmount, $foodExpenses, $pfStatus, $pfAmount, $monthPfAmount, $esiStatus, $esiAmount, $advanceCash, $professionalTax, $totalEarning, $deductionAmount, $salaryAmount, $salaryInWord)
+    public function savePayslipData($payslipId, $employeeId, $year, $month, $dayCount, $presentCount, $absentCount, $basicPay, $monthBasicPay, $allowanceAmount, $monthAllowanceAmount, $otCount, $otAmount, $mobileRecharge, $travellingAmount, $incentiveAmount, $foodExpenses, $pfStatus, $pfAmount, $monthPfAmount, $esiStatus, $esiAmount, $advanceCash, $professionalTax, $tdsAmount, $totalEarning, $deductionAmount, $salaryAmount, $salaryInWord)
     {
         $userId = $this->session->userdata('userid');
 
@@ -429,6 +429,7 @@ class Employeemodel extends CI_Model
                 'esi_amount' => $esiAmount,
                 'advance_cash' => $advanceCash,
                 'professional_tax' => $professionalTax,
+                'tds_amount' => $tdsAmount,
                 'total_earning' => $totalEarning,
                 'deduction_amount' => $deductionAmount,
                 'salary_amount' => $salaryAmount,
@@ -469,6 +470,7 @@ class Employeemodel extends CI_Model
                 'esi_amount' => $esiAmount,
                 'advance_cash' => $advanceCash,
                 'professional_tax' => $professionalTax,
+                'tds_amount' => $tdsAmount,
                 'total_earning' => $totalEarning,
                 'deduction_amount' => $deductionAmount,
                 'salary_amount' => $salaryAmount,
@@ -588,7 +590,7 @@ class Employeemodel extends CI_Model
     }
 
     // Save Employee Payslip All Data
-    public function saveEmployeePayslipAllData($payslipId, $month, $year, $employeeId, $basicPay, $allowanceAmount, $dayCount, $presentCount, $absentCount, $monthBasicPay, $monthAllowanceAmount, $otCount, $otAmount, $mobileRecharge, $travellingAmount, $incentiveAmount, $foodExpenses, $totalEarning, $pfStatus, $pfAmount, $monthPfAmount, $esiStatus, $esiAmount, $advanceCash, $professionalTax, $deductionAmount, $salaryAmount, $salaryInWord)
+    public function saveEmployeePayslipAllData($payslipId, $month, $year, $employeeId, $basicPay, $allowanceAmount, $dayCount, $presentCount, $absentCount, $monthBasicPay, $monthAllowanceAmount, $otCount, $otAmount, $mobileRecharge, $travellingAmount, $incentiveAmount, $foodExpenses, $totalEarning, $pfStatus, $pfAmount, $monthPfAmount, $esiStatus, $esiAmount, $advanceCash, $professionalTax, $tdsAmount, $deductionAmount, $salaryAmount, $salaryInWord)
     {
         // Check if employeeId or salaryAmount is empty and return false if so
         if (empty($salaryAmount)) {
@@ -635,6 +637,7 @@ class Employeemodel extends CI_Model
             'esi_amount' => $esiAmount,
             'advance_cash' => $advanceCash,
             'professional_tax' => $professionalTax,
+            'tds_amount' => $tdsAmount,
             'total_earning' => $totalEarning,
             'deduction_amount' => $deductionAmount,
             'salary_amount' => $salaryAmount,
@@ -977,11 +980,12 @@ class Employeemodel extends CI_Model
     //Present Month List
     public function getWorkMonthList($year='')
     {
+        $whereYear = '';
         if($year) {
             $whereYear = " AND DATE_FORMAT(report_date, '%Y') = '$year' ";
         }
 
-        $sql = "SELECT *, LOWER(DATE_FORMAT(report_date, '%M')) AS month FROM employee_work_report WHERE delete_status = 0 $whereYear GROUP BY DATE_FORMAT(report_date, '%M') ORDER BY FIELD(DATE_FORMAT(report_date, '%M'), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'cctober', 'november', 'december')";
+        $sql = "SELECT *, LOWER(DATE_FORMAT(report_date, '%M')) AS month FROM employee_work_report WHERE delete_status = 0 $whereYear GROUP BY DATE_FORMAT(report_date, '%M') ORDER BY FIELD(LOWER(DATE_FORMAT(report_date, '%M')), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')";
         
         $res = $this->db->query($sql);
         return $res->result();

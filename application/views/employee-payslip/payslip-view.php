@@ -310,6 +310,16 @@
                             </div>
                         </div>
                     <?php } ?>
+                    <?php if(isset($tdsAmount) && (float)$tdsAmount > 0) { ?>
+                        <div class="row g-3 mb-2">
+                            <div class="col-9">
+                                <p class="mb-0 text-black fs-13px fw-semibold">TDS Amount</p>
+                            </div>
+                            <div class="col-3 text-end">
+                                <p class="mb-0 text-black fs-13px fw-semibold text-capitalize"><?php echo $tdsAmount; ?></p>
+                            </div>
+                        </div>
+                    <?php } ?>
                     <?php if($advanceCash > 0) { ?>
                         <div class="row g-3 mb-2">
                             <div class="col-9">

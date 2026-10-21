@@ -3,6 +3,29 @@
 
 class Outletmodel extends CI_Model
 {
+    // Branch Outlet Summary
+    public function getBranchOutletSummary()
+    {
+        $sql = "SELECT 
+                    MB.id AS branch_id,
+                    MB.zone,
+                    MB.branch AS branch_name,
+                    MB.location_url,
+                    COUNT(O.id) AS outlet_count
+                FROM master_branch MB
+                LEFT JOIN outlet O 
+                    ON O.branch = MB.id 
+                    AND O.delete_status = 0 
+                    AND O.status = 'active'
+                WHERE MB.delete_status = 0 
+                AND MB.status = 'active'
+                GROUP BY MB.id, MB.zone, MB.branch, MB.location_url
+                ORDER BY MB.zone ASC, MB.branch ASC";
+
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+
     //Outlet List
     public function outletList($pageStatus = '')
     {
@@ -76,7 +99,7 @@ class Outletmodel extends CI_Model
     }
 
     //Save Outlet Form
-    public function saveOutletData($outletId, $token, $zone, $branch, $outletType, $customerId, $outletName, $outletLocation, $contactName, $contactNumber, $earthingChamber, $checkingDate, $renewalDate, $cvt, $stabilizer, $yardPole, $stp, $canopyLight, $pump, $status)
+    public function saveOutletData($outletId, $token, $zone, $branch, $outletType, $customerId, $outletName, $outletLocation, $contactName, $contactNumber, $earthingChamber, $checkingDate, $renewalDate, $cvt, $stabilizer, $yardPole, $stp, $canopyLight, $pump, $status, $locationUrl = '')
     {
         $userId = $this->session->userdata('userid');
 
@@ -96,6 +119,7 @@ class Outletmodel extends CI_Model
                 'customer_id' => $customerId,
                 'outlet_name' => $outletName,
                 'outlet_location' => $outletLocation,
+                'location_url' => $locationUrl,
                 'contact_name' => $contactName,
                 'contact_number' => $contactNumber,
                 'earthing_chamber' => $earthingChamber,
@@ -123,6 +147,7 @@ class Outletmodel extends CI_Model
                 'customer_id' => $customerId,
                 'outlet_name' => $outletName,
                 'outlet_location' => $outletLocation,
+                'location_url' => $locationUrl,
                 'contact_name' => $contactName,
                 'contact_number' => $contactNumber,
                 'earthing_chamber' => $earthingChamber,
@@ -283,6 +308,9 @@ class Outletmodel extends CI_Model
         $this->db->where('O.delete_status', 0);
         if ($pageStatus) {
             $this->db->where('O.status', $pageStatus);
+        }
+        if ($branchId != '') {
+            $this->db->where('O.branch', $branchId);
         }
         $query = $this->db->get();
         $records = $query->result();

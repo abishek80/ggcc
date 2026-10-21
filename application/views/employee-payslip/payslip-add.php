@@ -92,6 +92,10 @@
                     <input name="professional_tax" id="professional_tax" type="text" class="professionalTax form-control decimal" placeholder="Professional Tax" value="0">
                 </div>
                 <div class="col-lg-3 col-md-4">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">TDS Amount <span class="text-danger">*</span></label>
+                    <input name="tds_amount" id="tds_amount" type="text" class="tdsAmount form-control decimal" placeholder="TDS Amount" value="0">
+                </div>
+                <div class="col-lg-3 col-md-4">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Advance In Cash <span class="text-danger">*</span></label>
                     <input name="advance_cash" id="advance_cash" type="text" class="advanceCash form-control decimal" placeholder="Advance In Cash">
                 </div>
@@ -242,6 +246,8 @@
 
             // Reset all fields (except month and year)
             $('#payslip_id, #month_basic_pay, #month_allowance_amount, #allowance_amount, #basic_pay, #absent_count, #ot_amount, #mobile_recharge, #total_earning, #esi_basic_amount, #pf_status, #esi_status, #month_pf_amount, #pf_amount, #esi_amount, #deduction_amount, #salary_in_word, #day_count, #present_count, #ot_count, #travelling_amount, #incentive_amount, #food_expenses, #advance_cash, #salary_amount').val('');
+            $('#professional_tax').val('0');
+            $('#tds_amount').val('0');
 
             if (selectedEmployeeName !== '') {
                 $.ajax({
@@ -343,21 +349,24 @@
             }
         });
 
-        $(".advanceCash").on("blur", function(){
-            var esiAmount = $('.esiAmount').val();
-            var monthPfAmount = $('.monthPfAmount').val();
-            var advanceCash = $('.advanceCash').val();
-            var professionalTax = $('.professionalTax').val();
-            var earningAmount = $('.earningAmount').val();
+        function calculateDeductionsAndSalary() {
+            var esiAmount = parseFloat($('.esiAmount').val()) || 0;
+            var monthPfAmount = parseFloat($('.monthPfAmount').val()) || 0;
+            var advanceCash = parseFloat($('.advanceCash').val()) || 0;
+            var professionalTax = parseFloat($('.professionalTax').val()) || 0;
+            var tdsAmount = parseFloat($('.tdsAmount').val()) || 0;
+            var earningAmount = parseFloat($('.earningAmount').val()) || 0;
             
-            var deductionAmount = parseFloat(esiAmount) + parseFloat(monthPfAmount) + parseFloat(advanceCash) + parseFloat(professionalTax);
+            var deductionAmount = esiAmount + monthPfAmount + advanceCash + professionalTax + tdsAmount;
             $('.deductionAmount').val(deductionAmount);
-            
-            var deductionAmount = $('.deductionAmount').val();
 
-            var salaryAmount = parseFloat(earningAmount) - parseFloat(deductionAmount);
+            var salaryAmount = earningAmount - deductionAmount;
             $('.salaryAmount').val(salaryAmount);
             $('.salaryAmountInWords').val(numberToWords(salaryAmount));
+        }
+
+        $(".advanceCash, .tdsAmount, .professionalTax").on("blur input", function(){
+            calculateDeductionsAndSalary();
         });
     });
 
@@ -401,6 +410,9 @@
             },
             advance_cash: {
                 required: true
+            },
+            tds_amount: {
+                required: true
             }
         },
         messages: {
@@ -427,6 +439,9 @@
             },
             advance_cash: {
                 required: "Please Enter Avance In Cash"
+            },
+            tds_amount: {
+                required: "Please Enter TDS Amount"
             }
         },
         submitHandler: function (form) {

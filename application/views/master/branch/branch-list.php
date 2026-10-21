@@ -17,6 +17,7 @@
                             <th class="w-min-40">S. No</th>
                             <th>Branch Zone</th>
                             <th>Branch Name</th>
+                            <th>Location URL</th>
                             <th>Status</th>
                             <th>Created By</th>
                             <th>Created At</th>
@@ -32,6 +33,17 @@
                             <td><?php echo $i++; ?></td>
                             <td><?php echo $row->zone; ?></td>
                             <td><?php echo $row->branch; ?></td>
+                            <td>
+                                <?php if (!empty($row->location_url)) { 
+                                    $locUrl = (preg_match('#^https?://#i', $row->location_url)) ? $row->location_url : 'https://' . $row->location_url;
+                                ?>
+                                    <a href="<?php echo htmlspecialchars($locUrl); ?>" target="_blank" class="badge bg-label-primary" title="<?php echo htmlspecialchars($row->location_url); ?>">
+                                        <i class="bx bx-map-pin me-1"></i>View Location
+                                    </a>
+                                <?php } else { ?>
+                                    <span class="text-muted">-</span>
+                                <?php } ?>
+                            </td>
                             <td>
                                 <?php if($row->status == 'active') { ?>
                                     <a href="javascript:void(0);" data-value="inactive" data-rowid="<?php echo $row->id; ?>" data-tablename="master_branch" data-link="<?php echo base_url(); ?>master/branch-list" class="text-success changeStatus" data-toggle="tooltip" data-placement="top" title="Status Change"> Active </a>

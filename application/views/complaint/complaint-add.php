@@ -75,6 +75,10 @@
                     <input name="outlet_location" id="outlet_location" type="text" class="inputClass form-control" placeholder="Enter Outlet Location">
                 </div>
                 <div class="col-lg-4 col-md-6 newOutlet d-none">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Location URL</label>
+                    <input name="location_url" id="location_url" type="text" class="inputClass form-control" placeholder="Enter Outlet Location URL">
+                </div>
+                <div class="col-lg-4 col-md-6 newOutlet d-none">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Contact Name</label>
                     <input name="contact_name" id="contact_name" type="text" class="inputClass form-control" placeholder="Enter Outlet Contact Name">
                 </div>
@@ -98,6 +102,10 @@
                 <div class="col-lg-4 col-md-6 oldOutlet d-block">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Location <span class="text-danger">*</span></label>
                     <input name="old_outlet_location" id="outlet_location" type="text" readonly class="inputClass form-control outletLocation" placeholder="Outlet Location">
+                </div>
+                <div class="col-lg-4 col-md-6 oldOutlet d-block">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Location URL</label>
+                    <input name="old_location_url" id="old_location_url" type="text" readonly class="inputClass form-control locationUrl" placeholder="Outlet Location URL">
                 </div>
                 <div class="col-lg-4 col-md-6 oldOutlet d-block">
                     <div class="mb-2">
@@ -230,6 +238,8 @@
                         inputElement.value = data[0].outlet_name;
                         var inputElement = document.querySelector('.outletLocation');
                         inputElement.value = data[0].outlet_location;
+                        var inputLocElement = document.querySelector('.locationUrl');
+                        if (inputLocElement) inputLocElement.value = data[0].location_url || '';
                         var inputElement = document.querySelector('.contactName');
                         inputElement.value = data[0].contact_name;
                         var inputElement = document.querySelector('.contactNumber');
@@ -239,6 +249,7 @@
             } else {
                 $('.outletName').val('');
                 $('.outletLocation').val('');
+                $('.locationUrl').val('');
                 $('.contactName').val('');
                 $('.contactNumber').val('');
             }

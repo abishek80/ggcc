@@ -125,6 +125,7 @@ $route['vehicle/(:any)/(:any)'] = 'vehicle/$1/$2';
 $route['outlet'] = "outlet/index";
 $route['outlet/(:any)'] = 'outlet/$1';
 $route['outlet/(:any)/(:any)'] = 'outlet/$1/$2';
+$route['outlet/(:any)/(:any)/(:any)'] = 'outlet/$1/$2/$3';
 
 // stock Controller Route Path
 $route['stock'] = "stock/index";
@@ -138,6 +139,8 @@ $route['loan/(:any)/(:any)'] = 'loan/$1/$2';
 
 // report Controller Route Path
 $route['report'] = "report/index";
+$route['report/vehicle-maintenance-report'] = 'report/vehicle_service_report';
+$route['report/vehicle-service-report'] = 'report/vehicle_service_report';
 $route['report/(:any)'] = 'report/$1';
 $route['report/(:any)/(:any)'] = 'report/$1/$2';
 

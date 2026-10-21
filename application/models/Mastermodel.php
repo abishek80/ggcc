@@ -894,7 +894,7 @@ class Mastermodel extends CI_Model
     }
 
     //Save Branch Form
-    public function saveBranchData($branchId, $token, $branchZone, $branch, $status)
+    public function saveBranchData($branchId, $token, $branchZone, $branch, $status, $locationUrl = '')
     {
         $userId = $this->session->userdata('userid');
 
@@ -910,6 +910,7 @@ class Mastermodel extends CI_Model
             $data = array(
                 'zone' => $branchZone,
                 'branch' => $branch,
+                'location_url' => $locationUrl,
                 'status' => $status,
                 'updated_by' => $userId,
                 'updated_at' => date('Y-m-d H:i:s')
@@ -922,6 +923,7 @@ class Mastermodel extends CI_Model
                 'token' => $token,
                 'zone' => $branchZone,
                 'branch' => $branch,
+                'location_url' => $locationUrl,
                 'status' => $status,
                 'created_by' => $userId,
                 'created_at' => date('Y-m-d H:i:s')

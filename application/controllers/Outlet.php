@@ -18,14 +18,13 @@ class Outlet extends CI_Controller {
       error_reporting(E_ALL ^ (E_NOTICE | E_WARNING | E_DEPRECATED));
     }
 
-    public function index($pageStatus='')
+    public function index()
     {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
         if (in_array('admin', $userPermission) || in_array('complaint_management', $userPermission)) {
             $data["menu_status"] = 'outlet';
-            $data['activeLink'] = $pageStatus;
 
-            $data['outletList'] = $this->outletmodel->outletList($pageStatus);
+            $data['branchOutletSummary'] = $this->outletmodel->getBranchOutletSummary();
 
             $this->load->view('settings/header', $data);
             $this->load->view('outlet/outlet-list', $data);
@@ -37,18 +36,39 @@ class Outlet extends CI_Controller {
         }
     }
 
-    public function outlet_list($pageStatus='')
+    public function outlet_list()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission) || in_array('complaint_management', $userPermission)) {
+            $data["menu_status"] = 'outlet';
+
+            $data['branchOutletSummary'] = $this->outletmodel->getBranchOutletSummary();
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('outlet/outlet-list', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    public function branch_outlet_list($branchId = '', $pageStatus = 'active')
     {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
         if (in_array('admin', $userPermission) || in_array('complaint_management', $userPermission)) {
             $data["menu_status"] = 'outlet';
             $data['activeLink'] = $pageStatus;
+            $data['branchId'] = $branchId;
 
-            $data['outletList'] = $this->outletmodel->outletList($pageStatus);
+            $branchInfo = $this->mastermodel->getBranchInfo($branchId);
+            $data['branchName'] = !empty($branchInfo) ? $branchInfo[0]->branch : '';
+            $data['zone'] = !empty($branchInfo) ? $branchInfo[0]->zone : '';
             $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
 
             $this->load->view('settings/header', $data);
-            $this->load->view('outlet/outlet-list', $data);
+            $this->load->view('outlet/branch-outlet-list', $data);
             $this->load->view('settings/footer');
         } else {
             $this->load->view('settings/header_link');
@@ -60,6 +80,7 @@ class Outlet extends CI_Controller {
     public function outlet_list_json($pageStatus = '')
     {
         $postData = $this->input->post();
+        if ($pageStatus === 'all') $pageStatus = '';
         $data = $this->outletmodel->get_outlets_server_side($postData, $pageStatus);
         echo json_encode($data);
     }
@@ -92,6 +113,27 @@ class Outlet extends CI_Controller {
             $data["menu_status"] = 'outlet';
 
             $data['formTitle'] = "Add Outlet";
+            $data['outletId'] = '';
+            $data['outletToken'] = '';
+            $data['zone'] = '';
+            $data['branchId'] = '';
+            $data['outletType'] = '';
+            $data['customerId'] = '';
+            $data['outletName'] = '';
+            $data['outletLocation'] = '';
+            $data['locationUrl'] = '';
+            $data['contactName'] = '';
+            $data['contactNumber'] = '';
+            $data['earthingChamber'] = '';
+            $data['checkingDate'] = '';
+            $data['renewalDate'] = '';
+            $data['yardPole'] = '';
+            $data['canopyLight'] = '';
+            $data['cvt'] = '';
+            $data['stabilizer'] = '';
+            $data['pump'] = '';
+            $data['stp'] = '';
+            $data['status'] = 'active';
             $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
 
             $this->load->view('settings/header', $data);
@@ -123,6 +165,7 @@ class Outlet extends CI_Controller {
                 $data['customerId'] = $row->customer_id;
                 $data['outletName'] = $row->outlet_name;
                 $data['outletLocation'] = $row->outlet_location;
+                $data['locationUrl'] = isset($row->location_url) ? $row->location_url : '';
                 $data['contactName'] = $row->contact_name;
                 $data['contactNumber'] = $row->contact_number;
                 $data['earthingChamber'] = $row->earthing_chamber;
@@ -176,6 +219,7 @@ class Outlet extends CI_Controller {
             $data['branchName'] = $row->branch_name;
             $data['outletName'] = $row->outlet_name;
             $data['outletLocation'] = $row->outlet_location;
+            $data['locationUrl'] = isset($row->location_url) ? $row->location_url : '';
             $data['contactName'] = $row->contact_name;
             $data['contactNumber'] = $row->contact_number;
             $data['earthingChamber'] = $row->earthing_chamber;
@@ -205,6 +249,7 @@ class Outlet extends CI_Controller {
         $customerId = $this->input->post('customer_id');
         $outletName = $this->input->post('outlet_name');
         $outletLocation = $this->input->post('outlet_location');
+        $locationUrl = $this->input->post('location_url');
         $contactName = $this->input->post('contact_name');
         $contactNumber = $this->input->post('contact_number');
         $earthingChamber = $this->input->post('earthing_chamber');
@@ -228,7 +273,7 @@ class Outlet extends CI_Controller {
             }
         }
 
-        $this->outletmodel->saveOutletData($outletId, $token, $zone, $branch, $outletType, $customerId, $outletName, $outletLocation, $contactName, $contactNumber, $earthingChamber, $checkingDate, $renewalDate, $cvt, $stabilizer, $yardPole, $stp, $canopyLight, $pump, $status);
+        $this->outletmodel->saveOutletData($outletId, $token, $zone, $branch, $outletType, $customerId, $outletName, $outletLocation, $contactName, $contactNumber, $earthingChamber, $checkingDate, $renewalDate, $cvt, $stabilizer, $yardPole, $stp, $canopyLight, $pump, $status, $locationUrl);
         
         $data["isError"] = FALSE;
         if ($outletId > 0) {

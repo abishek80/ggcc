@@ -15,7 +15,7 @@ class Billmodel extends CI_Model
     //Pettycash Month List
     public function getPettycashMonthList($year='', $branch='')
     {
-        $sql = "SELECT *, LOWER(DATE_FORMAT(paid_date, '%M')) as month, DATE_FORMAT(paid_date, '%Y') as year, SUM(amount) AS amount FROM branch_pettycash WHERE delete_status = 0 AND DATE_FORMAT(paid_date, '%Y') = '$year' AND branch = '$branch' GROUP BY LOWER(DATE_FORMAT(paid_date, '%M')) ORDER BY FIELD(LOWER(DATE_FORMAT(paid_date, '%M')), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'cctober', 'november', 'december')";
+        $sql = "SELECT *, LOWER(DATE_FORMAT(paid_date, '%M')) as month, DATE_FORMAT(paid_date, '%Y') as year, SUM(amount) AS amount FROM branch_pettycash WHERE delete_status = 0 AND DATE_FORMAT(paid_date, '%Y') = '$year' AND branch = '$branch' GROUP BY LOWER(DATE_FORMAT(paid_date, '%M')) ORDER BY FIELD(LOWER(DATE_FORMAT(paid_date, '%M')), 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december')";
 
         $res = $this->db->query($sql);
         return $res->result();

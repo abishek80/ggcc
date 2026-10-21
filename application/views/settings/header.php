@@ -597,6 +597,13 @@ if ($CI->db->table_exists('menu_control')) {
                                         </a>
                                     </li>
                                 <?php } ?>
+                                <?php if (($menuStates['vehicle_service_report'] ?? 'enabled') === 'enabled' && (in_array('admin', $userPermission) || in_array('vehicle_management', $userPermission))) { ?>
+                                    <li class="menu-item <?php echo ($menu_status == 'vehicle_service_report' || $menu_status == 'vehicle_maintenance_report') ? 'active' : ''; ?>">
+                                        <a href="<?php echo base_url(); ?>report/vehicle-maintenance-report" class="menu-link">
+                                            <div data-i18n="Vehicle Maintenance Report">Vehicle Maintenance</div>
+                                        </a>
+                                    </li>
+                                <?php } ?>
                                 <?php if (($menuStates['stock_report'] ?? 'enabled') === 'enabled' && (in_array('admin', $userPermission) || in_array('stock_management', $userPermission))) { ?>
                                     <li class="menu-item <?php echo $menu_status == 'stock_report' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>report/stock-report" class="menu-link">

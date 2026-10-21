@@ -513,6 +513,7 @@ class Api extends CI_Controller
                 'pfAmount'               => $row->month_pf_amount,
                 'advanceCash'            => $row->advance_cash,
                 'professionalTax'        => $row->professional_tax,
+                'tdsAmount'              => $row->tds_amount ?? 0,
                 'totalEarning'           => $row->total_earning,
                 'deductionAmount'        => $row->deduction_amount,
                 'salaryAmount'           => $row->salary_amount,

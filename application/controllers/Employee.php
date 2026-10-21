@@ -555,6 +555,7 @@ class Employee extends CI_Controller {
                 $data['pfAmount']=$row->month_pf_amount;
                 $data['advanceCash']=$row->advance_cash;
                 $data['professionalTax']=$row->professional_tax;
+                $data['tdsAmount']=$row->tds_amount;
                 $data['totalEarning']=$row->total_earning;
                 $data['deductionAmount']=$row->deduction_amount;
                 $data['salaryAmount']=$row->salary_amount;
@@ -642,11 +643,12 @@ class Employee extends CI_Controller {
         $esiAmount = $this->input->post('esi_amount');
         $advanceCash = $this->input->post('advance_cash');
         $professionalTax = $this->input->post('professional_tax');
+        $tdsAmount = $this->input->post('tds_amount');
         $deductionAmount = $this->input->post('deduction_amount');
         $salaryAmount = $this->input->post('salary_amount');
         $salaryInWord = $this->input->post('salary_in_word');
 
-        $this->employeemodel->savePayslipData($payslipId, $employeeName, $year, $month, $dayCount, $presentCount, $absentCount, $basicPay, $monthBasicPay, $allowanceAmount, $monthAllowanceAmount, $otCount, $otAmount, $mobileRecharge, $travellingAmount, $incentiveAmount, $foodExpenses, $pfStatus, $pfAmount, $monthPfAmount, $esiStatus, $esiAmount, $advanceCash, $professionalTax, $totalEarning, $deductionAmount, $salaryAmount, $salaryInWord);
+        $this->employeemodel->savePayslipData($payslipId, $employeeName, $year, $month, $dayCount, $presentCount, $absentCount, $basicPay, $monthBasicPay, $allowanceAmount, $monthAllowanceAmount, $otCount, $otAmount, $mobileRecharge, $travellingAmount, $incentiveAmount, $foodExpenses, $pfStatus, $pfAmount, $monthPfAmount, $esiStatus, $esiAmount, $advanceCash, $professionalTax, $tdsAmount, $totalEarning, $deductionAmount, $salaryAmount, $salaryInWord);
         
         $data["isError"] = FALSE;
         if ($payslipId > 0) {
@@ -732,6 +734,7 @@ class Employee extends CI_Controller {
       $esiAmounts = $this->input->post('esi_amount');
       $advanceCashs = $this->input->post('advance_cash');
       $professionalTaxs = $this->input->post('professional_tax');
+      $tdsAmounts = $this->input->post('tds_amount');
       $deductionAmounts = $this->input->post('deduction_amount');
       $salaryAmounts = $this->input->post('salary_amount');
       $salaryInWords = $this->input->post('salary_in_word');
@@ -759,10 +762,11 @@ class Employee extends CI_Controller {
           $esiAmount = isset($esiAmounts[$index]) ? $esiAmounts[$index] : '';
           $advanceCash = isset($advanceCashs[$index]) ? $advanceCashs[$index] : '';
           $professionalTax = isset($professionalTaxs[$index]) ? $professionalTaxs[$index] : '';
+          $tdsAmount = isset($tdsAmounts[$index]) ? $tdsAmounts[$index] : '0';
           $deductionAmount = isset($deductionAmounts[$index]) ? $deductionAmounts[$index] : '';
           $salaryAmount = isset($salaryAmounts[$index]) ? $salaryAmounts[$index] : '';
           $salaryInWord = isset($salaryInWords[$index]) ? $salaryInWords[$index] : '';
-          $this->employeemodel->saveEmployeePayslipAllData($payslipId, $month, $year, $employeeId, $basicPay, $allowanceAmount, $dayCount, $presentCount, $absentCount, $monthBasicPay, $monthAllowanceAmount, $otCount, $otAmount, $mobileRecharge, $travellingAmount, $incentiveAmount, $foodExpenses, $totalEarning, $pfStatus, $pfAmount, $monthPfAmount, $esiStatus, $esiAmount, $advanceCash, $professionalTax, $deductionAmount, $salaryAmount, $salaryInWord);
+          $this->employeemodel->saveEmployeePayslipAllData($payslipId, $month, $year, $employeeId, $basicPay, $allowanceAmount, $dayCount, $presentCount, $absentCount, $monthBasicPay, $monthAllowanceAmount, $otCount, $otAmount, $mobileRecharge, $travellingAmount, $incentiveAmount, $foodExpenses, $totalEarning, $pfStatus, $pfAmount, $monthPfAmount, $esiStatus, $esiAmount, $advanceCash, $professionalTax, $tdsAmount, $deductionAmount, $salaryAmount, $salaryInWord);
           
           // Push payslip notification to employee
           if (!($payslipId > 0)) {

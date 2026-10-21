@@ -1,54 +1,55 @@
 <section class="content-wrapper">
-    <div class="container-xxl flex-grow-1 pt-4 pb-4 container-p-y">
+    <div class="container-fluid flex-grow-1 pt-4 pb-4 container-p-y">
         <form id="multiPayslipSaveForm" method="post" class="card px-3 pb-3">
             <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pt-3 pb-3 sticky-head flex-wrap gap-3">
                 <div class="d-flex gap-2 align-items-center">
                     <a href="<?php echo base_url(); ?>employee/payslip-list/<?php echo date('Y'); ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                     <h4 class="fw-bold mb-0 text-black"><?php echo $formTitle; ?></h4>
                 </div>
-                <div class="d-flex gap-3 justify-content-end">
-                    <a href="<?php echo base_url(); ?>employee/payslip-list/<?php echo date('Y'); ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
-                    <button type="submit" class="btn btn-success px-4 py-2 rounded border-0 fw-bold text-white">Save</button>
+                <div class="d-flex gap-5 align-items-center">
+                    <div class="d-flex gap-3 align-items-center">
+                        <div>
+                            <select name="month" id="month" class="form-select payslipMonth" style="width: 200px">
+                                <option value="">Select Month</option>
+                                <option value="january" <?php if($month == 'january') { echo 'selected'; } ?>>January</option>
+                                <option value="february" <?php if($month == 'february') { echo 'selected'; } ?>>February</option>
+                                <option value="march" <?php if($month == 'march') { echo 'selected'; } ?>>March</option>
+                                <option value="april" <?php if($month == 'april') { echo 'selected'; } ?>>April</option>
+                                <option value="may" <?php if($month == 'may') { echo 'selected'; } ?>>May</option>
+                                <option value="june" <?php if($month == 'june') { echo 'selected'; } ?>>June</option>
+                                <option value="july" <?php if($month == 'july') { echo 'selected'; } ?>>July</option>
+                                <option value="august" <?php if($month == 'august') { echo 'selected'; } ?>>August</option>
+                                <option value="september" <?php if($month == 'september') { echo 'selected'; } ?>>September</option>
+                                <option value="october" <?php if($month == 'october') { echo 'selected'; } ?>>October</option>
+                                <option value="november" <?php if($month == 'november') { echo 'selected'; } ?>>November</option>
+                                <option value="december" <?php if($month == 'december') { echo 'selected'; } ?>>December</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select name="year" id="year" class="form-select" style="width: 200px"></select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 justify-content-end">
+                        <a href="<?php echo base_url(); ?>employee/payslip-list/<?php echo date('Y'); ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
+                        <button type="submit" class="btn btn-success px-4 py-2 rounded border-0 fw-bold text-white">Save</button>
+                    </div>
                 </div>
             </div>
             <input name="payslip_id" id="payslip_id" type="hidden" value="<?php echo $payslipId; ?>">
-            <div class="row g-3 justify-content-end">
-                <div class="col-lg-3 col-md-6">
-                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Month <span class="text-danger">*</span></label>
-                    <select name="month" id="month" class="form-select payslipMonth">
-                        <option value="">Select Month</option>
-                        <option value="january" <?php if($month == 'january') { echo 'selected'; } ?>>January</option>
-                        <option value="february" <?php if($month == 'february') { echo 'selected'; } ?>>February</option>
-                        <option value="march" <?php if($month == 'march') { echo 'selected'; } ?>>March</option>
-                        <option value="april" <?php if($month == 'april') { echo 'selected'; } ?>>April</option>
-                        <option value="may" <?php if($month == 'may') { echo 'selected'; } ?>>May</option>
-                        <option value="june" <?php if($month == 'june') { echo 'selected'; } ?>>June</option>
-                        <option value="july" <?php if($month == 'july') { echo 'selected'; } ?>>July</option>
-                        <option value="august" <?php if($month == 'august') { echo 'selected'; } ?>>August</option>
-                        <option value="september" <?php if($month == 'september') { echo 'selected'; } ?>>September</option>
-                        <option value="october" <?php if($month == 'october') { echo 'selected'; } ?>>October</option>
-                        <option value="november" <?php if($month == 'november') { echo 'selected'; } ?>>November</option>
-                        <option value="december" <?php if($month == 'december') { echo 'selected'; } ?>>December</option>
-                    </select>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Year <span class="text-danger">*</span></label>
-                    <select name="year" id="year" class="form-select"></select>
-                </div>
-            </div>
-            <div class="mt-4 table-responsive">
+            <div class="table-responsive">
                 <table class="table table-striped table-bordered">
                     <thead>
                         <tr>
                             <th class="w-min-50">S. No</th>
-                            <th class="w-min-250">Employee Name</th>
+                            <th class="w-min-200">Employee Name</th>
                             <th class="w-min-100">No. of Day</th>
                             <th class="w-min-100">Present Count</th>
                             <th class="w-min-100">OT Count</th>
                             <th class="w-min-120">Travelling Amount</th>
                             <th class="w-min-120">Incentive Amount</th>
                             <th class="w-min-120">Food Expenses</th>
-                            <th class="w-min-120">Professional Tax</th>
+                            <th class="w-min-120">Professional <br> Tax</th>
+                            <th class="w-min-120">TDS <br> Amount</th>
                             <th class="w-min-120">Advance In Cash</th>
                             <th class="w-min-120">Salary Amount</th>
                         </tr>
@@ -105,6 +106,9 @@
                                 </td>
                                 <td>
                                     <input name="professional_tax[]" id="professional_tax<?php echo $i; ?>" type="text" class="form-control decimal professionalTax" placeholder="Professional Tax" value="0">
+                                </td>
+                                <td>
+                                    <input name="tds_amount[]" id="tds_amount<?php echo $i; ?>" type="text" class="form-control decimal tdsAmount" placeholder="<br> " value="0">
                                 </td>
                                 <td>
                                     <input name="advance_cash[]" id="advance_cash<?php echo $i; ?>" type="text" class="form-control decimal advanceInCash" placeholder="Advance In Cash">
@@ -336,20 +340,25 @@
         });
 
         // Calculate deductions and salary
-        $(document).on('blur', '.advanceInCash', function() {
-            const row = $(this).closest('tr');
-            const esiAmount = parseFloat(row.find('.esiAmount').val());
-            const monthPfAmount = parseFloat(row.find('.monthPfAmount').val());
-            const professionalTax = parseFloat(row.find('.professionalTax').val());
-            const advanceCash = parseFloat($(this).val());
-            const totalEarningAmount = parseFloat(row.find('.totalEarningAmount').val());
+        function calculateMultiRowDeductionsAndSalary(row) {
+            const esiAmount = parseFloat(row.find('.esiAmount').val()) || 0;
+            const monthPfAmount = parseFloat(row.find('.monthPfAmount').val()) || 0;
+            const professionalTax = parseFloat(row.find('.professionalTax').val()) || 0;
+            const tdsAmount = parseFloat(row.find('.tdsAmount').val()) || 0;
+            const advanceCash = parseFloat(row.find('.advanceInCash').val()) || 0;
+            const totalEarningAmount = parseFloat(row.find('.totalEarningAmount').val()) || 0;
 
-            const totalDeductionAmount = esiAmount + monthPfAmount + advanceCash + professionalTax;
+            const totalDeductionAmount = esiAmount + monthPfAmount + advanceCash + professionalTax + tdsAmount;
             row.find('.totalDeductionAmount').val(totalDeductionAmount);
 
             const salaryAmount = totalEarningAmount - totalDeductionAmount;
             row.find('.salaryAmount').val(salaryAmount.toFixed(0));
             row.find('.salaryAmountWord').val(numberToWords(salaryAmount));
+        }
+
+        $(document).on('blur input', '.advanceInCash, .tdsAmount, .professionalTax', function() {
+            const row = $(this).closest('tr');
+            calculateMultiRowDeductionsAndSalary(row);
         });
 
         let dateDropdown = document.getElementById('year');

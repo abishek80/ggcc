@@ -48,7 +48,14 @@
                             <td><?php echo $row->customer_id; ?></td>
                             <td>
                                 <p class="mb-1"><?php if($row->outlet_type) { echo $row->outlet_type . ' - '; } echo $row->outlet_name; ?></p>
-                                <p class="mb-0"><?php echo $row->outlet_location; ?></p>
+                                <p class="mb-0">
+                                    <?php echo $row->outlet_location; ?>
+                                    <?php if (!empty($row->location_url)) { 
+                                        $locUrl = (preg_match('#^https?://#i', $row->location_url)) ? $row->location_url : 'https://' . $row->location_url;
+                                    ?>
+                                        <a href="<?php echo htmlspecialchars($locUrl); ?>" target="_blank" class="badge bg-label-primary ms-1" title="View Location"><i class="bx bx-map-pin"></i></a>
+                                    <?php } ?>
+                                </p>
                             </td>
                             <td>
                                 <p class="mb-1"><?php echo $row->contact_name; ?></p>
@@ -209,7 +216,12 @@
                 $('#branch').html(data.branch);
                 $('#outletType').html(data.outletType);
                 $('#outletName').html(data.outletName);
-                $('#outletLocation').html(data.outletLocation);
+                var outletLoc = data.outletLocation;
+                if (data.locationUrl && data.locationUrl.trim() !== '' && data.locationUrl !== '-' && data.locationUrl !== 'null') {
+                    var locUrl = (data.locationUrl.match(/^https?:\/\//i)) ? data.locationUrl : 'https://' + data.locationUrl;
+                    outletLoc += ' <a href="' + encodeURI(locUrl) + '" target="_blank" class="badge bg-label-primary ms-2"><i class="bx bx-map-pin me-1"></i>View Location</a>';
+                }
+                $('#outletLocation').html(outletLoc);
                 $('#contactName').html(data.contactName);
                 $('#contactNumber').html('<a href="tel:' + data.contactNumber + '" class="a-hover">' + data.contactNumber + '</a>');
                 

@@ -127,6 +127,7 @@
                                          'oil_change' => 'Oil Change',
                                          'wheel_alignment' => 'Wheel Alignment',
                                          'tyre_change' => 'Tyre Change',
+                                         'battery' => 'Battery',
                                          'fc_work' => 'FC Work'
                                      ];
                                      echo isset($catMap[$row->service_category]) ? $catMap[$row->service_category] : ucwords(str_replace('_', ' ', $row->service_category));

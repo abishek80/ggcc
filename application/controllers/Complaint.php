@@ -218,10 +218,12 @@ class Complaint extends CI_Controller {
           $data['assignTo'] = $row->assign_to;
           $data['outletName'] = $row->outlet_name;
           $data['outletLocation'] = $row->outlet_location;
+          $data['locationUrl'] = isset($row->location_url) ? $row->location_url : '';
           $data['contactName'] = $row->contact_name;
           $data['contactNumber'] = $row->contact_number;
           $data['oldOutletName'] = $row->old_outlet_name;
           $data['oldOutletLocation'] = $row->old_outlet_location;
+          $data['oldLocationUrl'] = isset($row->old_location_url) ? $row->old_location_url : '';
           $data['oldContactName'] = $row->old_contact_name;
           $data['oldContactNumber'] = $row->old_contact_number;
           $data['description'] = $row->description;
@@ -264,10 +266,12 @@ class Complaint extends CI_Controller {
         $data['complainterNumber'] = $row->complainter_number;
         $data['outletName'] = $row->outlet_name;
         $data['outletLocation'] = $row->outlet_location;
+        $data['locationUrl'] = isset($row->location_url) ? $row->location_url : '';
         $data['contactName'] = $row->contact_name;
         $data['contactNumber'] = $row->contact_number;
         $data['oldOutletName'] = $row->old_outlet_name;
         $data['oldOutletLocation'] = $row->old_outlet_location;
+        $data['oldLocationUrl'] = isset($row->old_location_url) ? $row->old_location_url : '';
         $data['oldContactName'] = $row->old_contact_name;
         $data['oldContactNumber'] = $row->old_contact_number;
         $data['description'] = $row->description;
@@ -300,10 +304,12 @@ class Complaint extends CI_Controller {
       $assignTo = $this->input->post('assign_to');
       $outletName = $this->input->post('outlet_name');
       $outletLocation = $this->input->post('outlet_location');
+      $locationUrl = $this->input->post('location_url');
       $contactName = $this->input->post('contact_name');
       $contactNumber = $this->input->post('contact_number');
       $oldOutletName = $this->input->post('old_outlet_name');
       $oldOutletLocation = $this->input->post('old_outlet_location');
+      $oldLocationUrl = $this->input->post('old_location_url');
       $oldContactName = $this->input->post('old_contact_name');
       $oldContactNumber = $this->input->post('old_contact_number');
       $description = $this->input->post('description');
@@ -321,7 +327,7 @@ class Complaint extends CI_Controller {
         }
       }
       
-      $this->complaintmodel->saveComplaintData($date, $complaintId, $outletId, $token, $zone, $branch, $complainterName, $complainterNumber, $workType, $assignTo, $outletName, $outletLocation, $contactName, $contactNumber, $oldOutletName, $oldOutletLocation, $oldContactName, $oldContactNumber, $description, $alreadyExists);
+      $this->complaintmodel->saveComplaintData($date, $complaintId, $outletId, $token, $zone, $branch, $complainterName, $complainterNumber, $workType, $assignTo, $outletName, $outletLocation, $contactName, $contactNumber, $oldOutletName, $oldOutletLocation, $oldContactName, $oldContactNumber, $description, $alreadyExists, $locationUrl, $oldLocationUrl);
       
       $data["isError"] = FALSE;
       if ($complaintId > 0) {
@@ -349,10 +355,12 @@ class Complaint extends CI_Controller {
       $assignTo = $this->input->post('assign_to');
       $outletName = $this->input->post('outlet_name');
       $outletLocation = $this->input->post('outlet_location');
+      $locationUrl = $this->input->post('location_url');
       $contactName = $this->input->post('contact_name');
       $contactNumber = $this->input->post('contact_number');
       $oldOutletName = $this->input->post('old_outlet_name');
       $oldOutletLocation = $this->input->post('old_outlet_location');
+      $oldLocationUrl = $this->input->post('old_location_url');
       $oldContactName = $this->input->post('old_contact_name');
       $oldContactNumber = $this->input->post('old_contact_number');
       $description = $this->input->post('description');
@@ -399,7 +407,7 @@ class Complaint extends CI_Controller {
         }
       }
       
-      $this->complaintmodel->saveComplaintEditData($date, $complaintId, $outletId, $token, $zone, $branch, $complainterName, $complainterNumber, $workType, $assignTo, $outletName, $outletLocation, $contactName, $contactNumber, $oldOutletName, $oldOutletLocation, $oldContactName, $oldContactNumber, $description, $alreadyExists, $status, $remarks, $checkingDate, $renewalDate, $jobReport_img, $earthingReport_img);
+      $this->complaintmodel->saveComplaintEditData($date, $complaintId, $outletId, $token, $zone, $branch, $complainterName, $complainterNumber, $workType, $assignTo, $outletName, $outletLocation, $contactName, $contactNumber, $oldOutletName, $oldOutletLocation, $oldContactName, $oldContactNumber, $description, $alreadyExists, $status, $remarks, $checkingDate, $renewalDate, $jobReport_img, $earthingReport_img, $locationUrl, $oldLocationUrl);
       
       $data["isError"] = FALSE;
       if ($complaintId > 0) {

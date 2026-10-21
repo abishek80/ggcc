@@ -38,6 +38,24 @@
                     <button id="reportButton" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Export</button>
                 </div>
                 <div class="row g-3 mb-4">
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="bg-body text-center p-3 rounded-3 border">
+                            <p class="mb-2 text-black fw-bold">Total Amount</p>
+                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo number_format((float)$totalAmount, 2, '.', ''); ?></h5>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="bg-body text-center p-3 rounded-3 border">
+                            <p class="mb-2 text-black fw-bold">Total Travel KM</p>
+                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo (float)$totalKilometer > 0 ? ( ((float)$totalKilometer == (int)$totalKilometer) ? number_format((float)$totalKilometer) : number_format((float)$totalKilometer, 2, '.', '') ) : '0'; ?> KM</h5>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="bg-body text-center p-3 rounded-3 border">
+                            <p class="mb-2 text-black fw-bold">Total Billed Liter Qty</p>
+                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo number_format((float)$totalLiter, 2, '.', ''); ?></h5>
+                        </div>
+                    </div>
                     <?php if($fromDate) { ?>
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <div class="bg-body text-center p-3 rounded-3 border">
@@ -75,18 +93,6 @@
                         </div>
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <div class="bg-body text-center p-3 rounded-3 border">
-                                <p class="mb-2 text-black fw-bold">Total Kilometer</p>
-                                <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo $totalKilometer; ?></h5>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="bg-body text-center p-3 rounded-3 border">
-                                <p class="mb-2 text-black fw-bold">Total Liter</p>
-                                <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo $totalLiter; ?></h5>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="bg-body text-center p-3 rounded-3 border">
                                 <p class="mb-2 text-black fw-bold">Rate Per Liter</p>
                                 <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo $ratePerLtr; ?></h5>
                             </div>
@@ -103,14 +109,6 @@
                                 <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo $rsPerKM; ?></h5>
                             </div>
                         </div>
-                    <?php } ?>
-                    <div class="col-lg-3 col-md-4 col-sm-6">
-                        <div class="bg-body text-center p-3 rounded-3 border">
-                            <p class="mb-2 text-black fw-bold">Total Amount</p>
-                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo $totalAmount; ?></h5>
-                        </div>
-                    </div>
-                    <?php if($vehicleId) { ?>
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <div class="bg-body text-center p-3 rounded-3 border">
                                 <p class="mb-2 text-black fw-bold">Average Percentage</p>
