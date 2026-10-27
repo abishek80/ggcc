@@ -3,11 +3,11 @@
         <form id="outletForm" method="post" class="card px-3 pb-3">
             <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pt-3 pb-3 sticky-head flex-wrap gap-3">
                 <div class="d-flex gap-2 align-items-center">
-                    <a href="<?php echo base_url(); ?>outlet/outlet-list" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                    <a href="<?php echo base_url() . 'outlet/branch-outlet-list/' . $branchId; ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                     <h4 class="fw-bold mb-0 text-black"><?php echo $formTitle; ?></h4>
                 </div>
                 <div class="d-flex gap-3 justify-content-end">
-                    <a href="<?php echo base_url(); ?>outlet/outlet-list" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
+                    <a href="<?php echo base_url() . 'outlet/branch-outlet-list/' . $branchId; ?>" class="btn btn-danger px-4 py-2 rounded border-0 fw-bold text-white">Cancel</a>
                     <button type="submit" class="btn btn-success px-4 py-2 rounded border-0 fw-bold text-white">Save</button>
                 </div>
             </div>
@@ -28,7 +28,7 @@
                     <select name="branch" id="branch" class="form-select branch select2">
                         <option value="">Select Branch</option>
                         <?php foreach ($branchDropdown as $row) { ?>
-                            <option value="<?php echo $row->id; ?>" <?php if ($row->branch == $branchId) { echo 'selected="true"'; } ?>><?php echo $row->branch; ?></option>
+                            <option value="<?php echo $row->id; ?>" <?php if ($row->id == $branchId || $row->branch == $branchId) { echo 'selected="true"'; } ?>><?php echo $row->branch; ?></option>
                         <?php } ?>
                     </select>
                 </div>
@@ -214,7 +214,7 @@
                         oneClickSubmitBtn();
                         toastr.success(data['message']);
                         setTimeout(function () {
-                            window.location.href = "<?php echo base_url(); ?>outlet/outlet-list";
+                            window.location.href = "<?php echo base_url() . 'outlet/branch-outlet-list/' . $branchId; ?>";
                         }, 1500);
                     }
                 }

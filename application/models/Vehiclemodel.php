@@ -155,7 +155,7 @@ class Vehiclemodel extends CI_Model
     }
 
     //Save Vehicle Service Form
-    public function saveVehicleServiceData($vehicleId, $serviceId, $serviceDate, $nextServiceDate, $serviceCategory, $serviceKM, $nextServiceKM, $serviceCost, $description, $serviceBill_img, $status, $method)
+    public function saveVehicleServiceData($vehicleId, $serviceId, $serviceDate, $nextServiceDate, $serviceCategory, $serviceKM, $nextServiceKM, $serviceCost, $description, $serviceBill_img, $status, $method = null)
     {
         $userId = $this->session->userdata('userid');
 
@@ -166,6 +166,8 @@ class Vehiclemodel extends CI_Model
         $maxID       = $result['id'];
         $miNumberId = sprintf("%05d", $maxID + 1);
         $miNumber   = $year . '/' . $miNumberId;
+
+        $methodValue = !empty($method) ? $method : null;
 
         if ($serviceId > 0) {
             $data = array(
@@ -178,7 +180,7 @@ class Vehiclemodel extends CI_Model
                 'description' => $description,
                 'service_bill' => $serviceBill_img,
                 'status' => $status,
-                'method' => $method,
+                'method' => $methodValue,
                 'updated_by' => $userId,
                 'updated_at' => date('Y-m-d H:i:s')
             );
@@ -197,7 +199,7 @@ class Vehiclemodel extends CI_Model
                 'description' => $description,
                 'service_bill' => $serviceBill_img,
                 'status' => $status,
-                'method' => $method,
+                'method' => $methodValue,
                 'created_by' => $userId,
                 'created_at' => date('Y-m-d H:i:s')
             );

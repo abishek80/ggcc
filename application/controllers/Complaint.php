@@ -157,6 +157,22 @@ class Complaint extends CI_Controller {
         $data['employeeComplaintList'] = $this->complaintmodel->employeeComplaintList($empName);
         $data['checkEmployeeExpensesList'] = $this->employeemodel->getCheckEmployeeExpensesList($employeeId);
         $data['checkEmployeeAttendanceList'] = $this->attendancemodel->getCheckEmployeeAttendanceList($employeeId);
+        $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
+
+        $preBranch = $this->input->get('branch');
+        $preOutlet = $this->input->get('outlet_id');
+        $preWorkType = $this->input->get('work_type');
+
+        $data['preBranchId'] = $preBranch;
+        $data['preOutletId'] = $preOutlet;
+        $data['preWorkType'] = $preWorkType;
+        $data['preZone'] = '';
+        $data['outletDropdown'] = [];
+        if (!empty($preBranch)) {
+            $branchInfo = $this->mastermodel->getBranchInfo($preBranch);
+            $data['preZone'] = !empty($branchInfo) ? $branchInfo[0]->zone : '';
+            $data['outletDropdown'] = $this->outletmodel->outletDropdownList($data['preZone'], $preBranch);
+        }
 
         $this->load->view('settings/header', $data);
         $this->load->view('complaint/complaint-add', $data);

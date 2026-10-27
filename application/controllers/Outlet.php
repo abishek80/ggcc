@@ -63,8 +63,15 @@ class Outlet extends CI_Controller {
             $data['branchId'] = $branchId;
 
             $branchInfo = $this->mastermodel->getBranchInfo($branchId);
-            $data['branchName'] = !empty($branchInfo) ? $branchInfo[0]->branch : '';
-            $data['zone'] = !empty($branchInfo) ? $branchInfo[0]->zone : '';
+            if (!empty($branchInfo)) {
+                $data['branchId'] = $branchInfo[0]->id;
+                $data['branchName'] = $branchInfo[0]->branch;
+                $data['zone'] = $branchInfo[0]->zone;
+            } else {
+                $data['branchId'] = $branchId;
+                $data['branchName'] = '';
+                $data['zone'] = '';
+            }
             $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
 
             $this->load->view('settings/header', $data);
@@ -495,5 +502,35 @@ class Outlet extends CI_Controller {
     
         echo json_encode($data);
         return;
+    }
+
+    // Earth Testing & Priority Route Planner
+    public function earth_testing($branchId = '', $priorityFilter = 'all')
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission) || in_array('complaint_management', $userPermission) || in_array('employee', $userPermission)) {
+            $data["menu_status"] = 'earth_testing';
+
+            $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
+
+            // If no branch provided, default to first available branch
+            if (empty($branchId) && !empty($data['branchDropdown'])) {
+                $branchId = $data['branchDropdown'][0]->id;
+            }
+
+            $data['selectedBranchId'] = $branchId;
+            $data['priorityFilter'] = $priorityFilter;
+
+            $plannerData = $this->outletmodel->getEarthTestingPlanner($branchId, $priorityFilter);
+            $data['planner'] = $plannerData;
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('outlet/earth-testing', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
     }
 }

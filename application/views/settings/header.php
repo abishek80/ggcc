@@ -119,6 +119,14 @@ if ($CI->db->table_exists('menu_control')) {
                             </a>
                         </li>
                         <?php } ?>
+                        <?php if (($menuStates['earth_testing'] ?? 'enabled') === 'enabled') { ?>
+                        <li class="menu-item <?php echo $menu_status == 'earth_testing' ? 'active' : ''; ?>">
+                            <a href="<?php echo base_url(); ?>outlet/earth-testing" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-current-location"></i>
+                                <div data-i18n="Earth Testing">Earth Testing</div>
+                            </a>
+                        </li>
+                        <?php } ?>
                         <?php if (($menuStates['branch_project_list'] ?? 'enabled') === 'enabled') { ?>
                         <li class="menu-item <?php echo $menu_status == 'branch_project' ? 'active' : ''; ?>">
                             <a href="<?php echo base_url(); ?>outlet/branch-project-list" class="menu-link">

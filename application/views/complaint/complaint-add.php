@@ -22,9 +22,9 @@
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Branch Zone <span class="text-danger">*</span></label>
                     <select name="zone" id="zone" class="form-select zone">
                         <option value="">Select Zone</option>
-                        <option value="chennai">Chennai</option>
-                        <option value="mumbai">Mumbai</option>
-                        <option value="indore">Indore</option>
+                        <option value="chennai" <?php if(isset($preZone) && $preZone == 'chennai') echo 'selected'; ?>>Chennai</option>
+                        <option value="mumbai" <?php if(isset($preZone) && $preZone == 'mumbai') echo 'selected'; ?>>Mumbai</option>
+                        <option value="indore" <?php if(isset($preZone) && $preZone == 'indore') echo 'selected'; ?>>Indore</option>
                     </select>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -32,7 +32,7 @@
                     <select name="branch" id="branch" class="form-select branch select2">
                         <option value="">Select Branch</option>
                         <?php foreach ($branchDropdown as $row) { ?>
-                            <option value="<?php echo $row->id; ?>"><?php echo $row->branch; ?></option>
+                            <option value="<?php echo $row->id; ?>" <?php if(isset($preBranchId) && $preBranchId == $row->id) echo 'selected'; ?>><?php echo $row->branch; ?></option>
                         <?php } ?>
                     </select>
                 </div>
@@ -48,10 +48,10 @@
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Work Category <span class="text-danger">*</span></label>
                     <select name="work_type" id="work_type" class="form-select">
                         <option value="">Select Work Category</option>
-                        <option value="maintenance">Maintenance</option>
-                        <option value="earth_renewal">Earth Renewal</option>
-                        <option value="project_work">Project Work</option>
-                        <option value="private_work">Private Work</option>
+                        <option value="maintenance" <?php if(isset($preWorkType) && $preWorkType == 'maintenance') echo 'selected'; ?>>Maintenance</option>
+                        <option value="earth_renewal" <?php if(isset($preWorkType) && $preWorkType == 'earth_renewal') echo 'selected'; ?>>Earth Renewal</option>
+                        <option value="project_work" <?php if(isset($preWorkType) && $preWorkType == 'project_work') echo 'selected'; ?>>Project Work</option>
+                        <option value="private_work" <?php if(isset($preWorkType) && $preWorkType == 'private_work') echo 'selected'; ?>>Private Work</option>
                     </select>
                 </div>
                 <div class="col-lg-4 col-md-6">
@@ -91,7 +91,7 @@
                     <select name="outlet_id" id="outlet_id" class="form-select selectOutletName inputClass select2">
                         <option value="">Select Outlet Name</option>
                         <?php foreach ($outletDropdown as $row) { ?>
-                            <option value="<?php echo $row->id; ?>"><?php echo $row->outlet_name; ?></option>
+                            <option value="<?php echo $row->id; ?>" <?php if(isset($preOutletId) && $preOutletId == $row->id) echo 'selected'; ?>><?php echo $row->outlet_name; ?></option>
                         <?php } ?>
                     </select>
                 </div>
@@ -254,6 +254,10 @@
                 $('.contactNumber').val('');
             }
         });
+
+        if ($('.selectOutletName').val()) {
+            $('.selectOutletName').trigger('change');
+        }
     });
     
     // Complaint Save Function

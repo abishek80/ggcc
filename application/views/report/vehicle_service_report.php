@@ -63,37 +63,55 @@
                     <div class="col-lg-3 col-md-4 col-sm-6">
                         <div class="bg-body text-center p-3 rounded-3 border h-100 d-flex flex-column justify-content-center">
                             <p class="mb-2 text-black fw-bold">Latest Maintenance</p>
-                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['maintenance']['date']) ? $latestServices['maintenance']['date'] : '-'; ?></h5>
+                            <h5 class="<?php echo !empty($latestServices['maintenance']['date']) ? 'mb-2' : 'mb-0'; ?> text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['maintenance']['date']) ? $latestServices['maintenance']['date'] : '-'; ?></h5>
+                            <?php if (!empty($latestServices['maintenance']['date'])) { ?>
+                                <p class="mb-0 fs-14px fw-semibold text-black amount-format"><?php echo isset($latestServices['maintenance']['cost']) && $latestServices['maintenance']['cost'] !== '' ? $latestServices['maintenance']['cost'] : '0'; ?></p>
+                            <?php } ?>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-4 col-sm-6">
                         <div class="bg-body text-center p-3 rounded-3 border h-100 d-flex flex-column justify-content-center">
                             <p class="mb-2 text-black fw-bold">Oil Change</p>
-                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['oil_change']['date']) ? $latestServices['oil_change']['date'] : '-'; ?></h5>
+                            <h5 class="<?php echo !empty($latestServices['oil_change']['date']) ? 'mb-2' : 'mb-0'; ?> text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['oil_change']['date']) ? $latestServices['oil_change']['date'] : '-'; ?></h5>
+                            <?php if (!empty($latestServices['oil_change']['date'])) { ?>
+                                <p class="mb-0 fs-14px fw-semibold text-black amount-format"><?php echo isset($latestServices['oil_change']['cost']) && $latestServices['oil_change']['cost'] !== '' ? $latestServices['oil_change']['cost'] : '0'; ?></p>
+                            <?php } ?>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-4 col-sm-6">
                         <div class="bg-body text-center p-3 rounded-3 border h-100 d-flex flex-column justify-content-center">
                             <p class="mb-2 text-black fw-bold">Wheel Alignment</p>
-                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['wheel_alignment']['date']) ? $latestServices['wheel_alignment']['date'] : '-'; ?></h5>
+                            <h5 class="<?php echo !empty($latestServices['wheel_alignment']['date']) ? 'mb-2' : 'mb-0'; ?> text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['wheel_alignment']['date']) ? $latestServices['wheel_alignment']['date'] : '-'; ?></h5>
+                            <?php if (!empty($latestServices['wheel_alignment']['date'])) { ?>
+                                <p class="mb-0 fs-14px fw-semibold text-black amount-format"><?php echo isset($latestServices['wheel_alignment']['cost']) && $latestServices['wheel_alignment']['cost'] !== '' ? $latestServices['wheel_alignment']['cost'] : '0'; ?></p>
+                            <?php } ?>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-4 col-sm-6">
                         <div class="bg-body text-center p-3 rounded-3 border h-100 d-flex flex-column justify-content-center">
                             <p class="mb-2 text-black fw-bold">Tyre Change</p>
-                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['tyre_change']['date']) ? $latestServices['tyre_change']['date'] : '-'; ?></h5>
+                            <h5 class="<?php echo !empty($latestServices['tyre_change']['date']) ? 'mb-2' : 'mb-0'; ?> text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['tyre_change']['date']) ? $latestServices['tyre_change']['date'] : '-'; ?></h5>
+                            <?php if (!empty($latestServices['tyre_change']['date'])) { ?>
+                                <p class="mb-0 fs-14px fw-semibold text-black amount-format"><?php echo isset($latestServices['tyre_change']['cost']) && $latestServices['tyre_change']['cost'] !== '' ? $latestServices['tyre_change']['cost'] : '0'; ?></p>
+                            <?php } ?>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-4 col-sm-6">
                         <div class="bg-body text-center p-3 rounded-3 border h-100 d-flex flex-column justify-content-center">
                             <p class="mb-2 text-black fw-bold">Battery</p>
-                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['battery']['date']) ? $latestServices['battery']['date'] : '-'; ?></h5>
+                            <h5 class="<?php echo !empty($latestServices['battery']['date']) ? 'mb-2' : 'mb-0'; ?> text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['battery']['date']) ? $latestServices['battery']['date'] : '-'; ?></h5>
+                            <?php if (!empty($latestServices['battery']['date'])) { ?>
+                                <p class="mb-0 fs-14px fw-semibold text-black amount-format"><?php echo isset($latestServices['battery']['cost']) && $latestServices['battery']['cost'] !== '' ? $latestServices['battery']['cost'] : '0'; ?></p>
+                            <?php } ?>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-4 col-sm-6">
                         <div class="bg-body text-center p-3 rounded-3 border h-100 d-flex flex-column justify-content-center">
                             <p class="mb-2 text-black fw-bold">FC Work</p>
-                            <h5 class="mb-0 text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['fc_work']['date']) ? $latestServices['fc_work']['date'] : '-'; ?></h5>
+                            <h5 class="<?php echo !empty($latestServices['fc_work']['date']) ? 'mb-2' : 'mb-0'; ?> text-black fw-semibold text-capitalize"><?php echo !empty($latestServices['fc_work']['date']) ? $latestServices['fc_work']['date'] : '-'; ?></h5>
+                            <?php if (!empty($latestServices['fc_work']['date'])) { ?>
+                                <p class="mb-0 fs-14px fw-semibold text-black amount-format"><?php echo isset($latestServices['fc_work']['cost']) && $latestServices['fc_work']['cost'] !== '' ? $latestServices['fc_work']['cost'] : '0'; ?></p>
+                            <?php } ?>
                         </div>
                     </div>
                 </div>
@@ -168,12 +186,12 @@
                             </td>
                             <td>
                                 <?php if(!empty($bills)) { ?>
-                                    <div class="d-flex flex-column gap-1">
+                                    <div class="">
                                         <?php foreach ($bills as $b) { 
                                             if (!empty($b['file'])) {
                                                 $bTitle = !empty($b['title']) ? $b['title'] : 'Bill';
                                         ?>
-                                            <a href="<?php echo base_url() . $b['file']; ?>" target="_blank" class="badge bg-label-info text-decoration-none">
+                                            <a href="<?php echo base_url() . $b['file']; ?>" target="_blank" class="badge bg-label-info text-decoration-none px-3">
                                                 <i class="bx bx-file me-1"></i><?php echo htmlspecialchars($bTitle); ?>
                                             </a>
                                         <?php } } ?>

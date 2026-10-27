@@ -123,6 +123,9 @@ $route['vehicle/(:any)/(:any)'] = 'vehicle/$1/$2';
 
 // outlet Controller Route Path
 $route['outlet'] = "outlet/index";
+$route['outlet/earth-testing'] = 'outlet/earth_testing';
+$route['outlet/earth-testing/(:any)'] = 'outlet/earth_testing/$1';
+$route['outlet/earth-testing/(:any)/(:any)'] = 'outlet/earth_testing/$1/$2';
 $route['outlet/(:any)'] = 'outlet/$1';
 $route['outlet/(:any)/(:any)'] = 'outlet/$1/$2';
 $route['outlet/(:any)/(:any)/(:any)'] = 'outlet/$1/$2/$3';

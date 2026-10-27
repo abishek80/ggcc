@@ -14,7 +14,6 @@
                             <th class="w-min-40">S. No</th>
                             <th>Zone</th>
                             <th>Branch Name</th>
-                            <th>Location URL</th>
                             <th class="text-center">Outlet Count</th>
                             <th class="w-min-50 text-center">Action</th>
                         </tr>
@@ -31,17 +30,6 @@
                                 <a href="<?php echo base_url() . 'outlet/branch-outlet-list/' . $row->branch_id; ?>" class="fw-semibold text-primary">
                                     <?php echo $row->branch_name; ?>
                                 </a>
-                            </td>
-                            <td>
-                                <?php if (!empty($row->location_url)) { 
-                                    $locUrl = (preg_match('#^https?://#i', $row->location_url)) ? $row->location_url : 'https://' . $row->location_url;
-                                ?>
-                                    <a href="<?php echo htmlspecialchars($locUrl); ?>" target="_blank" class="badge bg-label-primary" title="<?php echo htmlspecialchars($row->location_url); ?>">
-                                        <i class="bx bx-map-pin me-1"></i>View Location
-                                    </a>
-                                <?php } else { ?>
-                                    <span class="text-muted">-</span>
-                                <?php } ?>
                             </td>
                             <td class="text-center"><?php echo $row->outlet_count; ?></td>
                             <td class="text-center">

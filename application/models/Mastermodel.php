@@ -873,8 +873,12 @@ class Mastermodel extends CI_Model
     //Branch Info
     public function getBranchInfo($branchId = '')
     {
-        if($branchId) {
-            $where = " AND id = $branchId";
+        if (!empty($branchId)) {
+            if (is_numeric($branchId)) {
+                $where = " AND id = " . (int)$branchId;
+            } else {
+                $where = " AND (branch = " . $this->db->escape($branchId) . " OR id = " . $this->db->escape($branchId) . ")";
+            }
         } else {
             $where = "";
         }

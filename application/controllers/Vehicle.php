@@ -518,7 +518,7 @@ class Vehicle extends CI_Controller {
         $serviceBill = $this->input->post('service_bill');
         $description = $this->input->post('description');
         $status = $this->input->post('status');
-        $method = $this->input->post('method');
+        $method = $this->input->post('method') ?: null;
 
         $billTitles = $this->input->post('bill_title');
         $alterBillFiles = $this->input->post('alter_bill_file');

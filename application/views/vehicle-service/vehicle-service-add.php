@@ -160,9 +160,6 @@
             description: {
                 required: true
             },
-            method: {
-                required: true
-            },
             status: {
                 required: true
             }
@@ -185,9 +182,6 @@
             },
             description: {
                 required: "Please Enter Description",
-            },
-            method: {
-                required: "Please Select Payment Method",
             },
             status: {
                 required: "Please Select Status",
