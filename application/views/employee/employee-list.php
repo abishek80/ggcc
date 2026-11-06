@@ -97,7 +97,7 @@
                         <label class="w-100 fw-bold text-black mb-1">Employee Code & Company Name</label>
                         <div id="employeeCode" class="mb-1 text-capitalize text-black"></div>
                         <div id="companyName" class="text-capitalize text-black"></div>
-                        <label class="w-100 fw-bold text-black mb-1">Zone & Branch Name</label>
+                        <label class="w-100 fw-bold text-black mb-1 mt-2">Zone & Branch Name</label>
                         <div id="zone" class="text-capitalize text-black"></div>
                         <div id="branch" class="mt-1 text-capitalize text-black"></div>
                     </div>
@@ -105,7 +105,7 @@
                         <label class="w-100 fw-bold text-black mb-1">Name & Designation</label>
                         <div id="employeeName" class="text-capitalize text-black"></div>
                         <div id="employeeDesignation" class="mt-1 text-capitalize text-black"></div>
-                        <label class="w-100 fw-bold text-black mb-1">Mobile Number & Email</label>
+                        <label class="w-100 fw-bold text-black mb-1 mt-2">Mobile Number & Email</label>
                         <div id="employeeNumber" class="text-capitalize text-black"></div>
                         <div id="employeeEmail" class="text-black"></div>
                     </div>

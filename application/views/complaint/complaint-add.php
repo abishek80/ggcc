@@ -108,14 +108,12 @@
                     <input name="old_location_url" id="old_location_url" type="text" readonly class="inputClass form-control locationUrl" placeholder="Outlet Location URL">
                 </div>
                 <div class="col-lg-4 col-md-6 oldOutlet d-block">
-                    <div class="mb-2">
-                        <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Contact Name</label>
-                        <input name="old_contact_name" id="contact_name" type="text" readonly class="inputClass form-control contactName" placeholder="Outlet Contact Name">
-                    </div>
-                    <div>
-                        <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Contact Number</label>
-                        <input name="old_contact_number" id="contact_number" type="text" readonly class="inputClass number-only form-control contactNumber" placeholder="Outlet Contact Number">
-                    </div>
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Contact Name</label>
+                    <input name="old_contact_name" id="contact_name" type="text" readonly class="inputClass form-control contactName" placeholder="Outlet Contact Name">
+                </div>
+                <div class="col-lg-4 col-md-6 oldOutlet d-block">
+                    <label class="w-100 fw-bold text-black mb-2 fs-14px">Outlet Contact Number</label>
+                    <input name="old_contact_number" id="contact_number" type="text" readonly class="inputClass number-only form-control contactNumber" placeholder="Outlet Contact Number">
                 </div>
                 <div class="col-lg-8">
                     <label class="w-100 fw-bold text-black mb-2 fs-14px">Description <span class="text-danger">*</span></label>

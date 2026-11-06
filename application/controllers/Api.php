@@ -68,6 +68,28 @@ class Api extends CI_Controller
     }
 
     /**
+     * Base URL for building file/image links in API responses, using the *actual*
+     * host this request arrived on rather than the static config['base_url'].
+     * A mobile client rarely reaches the server the same way a browser on the host
+     * machine does (e.g. an Android emulator calls the API via 10.0.2.2, not
+     * "localhost") - using base_url() verbatim would embed an address only the
+     * browser case can resolve, so every *_img URL would silently fail to load
+     * for mobile clients even though the API call itself succeeded.
+     */
+    private function fileBaseUrl()
+    {
+        $configured = base_url();
+        $host = $this->input->server('HTTP_HOST');
+        if (empty($host)) {
+            return $configured;
+        }
+
+        $path = parse_url($configured, PHP_URL_PATH) ?: '/';
+        $scheme = $this->input->server('HTTPS') ? 'https' : 'http';
+        return $scheme . '://' . $host . $path;
+    }
+
+    /**
      * Extract Bearer token from Authorization header
      */
     private function getBearerToken()
@@ -138,6 +160,10 @@ class Api extends CI_Controller
                 'GET  api/attendance/present'  => 'Get present list (protected)',
                 'GET  api/attendance/leave'    => 'Get leave list (protected)',
                 'GET  api/attendance/ot'       => 'Get OT list (protected)',
+                'GET  api/branch-attendance/month'          => 'Branch Incharge: month grid for assigned team (protected)',
+                'GET  api/branch-attendance/day'            => 'Branch Incharge: one day status per employee (protected)',
+                'GET  api/branch-attendance/search-employee'=> 'Branch Incharge: search an employee to add (protected)',
+                'POST api/branch-attendance/mark'           => 'Branch Incharge: save a day\'s attendance (protected)',
                 'GET  api/payslip/list'        => 'Get payslip list (protected)',
                 'GET  api/payslip/detail'      => 'Get payslip details (protected)',
                 'GET  api/payslip/pdf'         => 'Stream payslip PDF (protected)',
@@ -204,10 +230,12 @@ class Api extends CI_Controller
 
         $profileImg = '';
         if (!empty($row->profile_img)) {
-            $profileImg = filter_var($row->profile_img, FILTER_VALIDATE_URL) 
-                ? $row->profile_img 
-                : base_url() . ltrim($row->profile_img, './');
+            $profileImg = filter_var($row->profile_img, FILTER_VALIDATE_URL)
+                ? $row->profile_img
+                : $this->fileBaseUrl() . ltrim($row->profile_img, './');
         }
+
+        $isBranchIncharge = $this->apimodel->isBranchIncharge($row->employee_id ?? 0);
 
         $this->respond([
             'isError'    => false,
@@ -216,14 +244,15 @@ class Api extends CI_Controller
             'token_type' => 'Bearer',
             'expires_at' => $tokenData['expires_at'],
             'user' => [
-                'id'          => $loginId,
-                'name'        => $row->employee_name ?? '',
-                'login_code'  => $row->login_code ?? '',
-                'mobile'      => $row->mobile_number ?? '',
-                'designation' => $designation,
-                'profile_img' => $profileImg,
-                'is_admin'    => $row->is_admin ?? 0,
-                'permission'  => $row->permission ?? '',
+                'id'                  => $loginId,
+                'name'                => $row->employee_name ?? '',
+                'login_code'          => $row->login_code ?? '',
+                'mobile'              => $row->mobile_number ?? '',
+                'designation'         => $designation,
+                'profile_img'         => $profileImg,
+                'is_admin'            => $row->is_admin ?? 0,
+                'permission'          => $row->permission ?? '',
+                'is_branch_incharge'  => $isBranchIncharge,
             ],
         ]);
     }
@@ -253,6 +282,7 @@ class Api extends CI_Controller
         $this->authGuard();
         $u = $this->authUser;
         $employeeId = $u->employee_id ?? 0;
+        $isBranchIncharge = $this->apimodel->isBranchIncharge($employeeId);
 
         // Fetch detailed employee record if employee_id exists
         $empData = null;
@@ -268,93 +298,88 @@ class Api extends CI_Controller
             $empData = $this->db->query($sql, [$employeeId])->row();
         }
 
-        if ($empData) {
-            $formatImg = function($path) {
-                if (empty($path)) return '';
-                if (filter_var($path, FILTER_VALIDATE_URL)) return $path;
-                return base_url() . ltrim($path, './');
-            };
+        $fileBaseUrl = $this->fileBaseUrl();
+        $formatImg = function($path) use ($fileBaseUrl) {
+            if (empty($path)) return '';
+            if (filter_var($path, FILTER_VALIDATE_URL)) return $path;
+            return $fileBaseUrl . ltrim($path, './');
+        };
 
-            $profileResponse = [
-                'employee_id'            => $empData->id,
-                'employee_code'          => $empData->employee_code,
-                'login_code'             => $u->login_code,
-                'permission'             => $empData->permission ?: $u->permission,
-                'company_name'           => $empData->company_name,
-                'payslip_location'       => $empData->branch_location,
-                'zone'                   => $empData->zone,
-                'branch'                 => $empData->branch,
-                'branch_name'            => $empData->branch_name ?? '',
-                'employee_name'          => $empData->employee_name,
-                'email'                  => $empData->email,
-                'mobile_number'          => $empData->mobile_number,
-                'designation'            => $empData->designation_name ?? $u->designation ?? '',
-                'doj'                    => $empData->doj,
-                'doj_formatted'          => $empData->dojFormat,
-                'payslip_status'         => $empData->payslip_status,
-                'basic_pay'              => $empData->basic_pay,
-                'allowance_amount'       => $empData->allowance_amount,
-                'mobile_recharge'        => $empData->mobile_recharge,
-                'esi_status'             => $empData->esi_status,
-                'esi_number'             => $empData->esi_number,
-                'pf_status'              => $empData->pf_status,
-                'pf_number'              => $empData->pf_number,
-                'pf_amount'              => $empData->pf_amount,
-                'pan_number'             => $empData->pan_number,
-                'aadhar_number'          => $empData->aadhar_number,
-                'aadharcard_img'         => $formatImg($empData->aadharcard_img),
-                'pancard_img'            => $formatImg($empData->pancard_img),
-                'licence_img'            => $formatImg($empData->licence_img),
-                'licence_number'         => $empData->licence_number,
-                'electrical_licence'     => $empData->electrical_licence,
-                'electrical_licence_img' => $formatImg($empData->electrical_licence_img),
-                'bank_details' => [
-                    'account_number'     => $empData->account_number,
-                    'ifsc_code'          => $empData->ifsc_code,
-                    'bank_name'          => $empData->bank_name,
-                    'bank_branch_name'   => $empData->bank_branch_name,
-                    'bankbook_img'       => $formatImg($empData->bankbook_img),
-                    'status'             => $empData->status,
-                ],
-                'personal_details' => [
-                    'dob'                => $empData->dob,
-                    'dob_formatted'      => $empData->dobFormat,
-                    'education'          => $empData->education,
-                    'employee_photo'     => $formatImg($empData->profile_img),
-                    'house_no'           => $empData->house_no,
-                    'street'             => $empData->street,
-                    'city'               => $empData->city,
-                    'district'           => $empData->district,
-                    'pincode'            => $empData->pincode,
-                ],
-                'contact_details' => [
-                    'relative_type'               => $empData->contact_relative,
-                    'contact_person_name'        => $empData->contact_name,
-                    'contact_person_phone_number' => $empData->contact_phone_number,
-                    'contact_house_no'            => $empData->contact_house_no,
-                    'contact_street'              => $empData->contact_street,
-                    'contact_city'                => $empData->contact_city,
-                    'contact_district'            => $empData->contact_district,
-                    'contact_pincode'             => $empData->contact_pincode,
-                ]
-            ];
-        } else {
-            // Fallback for Admin / users without employee row
-            $designation = $u->designation ?? '';
-            if (empty($designation) && ($u->is_admin ?? 0) == 1) {
-                $designation = 'Administrator';
-            }
-            $profileResponse = [
-                'id'                 => $u->login_id,
-                'name'               => $u->employee_name,
-                'login_code'         => $u->login_code,
-                'mobile'             => $u->mobile_number,
-                'designation'        => $designation,
-                'is_admin'           => $u->is_admin,
-                'permission'         => $u->permission,
-                'token_expires_at'   => $u->expires_at,
-            ];
+        // One consistent shape every time, regardless of whether a linked employee
+        // record exists - fields just fall back to '' (an admin-only login, with no
+        // employee row, gets the same keys with empty values instead of a different,
+        // smaller response the client would need to branch on).
+        $designation = $empData->designation_name ?? $u->designation ?? '';
+        if (empty($designation) && ($u->is_admin ?? 0) == 1) {
+            $designation = 'Administrator';
         }
+
+        $profileResponse = [
+            'employee_id'            => $empData->id ?? ($u->employee_id ?? ''),
+            'employee_code'          => $empData->employee_code ?? '',
+            'login_code'             => $u->login_code ?? '',
+            'permission'             => $empData->permission ?? $u->permission ?? '',
+            'is_admin'               => $u->is_admin ?? '0',
+            'is_branch_incharge'     => $isBranchIncharge,
+            'token_expires_at'       => $u->expires_at ?? '',
+            'company_name'           => $empData->company_name ?? '',
+            'payslip_location'       => $empData->branch_location ?? '',
+            'zone'                   => $empData->zone ?? '',
+            'branch'                 => $empData->branch ?? '',
+            'branch_name'            => $empData->branch_name ?? '',
+            'employee_name'          => $empData->employee_name ?? $u->employee_name ?? '',
+            'email'                  => $empData->email ?? '',
+            'mobile_number'          => $empData->mobile_number ?? $u->mobile_number ?? '',
+            'designation'            => $designation,
+            'doj'                    => $empData->doj ?? '',
+            'doj_formatted'          => $empData->dojFormat ?? '',
+            'payslip_status'         => $empData->payslip_status ?? '',
+            'basic_pay'              => $empData->basic_pay ?? '',
+            'allowance_amount'       => $empData->allowance_amount ?? '',
+            'mobile_recharge'        => $empData->mobile_recharge ?? '',
+            'esi_status'             => $empData->esi_status ?? '',
+            'esi_number'             => $empData->esi_number ?? '',
+            'pf_status'              => $empData->pf_status ?? '',
+            'pf_number'              => $empData->pf_number ?? '',
+            'pf_amount'              => $empData->pf_amount ?? '',
+            'pan_number'             => $empData->pan_number ?? '',
+            'aadhar_number'          => $empData->aadhar_number ?? '',
+            'aadharcard_img'         => $formatImg($empData->aadharcard_img ?? ''),
+            'pancard_img'            => $formatImg($empData->pancard_img ?? ''),
+            'licence_img'            => $formatImg($empData->licence_img ?? ''),
+            'licence_number'         => $empData->licence_number ?? '',
+            'electrical_licence'     => $empData->electrical_licence ?? '',
+            'electrical_licence_img' => $formatImg($empData->electrical_licence_img ?? ''),
+            'bank_details' => [
+                'account_number'     => $empData->account_number ?? '',
+                'ifsc_code'          => $empData->ifsc_code ?? '',
+                'bank_name'          => $empData->bank_name ?? '',
+                'bank_branch_name'   => $empData->bank_branch_name ?? '',
+                'bankbook_img'       => $formatImg($empData->bankbook_img ?? ''),
+                'status'             => $empData->status ?? '',
+            ],
+            'personal_details' => [
+                'dob'                => $empData->dob ?? '',
+                'dob_formatted'      => $empData->dobFormat ?? '',
+                'education'          => $empData->education ?? '',
+                'employee_photo'     => $formatImg($empData->profile_img ?? ''),
+                'house_no'           => $empData->house_no ?? '',
+                'street'             => $empData->street ?? '',
+                'city'               => $empData->city ?? '',
+                'district'           => $empData->district ?? '',
+                'pincode'            => $empData->pincode ?? '',
+            ],
+            'contact_details' => [
+                'relative_type'                => $empData->contact_relative ?? '',
+                'contact_person_name'          => $empData->contact_name ?? '',
+                'contact_person_phone_number'  => $empData->contact_phone_number ?? '',
+                'contact_house_no'             => $empData->contact_house_no ?? '',
+                'contact_street'               => $empData->contact_street ?? '',
+                'contact_city'                 => $empData->contact_city ?? '',
+                'contact_district'             => $empData->contact_district ?? '',
+                'contact_pincode'              => $empData->contact_pincode ?? '',
+            ],
+        ];
 
         $this->respond([
             'isError' => false,
@@ -406,6 +431,164 @@ class Api extends CI_Controller
         } else {
             $this->respond(['isError' => true, 'message' => 'Unknown action.'], 404);
         }
+    }
+
+    // ─── Branch Attendance (mobile: a Branch Incharge managing their team's attendance) ───
+    //
+    // Mirrors the web implementation exactly (Attendance::branch_attendance_list/add/
+    // branchAttendanceFormSave and the same Attendancemodel/Mastermodel methods) - same
+    // queries, same save functions, same business rules (empty selection is ignored,
+    // OT only applies on Present, ad-hoc-added employees get auto-assigned going forward).
+    //
+    // GET  api/branch-attendance/month?year=&month=   - excel-style month grid
+    // GET  api/branch-attendance/day?date=            - one day's status per employee
+    // GET  api/branch-attendance/search-employee?q=   - add-employee name search
+    // POST api/branch-attendance/mark                 - save a day's attendance
+
+    /**
+     * Resolve the logged-in employee to the Branch Incharge record they themselves
+     * are the incharge of. Returns null (and the caller should 403) if they aren't one.
+     */
+    private function requireBranchIncharge()
+    {
+        $this->load->model('mastermodel');
+        $myIncharge = $this->mastermodel->getBranchInchargeByEmployeeId($this->authUser->employee_id);
+        if (!$myIncharge) {
+            $this->respond(['isError' => true, 'message' => 'Access denied. You are not an active Branch Incharge.'], 403);
+        }
+        return $myIncharge;
+    }
+
+    public function branch_attendance($action = 'day')
+    {
+        $this->authGuard();
+        $myIncharge = $this->requireBranchIncharge();
+
+        $this->load->model('mastermodel');
+        $this->load->model('attendancemodel');
+
+        if ($action === 'month') {
+            $year = $this->input->get('year') ?: date('Y');
+            $month = $this->input->get('month') ?: strtolower(date('F'));
+
+            $employeeIds = $this->mastermodel->getBranchInchargeEmployeeIdsWithSelf($myIncharge->id);
+            $grid = $this->attendancemodel->getEmployeeAttendanceGridByIds($year, $month, $employeeIds);
+
+            // This is the Branch Incharge's OWN managed branch/zone - NOT the same as any
+            // individual employee's "branch" field below, which is that employee's own
+            // home branch and can legitimately differ. Use these two fields for any
+            // "Zone"/"Branch" header in the UI, never an employee row's branch/zone.
+            $branchName = '';
+            foreach ($this->mastermodel->getBranchInfo($myIncharge->branch) as $row) {
+                $branchName = $row->branch;
+            }
+
+            $this->respond([
+                'isError' => false,
+                'data' => [
+                    'year' => $year,
+                    'month' => $month,
+                    'days_in_month' => (int) date('t', strtotime("1 $month $year")),
+                    'zone' => $myIncharge->zone,
+                    'branch_name' => $branchName,
+                    'employees' => $grid,
+                ],
+            ]);
+        } elseif ($action === 'day') {
+            $date = $this->input->get('date') ?: date('Y-m-d');
+
+            $employeeIds = $this->mastermodel->getBranchInchargeEmployeeIdsWithSelf($myIncharge->id);
+            $employees = $this->mastermodel->getEmployeesByIds($employeeIds);
+            $valueByEmployee = $this->attendancemodel->getEmployeeDayStatusByIds($employeeIds, $date);
+
+            $branchName = '';
+            foreach ($this->mastermodel->getBranchInfo($myIncharge->branch) as $row) {
+                $branchName = $row->branch;
+            }
+
+            $list = [];
+            foreach ($employees as $emp) {
+                $list[] = [
+                    'employee_id'   => $emp->id,
+                    'employee_name' => $emp->employee_name,
+                    'designation'   => $emp->designation,
+                    // one combined value: ''|'present'|'absent'|'half_day_ot'|'full_day_ot'
+                    'value'         => $valueByEmployee[$emp->id] ?? '',
+                ];
+            }
+
+            $this->respond([
+                'isError' => false,
+                'data' => [
+                    'date' => $date,
+                    'zone' => $myIncharge->zone,
+                    'branch_name' => $branchName,
+                    'employees' => $list,
+                ],
+            ]);
+        } elseif ($action === 'search-employee') {
+            $this->load->model('employeemodel');
+            $q = $this->input->get('q') ?: '';
+            $results = $this->employeemodel->getActiveEmployeeName($q);
+
+            // Don't suggest employees already in this incharge's list
+            $alreadyAssignedIds = $this->mastermodel->getBranchInchargeEmployeeIdsWithSelf($myIncharge->id);
+            $results = array_values(array_filter($results, function ($row) use ($alreadyAssignedIds) {
+                return !in_array((int) $row['id'], $alreadyAssignedIds);
+            }));
+
+            $this->respond(['isError' => false, 'data' => $results]);
+        } elseif ($action === 'mark') {
+            if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+                $this->respond(['isError' => true, 'message' => 'Method not allowed. Use POST.'], 405);
+            }
+            $this->doBranchAttendanceMark($myIncharge);
+        } else {
+            $this->respond(['isError' => true, 'message' => 'Unknown action.'], 404);
+        }
+    }
+
+    /**
+     * Save a day's Branch Attendance for one or more employees.
+     * POST api/branch-attendance/mark
+     * Body (raw JSON): { "date": "2026-11-05", "entries": [ { "employee_id": 3, "value": "present" }, ... ] }
+     * value: ''|'present'|'absent'|'half_day_ot'|'full_day_ot' - same vocabulary as the
+     * single Attendance select on the web form. An empty value skips that employee
+     * entirely (nothing is saved/changed) - use it for anyone not decided on yet.
+     */
+    private function doBranchAttendanceMark($myIncharge)
+    {
+        $body = $this->jsonBody();
+        $date = $body['date'] ?? '';
+        $entries = $body['entries'] ?? [];
+
+        if (empty($date) || empty($entries)) {
+            $this->respond(['isError' => true, 'message' => 'date and entries are required.'], 422);
+        }
+
+        // Bridge for the shared save functions, which read created_by/updated_by from the
+        // CI session rather than a parameter - mobile requests have no session populated.
+        $this->session->set_userdata('userid', $this->authUser->login_id);
+
+        // Ad-hoc employees are valid for THIS DATE ONLY - never persisted into the
+        // assigned-employee list, so they don't start appearing on other dates/month grid.
+        $postedEmployeeIds = array_map(function ($e) { return $e['employee_id'] ?? 0; }, $entries);
+        $validEmployeeIds = array_map(function ($row) { return $row->id; }, $this->mastermodel->getEmployeesByIds($postedEmployeeIds));
+
+        $savedCount = 0;
+        foreach ($entries as $entry) {
+            $employeeId = $entry['employee_id'] ?? 0;
+            $value = $entry['value'] ?? '';
+
+            if (!in_array((int) $employeeId, $validEmployeeIds) || $value === '') {
+                continue; // not a real employee, or left blank on purpose - don't touch it
+            }
+
+            $this->attendancemodel->saveEmployeeAttendanceValue($myIncharge->branch, $date, $employeeId, $value);
+            $savedCount++;
+        }
+
+        $this->respond(['isError' => false, 'message' => "Attendance saved for {$savedCount} employee(s)."]);
     }
 
     /**

@@ -187,6 +187,90 @@
                         </div>
                     <?php } ?>
                 <?php } ?>
+
+                <div class="col-12 mt-4">
+                    <hr class="my-1">
+                </div>
+
+                <!-- Before Images Section -->
+                <div class="col-lg-6">
+                    <div class="card p-3 h-100 border shadow-none bg-lighter">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="fw-bold text-black mb-0 fs-14px">
+                                Before Images
+                            </label>
+                            <span class="badge bg-label-primary before-count"><?php echo !empty($beforeImages) ? count($beforeImages) : 0; ?></span>
+                        </div>
+
+                        <!-- Existing Before Images -->
+                        <div class="existing-before-images row g-2 mb-3">
+                            <?php if (!empty($beforeImages)) { ?>
+                                <?php foreach ($beforeImages as $img) { ?>
+                                    <div class="col-4 col-sm-3 image-card" id="image-item-<?php echo $img['id']; ?>">
+                                        <div class="position-relative border rounded overflow-hidden bg-white shadow-sm" style="height: 105px;">
+                                            <a href="<?php echo base_url() . $img['imagepath']; ?>" target="_blank" title="Click to view full image">
+                                                <img src="<?php echo base_url() . $img['imagepath']; ?>" alt="Before Image" style="width: 100%; height: 105px; object-fit: cover; display: block;">
+                                            </a>
+                                            <button type="button" class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 m-1 rounded-circle delete-complaint-img-btn" data-id="<?php echo $img['id']; ?>" data-type="before" title="Delete image" style="width: 24px; height: 24px; min-width: 24px; display: flex; align-items: center; justify-content: center; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                                <i class="bx bx-trash" style="font-size: 13px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+                            <?php } else { ?>
+                                <div class="col-12 no-before-msg text-muted small py-2">
+                                    <i class="bx bx-info-circle me-1"></i> No before images uploaded.
+                                </div>
+                            <?php } ?>
+                        </div>
+
+                        <!-- Upload New Before Images -->
+                        <div>
+                            <label class="w-100 fw-bold text-black mb-2 fs-13px">Upload New Before Images</label>
+                            <div class="before-images"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- After Images Section -->
+                <div class="col-lg-6">
+                    <div class="card p-3 h-100 border shadow-none bg-lighter">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="fw-bold text-black mb-0 fs-14px">
+                                After Images
+                            </label>
+                            <span class="badge bg-label-success after-count"><?php echo !empty($afterImages) ? count($afterImages) : 0; ?></span>
+                        </div>
+
+                        <!-- Existing After Images -->
+                        <div class="existing-after-images row g-2 mb-3">
+                            <?php if (!empty($afterImages)) { ?>
+                                <?php foreach ($afterImages as $img) { ?>
+                                    <div class="col-4 col-sm-3 image-card" id="image-item-<?php echo $img['id']; ?>">
+                                        <div class="position-relative border rounded overflow-hidden bg-white shadow-sm" style="height: 105px;">
+                                            <a href="<?php echo base_url() . $img['imagepath']; ?>" target="_blank" title="Click to view full image">
+                                                <img src="<?php echo base_url() . $img['imagepath']; ?>" alt="After Image" style="width: 100%; height: 105px; object-fit: cover; display: block;">
+                                            </a>
+                                            <button type="button" class="btn btn-danger btn-sm p-0 position-absolute top-0 end-0 m-1 rounded-circle delete-complaint-img-btn" data-id="<?php echo $img['id']; ?>" data-type="after" title="Delete image" style="width: 24px; height: 24px; min-width: 24px; display: flex; align-items: center; justify-content: center; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                                <i class="bx bx-trash" style="font-size: 13px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php } ?>
+                            <?php } else { ?>
+                                <div class="col-12 no-after-msg text-muted small py-2">
+                                    <i class="bx bx-info-circle me-1"></i> No after images uploaded.
+                                </div>
+                            <?php } ?>
+                        </div>
+
+                        <!-- Upload New After Images -->
+                        <div>
+                            <label class="w-100 fw-bold text-black mb-2 fs-13px">Upload New After Images</label>
+                            <div class="after-images"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
@@ -351,12 +435,77 @@
                         oneClickSubmitBtn();
                         toastr.success(data['message']);
                         setTimeout(function () {
-                            window.location.href = "<?php echo base_url(); ?>complaint/complaint-list/not_started";
+                            window.location.href = "<?php echo base_url(); ?>complaint/complaint-list/" + ($('#status').val() || 'not_started');
                         }, 1500);
                     }
                 }
             });
             return false;
         }
+    });
+
+    // Initialize Image Uploaders
+    $('.before-images').beforeImageUploader();
+    $('.after-images').afterImageUploader();
+
+    // Delete Before or After Image
+    $(document).on('click', '.delete-complaint-img-btn', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var imgId = $(this).data('id');
+        var imgType = $(this).data('type');
+        var $card = $('#image-item-' + imgId);
+        var $container = $card.closest('.existing-' + imgType + '-images');
+
+        swal({
+            title: "Are you sure?",
+            text: "You want to delete this " + imgType + " image?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, delete it!",
+            closeOnConfirm: true
+        }, function () {
+            $.ajax({
+                url: '<?php echo base_url(); ?>complaint/deleteComplaintImage',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    image_id: imgId
+                },
+                beforeSend: function () {
+                    $(".loader").show();
+                },
+                success: function (res) {
+                    $(".loader").hide();
+                    toastr.options = {
+                        'closeButton': true,
+                        'positionClass': 'toast-top-right',
+                        'timeOut': '3000'
+                    };
+                    if (!res.isError) {
+                        toastr.success(res.message);
+                        $card.fadeOut(300, function () {
+                            $(this).remove();
+                            // Update badge count
+                            var $badge = $('.' + imgType + '-count');
+                            var count = parseInt($badge.text()) || 0;
+                            if (count > 0) {
+                                $badge.text(count - 1);
+                            }
+                            if ($container.find('.image-card').length === 0) {
+                                $container.html('<div class="col-12 no-' + imgType + '-msg text-muted small py-2"><i class="bx bx-info-circle me-1"></i> No ' + imgType + ' images uploaded.</div>');
+                            }
+                        });
+                    } else {
+                        toastr.error(res.message);
+                    }
+                },
+                error: function () {
+                    $(".loader").hide();
+                    toastr.error('Error connecting to server.');
+                }
+            });
+        });
     });
 </script>

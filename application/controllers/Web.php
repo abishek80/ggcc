@@ -907,4 +907,34 @@ class Web extends CI_Controller {
 
         echo $xml;
     }
+
+    /**
+     * Android App Link target (https://ggcc.org.in/app). When this exact URL is
+     * tapped on a device where the app is installed and the link is verified
+     * (see /.well-known/assetlinks.json), Android opens the app directly and this
+     * PHP page is never reached. This page is the web fallback for everyone
+     * else - no app installed, verification not yet complete, desktop browser,
+     * etc. - and simply forwards them to the latest active Play Store listing.
+     */
+    public function app()
+    {
+        $playStoreUrl = 'https://play.google.com/store/apps/details?id=in.org.ggcc.mobile';
+
+        $sql = "SELECT update_url FROM app_version_control
+                WHERE platform = 'android' AND status = 'active'
+                ORDER BY id DESC LIMIT 1";
+        $versionInfo = $this->db->query($sql)->row();
+        if ($versionInfo && !empty($versionInfo->update_url)) {
+            $playStoreUrl = $versionInfo->update_url;
+        }
+
+        $safeUrl = htmlspecialchars($playStoreUrl, ENT_QUOTES);
+        header('Content-Type: text/html; charset=utf-8');
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8">'
+           . '<meta http-equiv="refresh" content="0; url=' . $safeUrl . '">'
+           . '<title>Opening GGCC App…</title></head><body>'
+           . '<p>Redirecting to the Play Store… <a href="' . $safeUrl . '">Tap here if nothing happens</a>.</p>'
+           . '<script>window.location.replace(' . json_encode($playStoreUrl) . ');</script>'
+           . '</body></html>';
+    }
 }

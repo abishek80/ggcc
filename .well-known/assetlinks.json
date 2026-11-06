@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.org.ggcc.mobile",
+      "sha256_cert_fingerprints": [
+        "25:A4:6B:27:5A:5C:02:D9:2E:84:DD:C2:5D:46:4B:4F:04:4A:45:D5:1B:3C:B4:02:12:D5:0C:A3:14:21:C5:72",
+        "D5:94:43:B8:36:57:91:EF:51:19:77:1D:F5:AE:D5:63:7B:D4:05:36:30:4A:47:97:D1:F1:29:D9:83:87:3C:A9"
+      ]
+    }
+  }
+]

@@ -77,7 +77,7 @@ class Complaintmodel extends CI_Model
 
     public function getComplaintImageList($complaintId, $type)
     {
-        $sql = "SELECT * FROM before_after_images WHERE complaint_id = ? AND type = ?";
+        $sql = "SELECT * FROM before_after_images WHERE complaint_id = ? AND type = ? AND delete_status = 0";
 
         $res = $this->db->query($sql, [$complaintId, $type]);
         return $res->result_array();
@@ -86,9 +86,31 @@ class Complaintmodel extends CI_Model
     // Fetch ALL image types in a single query (used by ZIP download to avoid cached result mismatch)
     public function getAllComplaintImages($complaintId)
     {
-        $sql = "SELECT * FROM before_after_images WHERE complaint_id = ? ORDER BY type, id ASC";
+        $sql = "SELECT * FROM before_after_images WHERE complaint_id = ? AND delete_status = 0 ORDER BY type, id ASC";
         $res = $this->db->query($sql, [$complaintId]);
         return $res->result_array();
+    }
+
+    // Delete Before or After Image (Soft Delete)
+    public function deleteComplaintImage($imageId)
+    {
+        $this->db->where('id', (int) $imageId);
+        return $this->db->update('before_after_images', array('delete_status' => 1));
+    }
+
+    // Insert Before or After Image
+    public function insertComplaintImage($complaintId, $imagePath, $type)
+    {
+        $userId = $this->session->userdata('userid');
+        $data = array(
+            'complaint_id' => (int) $complaintId,
+            'imagepath' => $imagePath,
+            'type' => $type,
+            'delete_status' => 0,
+            'created_by' => $userId,
+            'created_at' => date('Y-m-d H:i:s')
+        );
+        return $this->db->insert('before_after_images', $data);
     }
 
     //Complaint Edit
@@ -501,7 +523,7 @@ class Complaintmodel extends CI_Model
 
       $sql = "SELECT C.*, B.branch AS branch_name, DATE_FORMAT(C.date, '%d - %m - %Y') AS complaint_date, C.assign_to AS assign_toName,
                       (
-                          (SELECT COUNT(*) FROM before_after_images BAI WHERE BAI.complaint_id = C.id)
+                          (SELECT COUNT(*) FROM before_after_images BAI WHERE BAI.complaint_id = C.id AND BAI.delete_status = 0)
                           + IF(C.job_report IS NOT NULL AND C.job_report != '', 1, 0)
                           + IF(C.earthing_report IS NOT NULL AND C.earthing_report != '', 1, 0)
                       ) AS has_files

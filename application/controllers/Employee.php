@@ -426,6 +426,15 @@ class Employee extends CI_Controller {
       echo json_encode($data);
     }
 
+    //Same as getEmployeeNameList(), but excludes admin accounts (is_admin=1) - for
+    //pickers meant only for real employees, e.g. Branch Attendance's "add employee".
+    public function getActiveEmployeeNameList()
+    {
+      $employeeName = $this->input->post('employee_name');
+      $data = $this->employeemodel->getActiveEmployeeName($employeeName);
+      echo json_encode($data);
+    }
+
     public function getAttendanceEmployeeNameList()
     {
       $employeeName = $this->input->post('employee_name');

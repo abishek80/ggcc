@@ -46,6 +46,16 @@ if ($CI->db->table_exists('menu_control')) {
         }
     }
 }
+
+// Is the logged-in (non-admin) employee themselves an active Branch Incharge?
+$myBranchInchargeId = null;
+if ($this->session->userdata('is_admin') == '0' && $CI->db->table_exists('master_branch_incharge')) {
+    $myEmpId = $this->session->userdata('empid');
+    if ($myEmpId) {
+        $myInchargeRow = $CI->db->where('incharge_employee_id', $myEmpId)->where('status', 'active')->where('delete_status', 0)->get('master_branch_incharge')->row();
+        $myBranchInchargeId = $myInchargeRow ? $myInchargeRow->id : null;
+    }
+}
 ?>
 
 <body>
@@ -80,6 +90,14 @@ if ($CI->db->table_exists('menu_control')) {
                             <a href="<?php echo base_url() . 'attendance/attendance-view/' . date('Y') . '/' . strtolower(date('F') . '/' . $this->session->userdata('userid')); ?>" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-calendar"></i>
                                 <div data-i18n="Your Attendance">Your Attendance</div>
+                            </a>
+                        </li>
+                    <?php } ?>
+                    <?php if (($menuStates['branch_attendance'] ?? 'enabled') === 'enabled' && $myBranchInchargeId) { ?>
+                        <li class="menu-item <?php echo $menu_status == 'branch_attendance' ? 'active' : ''; ?>">
+                            <a href="<?php echo base_url() . 'attendance/branch-attendance-list/' . $myBranchInchargeId; ?>" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                                <div data-i18n="Branch Attendance">Branch Attendance</div>
                             </a>
                         </li>
                     <?php } ?>
@@ -564,6 +582,13 @@ if ($CI->db->table_exists('menu_control')) {
                                     <li class="menu-item <?php echo $menu_status == 'incharge' ? 'active' : ''; ?>">
                                         <a href="<?php echo base_url(); ?>master/incharge-list" class="menu-link">
                                             <div data-i18n="Complaint Incharge">Complaint Incharge</div>
+                                        </a>
+                                    </li>
+                                <?php } ?>
+                                <?php if (($menuStates['master_branch_incharge'] ?? 'enabled') === 'enabled' && in_array('admin', $userPermission)) { ?>
+                                    <li class="menu-item <?php echo $menu_status == 'branch_incharge' ? 'active' : ''; ?>">
+                                        <a href="<?php echo base_url(); ?>master/branch-incharge-list" class="menu-link">
+                                            <div data-i18n="Branch Incharge">Branch Incharge</div>
                                         </a>
                                     </li>
                                 <?php } ?>

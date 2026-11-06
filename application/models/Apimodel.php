@@ -145,6 +145,19 @@ class Apimodel extends CI_Model
         return array_map(function($row) { return $row->fcm_token; }, $results);
     }
 
+    /**
+     * Whether the given employee is an active Branch Incharge (master_branch_incharge.incharge_employee_id)
+     */
+    public function isBranchIncharge($employeeId)
+    {
+        if (empty($employeeId)) return false;
+
+        $this->db->where('incharge_employee_id', (int) $employeeId)
+                  ->where('status', 'active')
+                  ->where('delete_status', 0);
+        return $this->db->count_all_results('master_branch_incharge') > 0;
+    }
+
 }
 
 ?>

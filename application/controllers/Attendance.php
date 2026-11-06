@@ -668,5 +668,159 @@ class Attendance extends CI_Controller {
           echo json_encode(['isError' => true, 'message' => 'No attendance data found to save']);
       }
   }
+
+  // ─── Branch Attendance (attendance for a Branch Incharge's assigned employees) ───
+
+  //Admin/manager permissions get full access; everyone else is let in only if they are
+  //themselves the Branch Incharge, and only ever scoped to their own branch (URL/posted
+  //branchInchargeId is ignored for them so they can never view/edit another branch).
+  private function resolveBranchIncharge($requestedId = '')
+  {
+      $userPermission = json_decode($this->session->userdata('permission'), true) ?: [];
+      $isAdminLevel = in_array('admin', $userPermission) || in_array('employee_management', $userPermission) || in_array('attendance_management', $userPermission);
+
+      if ($isAdminLevel) {
+          return ['allowed' => true, 'isAdminLevel' => true, 'branchInchargeId' => $requestedId];
+      }
+
+      $myIncharge = $this->mastermodel->getBranchInchargeByEmployeeId($this->session->userdata('empid'));
+      if (!$myIncharge) {
+          return ['allowed' => false, 'isAdminLevel' => false, 'branchInchargeId' => null];
+      }
+
+      return ['allowed' => true, 'isAdminLevel' => false, 'branchInchargeId' => $myIncharge->id];
+  }
+
+  public function branch_attendance_list($branchInchargeId = '', $year = '', $month = '')
+  {
+      $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+      $access = $this->resolveBranchIncharge($branchInchargeId);
+      if ($access['allowed']) {
+          $branchInchargeId = $access['branchInchargeId'];
+          $data["menu_open"] = 'employee_attendance';
+          $data["menu_status"] = 'branch_attendance';
+          $data['branchInchargeId'] = $branchInchargeId;
+          $data['isAdminLevel'] = $access['isAdminLevel'];
+          $data['year'] = $year ?: date('Y');
+          $data['month'] = $month ?: strtolower(date('F'));
+          $data['branchInchargeDropdown'] = $access['isAdminLevel'] ? $this->mastermodel->branchInchargeList('active') : [];
+
+          $empName = $this->session->userdata('username');
+          $empId = $this->session->userdata('userid');
+
+          $data['employeeComplaintList'] = $this->complaintmodel->employeeComplaintList($empName);
+          $data['checkEmployeeExpensesList'] = $this->employeemodel->getCheckEmployeeExpensesList($empId);
+          $data['checkEmployeeAttendanceList'] = $this->attendancemodel->getCheckEmployeeAttendanceList($empId);
+
+          if ($branchInchargeId) {
+              $employeeIds = $this->mastermodel->getBranchInchargeEmployeeIdsWithSelf($branchInchargeId);
+              $data['presentMonthList'] = $this->attendancemodel->getPresentMonthList($data['year']);
+              $data['employeeAttendanceList'] = $this->attendancemodel->getEmployeeAttendanceGridByIds($data['year'], $data['month'], $employeeIds);
+              $data['daysInMonth'] = date('t', strtotime("1 {$data['month']} {$data['year']}"));
+          } else {
+              $data['presentMonthList'] = [];
+              $data['employeeAttendanceList'] = [];
+              $data['daysInMonth'] = 0;
+          }
+
+          $this->load->view('settings/header', $data);
+          $this->load->view('employee_attendance/branch_attendance/branch-attendance-list', $data);
+          $this->load->view('settings/footer');
+      } else {
+          $this->load->view('settings/header_link');
+          $this->load->view('settings/no_permission');
+          $this->load->view('settings/footer');
+      }
+  }
+
+  public function branch_attendance_add($branchInchargeId, $date = '')
+  {
+      $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+      $access = $this->resolveBranchIncharge($branchInchargeId);
+      if ($access['allowed']) {
+          $branchInchargeId = $access['branchInchargeId'];
+          $data["menu_open"] = 'employee_attendance';
+          $data["menu_status"] = 'branch_attendance';
+          $data['branchInchargeId'] = $branchInchargeId;
+          $data['presentDate'] = $date ?: date('Y-m-d');
+
+          $empName = $this->session->userdata('username');
+          $empId = $this->session->userdata('userid');
+
+          $data['employeeComplaintList'] = $this->complaintmodel->employeeComplaintList($empName);
+          $data['checkEmployeeExpensesList'] = $this->employeemodel->getCheckEmployeeExpensesList($empId);
+          $data['checkEmployeeAttendanceList'] = $this->attendancemodel->getCheckEmployeeAttendanceList($empId);
+
+          $branchInchargeInfo = $this->mastermodel->getBranchInchargeInfo($branchInchargeId);
+          $data['zoneName'] = '';
+          $data['branchId'] = '';
+          foreach ($branchInchargeInfo as $row) {
+              $data['zoneName'] = $row->zone;
+              $data['branchId'] = $row->branch;
+          }
+
+          $data['branchName'] = '';
+          foreach ($this->mastermodel->getBranchInfo($data['branchId']) as $row) {
+              $data['branchName'] = $row->branch;
+          }
+
+          // Include the incharge's own attendance alongside their assigned employees
+          $employeeIds = $this->mastermodel->getBranchInchargeEmployeeIdsWithSelf($branchInchargeId);
+          $data['employeeList'] = $this->mastermodel->getEmployeesByIds($employeeIds);
+          $data['statusByEmployee'] = $this->attendancemodel->getEmployeeDayStatusByIds($employeeIds, $data['presentDate']);
+
+          $this->load->view('settings/header', $data);
+          $this->load->view('employee_attendance/branch_attendance/branch-attendance-add', $data);
+          $this->load->view('settings/footer');
+      } else {
+          $this->load->view('settings/header_link');
+          $this->load->view('settings/no_permission');
+          $this->load->view('settings/footer');
+      }
+  }
+
+  //Branch Attendance Save Form //
+  public function branchAttendanceFormSave()
+  {
+      $postedBranchInchargeId = $this->input->post('branch_incharge_id');
+      $presentDate = $this->input->post('present_date');
+      $employeeIds = $this->input->post('employee_id');            // array
+      $attendanceValues = $this->input->post('attendance_value');  // array, ''|'present'|'absent'|'half_day_ot'|'full_day_ot'
+
+      $access = $this->resolveBranchIncharge($postedBranchInchargeId);
+      if (!$access['allowed']) {
+          echo json_encode(["isError" => TRUE, "message" => "No permission"]);
+          return;
+      }
+      $branchInchargeId = $access['branchInchargeId'];
+
+      $branchInchargeInfo = $this->mastermodel->getBranchInchargeInfo($branchInchargeId);
+      $branchId = '';
+      foreach ($branchInchargeInfo as $row) {
+          $branchId = $row->branch;
+      }
+
+      // The incharge may mark attendance for their pre-assigned employees, or add
+      // someone the admin hasn't assigned yet - either is fine for THIS DATE ONLY,
+      // as long as the posted id is a genuine active employee (blocks garbage/forged
+      // ids only). Ad-hoc additions are never persisted into the assigned-employee
+      // list - they must not start appearing on other dates/the month grid.
+      $validEmployeeIds = array_map(function ($row) { return $row->id; }, $this->mastermodel->getEmployeesByIds($employeeIds));
+
+      foreach ($employeeIds as $index => $employeeId) {
+          if (!in_array((int) $employeeId, $validEmployeeIds)) {
+              continue;
+          }
+          $value = isset($attendanceValues[$index]) ? $attendanceValues[$index] : '';
+
+          // Left on "Select" on purpose - don't touch this employee's attendance at all
+          $this->attendancemodel->saveEmployeeAttendanceValue($branchId, $presentDate, $employeeId, $value);
+      }
+
+      $data["isError"] = FALSE;
+      $data["message"] = "Branch Attendance Saved";
+      echo json_encode($data);
+      return;
+  }
 }
 ?>

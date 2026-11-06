@@ -40,6 +40,23 @@ class Mastermodel extends CI_Model
         return $res->result();
     }
 
+    //Employees matching a given id list (e.g. a Branch Incharge's assigned employees), with designation
+    public function getEmployeesByIds($employeeIds)
+    {
+        if (empty($employeeIds)) {
+            return [];
+        }
+
+        $sql = "SELECT E.id, E.employee_name, MD.designation
+                FROM employee E
+                LEFT JOIN master_designation MD ON MD.id = E.designation
+                WHERE E.delete_status = 0 AND E.status = 'active' AND E.id IN (" . implode(',', array_map('intval', $employeeIds)) . ")
+                ORDER BY E.employee_name ASC";
+
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+
     //Payslip Employee Dropdown
     public function getPayslipEmployeeDropdown()
     {
@@ -1005,6 +1022,139 @@ class Mastermodel extends CI_Model
             $this->db->insert('master_incharge', $data);
             $this->db->insert_id();
         }
+    }
+
+    // ─── Branch Incharge (zone -> branch -> incharge + assigned employees) ───
+
+    //Branch Incharge List
+    public function branchInchargeList($pageStatus = '')
+    {
+        if ($pageStatus) {
+            $where = "AND BI.status = '$pageStatus'";
+        } else {
+            $where = '';
+        }
+
+        $sql = "SELECT BI.*, DATE_FORMAT(BI.created_at, '%d/%m/%Y %h:%i %p') AS created_at, MB.branch AS branch_name, E.employee_name AS incharge_name, LP.employee_name AS created_by,
+                       (SELECT GROUP_CONCAT(E2.employee_name ORDER BY E2.employee_name SEPARATOR ', ')
+                          FROM master_branch_incharge_employee BIE
+                          INNER JOIN employee E2 ON E2.id = BIE.employee_id
+                         WHERE BIE.branch_incharge_id = BI.id) AS assigned_employees
+                FROM master_branch_incharge BI
+                INNER JOIN master_branch MB ON MB.id = BI.branch
+                INNER JOIN employee E ON E.id = BI.incharge_employee_id
+                INNER JOIN login_permission LP ON LP.employee_id = BI.created_by
+                WHERE BI.delete_status = 0 $where
+                ORDER BY MB.branch ASC";
+
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+
+    //Branch Incharge Info
+    public function getBranchInchargeInfo($branchInchargeId)
+    {
+        $sql = "SELECT * FROM master_branch_incharge WHERE delete_status = 0 AND id = " . (int) $branchInchargeId;
+
+        $res = $this->db->query($sql);
+        return $res->result();
+    }
+
+    //Resolve an employee to the Branch Incharge record they themselves are the incharge of (if any)
+    public function getBranchInchargeByEmployeeId($employeeId)
+    {
+        if (empty($employeeId)) {
+            return null;
+        }
+
+        $this->db->where('incharge_employee_id', (int) $employeeId)
+                  ->where('status', 'active')
+                  ->where('delete_status', 0);
+        return $this->db->get('master_branch_incharge')->row();
+    }
+
+    //Assigned employee ids for a Branch Incharge, plus the incharge's own employee id
+    //(so the incharge can mark their own attendance alongside their team's)
+    public function getBranchInchargeEmployeeIdsWithSelf($branchInchargeId)
+    {
+        $employeeIds = $this->getBranchInchargeEmployeeIds($branchInchargeId);
+        foreach ($this->getBranchInchargeInfo($branchInchargeId) as $row) {
+            if ($row->incharge_employee_id && !in_array($row->incharge_employee_id, $employeeIds)) {
+                $employeeIds[] = $row->incharge_employee_id;
+            }
+        }
+        return $employeeIds;
+    }
+
+    //Employee ids already assigned to a Branch Incharge record (for pre-selecting the multi-select on edit)
+    public function getBranchInchargeEmployeeIds($branchInchargeId)
+    {
+        $this->db->select('employee_id')->where('branch_incharge_id', (int) $branchInchargeId);
+        $res = $this->db->get('master_branch_incharge_employee');
+        return array_map(function ($row) { return $row->employee_id; }, $res->result());
+    }
+
+    //Check Branch Incharge (one active config per branch)
+    public function checkBranchIncharge($branch)
+    {
+        $sql = "SELECT * FROM master_branch_incharge WHERE delete_status = 0 AND branch = " . (int) $branch;
+
+        $res = $this->db->query($sql);
+        return $res->num_rows();
+    }
+
+    //Save Branch Incharge Form (parent row + child employee rows)
+    public function saveBranchInchargeData($branchInchargeId, $zone, $branch, $inchargeEmployeeId, $employeeIds, $status)
+    {
+        $userId = $this->session->userdata('userid');
+
+        $this->db->trans_start();
+
+        if ($branchInchargeId > 0) {
+            $data = array(
+                'zone' => $zone,
+                'branch' => $branch,
+                'incharge_employee_id' => $inchargeEmployeeId,
+                'status' => $status,
+                'updated_by' => $userId,
+                'updated_at' => date('Y-m-d H:i:s')
+            );
+            $this->db->where('id', (int) $branchInchargeId);
+            $this->db->update('master_branch_incharge', $data);
+        } else {
+            $year        = date('y');
+            $this->db->select_max('id');
+            $query       = $this->db->get('master_branch_incharge');
+            $result      = $query->row_array();
+            $maxID       = $result['id'];
+            $biNumberId = sprintf("%05d", $maxID + 1);
+            $biNumber   = $year . '/' . $biNumberId;
+
+            $data = array(
+                'sno' => $biNumber,
+                'zone' => $zone,
+                'branch' => $branch,
+                'incharge_employee_id' => $inchargeEmployeeId,
+                'status' => $status,
+                'created_by' => $userId,
+                'created_at' => date('Y-m-d H:i:s')
+            );
+            $this->db->insert('master_branch_incharge', $data);
+            $branchInchargeId = $this->db->insert_id();
+        }
+
+        // Replace the assigned-employee child rows with the submitted list
+        $this->db->where('branch_incharge_id', (int) $branchInchargeId)->delete('master_branch_incharge_employee');
+        if (!empty($employeeIds)) {
+            $rows = [];
+            foreach (array_unique($employeeIds) as $employeeId) {
+                $rows[] = array('branch_incharge_id' => (int) $branchInchargeId, 'employee_id' => (int) $employeeId);
+            }
+            $this->db->insert_batch('master_branch_incharge_employee', $rows);
+        }
+
+        $this->db->trans_complete();
+        return $branchInchargeId;
     }
 
     //Work Type List

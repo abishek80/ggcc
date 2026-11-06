@@ -1146,7 +1146,121 @@ class Master extends CI_Controller {
         echo json_encode($data);
         return;
     }
-    
+
+    // ─── Branch Incharge ──────────────────────────────────────────────
+
+    public function branch_incharge_list($pageStatus='')
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'access_control';
+            $data["menu_status"] = 'branch_incharge';
+            $data['activeLink'] = $pageStatus;
+
+            $data['branchInchargeList'] = $this->mastermodel->branchInchargeList($pageStatus);
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/branch_incharge/branch-incharge-list', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    public function branch_incharge_add()
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'access_control';
+            $data["menu_status"] = 'branch_incharge';
+
+            $data['formTitle'] = "Add Branch Incharge";
+            $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
+            $data['branchInchargeId'] = '';
+            $data['branchInchargeZone'] = '';
+            $data['branchInchargeBranch'] = '';
+            $data['branchInchargeEmployee'] = '';
+            $data['employeeDropdown'] = $this->mastermodel->getEmployeeDropdown();
+            $data['assignedEmployeeIds'] = [];
+            $data['status'] = 'active';
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/branch_incharge/branch-incharge-add', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    public function branch_incharge_edit($branchInchargeId)
+    {
+        $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);
+        if (in_array('admin', $userPermission)) {
+            $data["menu_open"] = 'access_control';
+            $data["menu_status"] = 'branch_incharge';
+
+            $data['formTitle'] = "Edit Branch Incharge";
+            $data['branchDropdown'] = $this->mastermodel->getBranchDropdown();
+
+            $branchInchargeInfo = $this->mastermodel->getBranchInchargeInfo($branchInchargeId);
+            foreach ($branchInchargeInfo as $row) {
+                $data['branchInchargeId'] = $row->id;
+                $data['branchInchargeZone'] = $row->zone;
+                $data['branchInchargeBranch'] = $row->branch;
+                $data['branchInchargeEmployee'] = $row->incharge_employee_id;
+                $data['status'] = $row->status;
+            }
+
+            $data['employeeDropdown'] = $this->mastermodel->getEmployeeDropdown();
+            $data['assignedEmployeeIds'] = $this->mastermodel->getBranchInchargeEmployeeIds($branchInchargeId);
+
+            $this->load->view('settings/header', $data);
+            $this->load->view('master/branch_incharge/branch-incharge-add', $data);
+            $this->load->view('settings/footer');
+        } else {
+            $this->load->view('settings/header_link');
+            $this->load->view('settings/no_permission');
+            $this->load->view('settings/footer');
+        }
+    }
+
+    //Branch Incharge Save Form //
+    public function branchInchargeFormSave()
+    {
+        $branchInchargeId = $this->input->post('branch_incharge_id');
+        $zone = $this->input->post('zone');
+        $branch = $this->input->post('branch');
+        $inchargeEmployee = $this->input->post('incharge_employee');
+        $employeeIds = $this->input->post('employees'); // array from the multiple-select
+        $status = $this->input->post('status');
+
+        if ($branchInchargeId < 0 || $branchInchargeId == '') {
+            $checkExists = $this->mastermodel->checkBranchIncharge($branch);
+            if ($checkExists > 0) {
+                $data["isError"] = TRUE;
+                $data["message"] = "This Branch already has an Incharge assigned";
+                echo json_encode($data);
+                return;
+            }
+        }
+
+        $this->mastermodel->saveBranchInchargeData($branchInchargeId, $zone, $branch, $inchargeEmployee, $employeeIds, $status);
+
+        $data["isError"] = FALSE;
+        if ($branchInchargeId > 0) {
+            $data["message"] = "Branch Incharge Updated";
+        } else {
+            $data["message"] = "Branch Incharge Created";
+        }
+
+        echo json_encode($data);
+        return;
+    }
+
     public function work_type_list($pageStatus='')
     {
         $data['userPermission'] = $userPermission = json_decode($this->session->userdata('permission'), true);

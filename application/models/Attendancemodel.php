@@ -619,6 +619,194 @@
             }
         }
 
+        // ─── Branch Incharge scoped attendance (employee-id-list filtered) ───
+
+        //Same shape as getEmployeeAttendanceList(), but scoped to an explicit employee id list
+        //(a Branch Incharge's assigned employees) instead of the "has activity this month" scan.
+        public function getEmployeeAttendanceListByIds($year = '', $month = '', $employeeIds = [])
+        {
+            if (empty($employeeIds)) {
+                return [];
+            }
+            $idsCsv = implode(',', array_map('intval', $employeeIds));
+
+            $wherePresent = $whereLeave = $subOT = '';
+            if ($year) {
+                $wherePresent .= " AND YEAR(EA.present_date) = '$year'";
+                $whereLeave .= " AND YEAR(ELD.leave_date) = '$year'";
+                $subOT .= " AND YEAR(ot_date) = '$year'";
+            }
+            if ($month) {
+                $wherePresent .= " AND MONTHNAME(EA.present_date) = '$month'";
+                $whereLeave .= " AND MONTHNAME(ELD.leave_date) = '$month'";
+                $subOT .= " AND MONTHNAME(ot_date) = '$month'";
+            }
+
+            $sql = "SELECT E.id AS employee_id, E.employee_name, MD.designation, E.zone, MB.branch,
+                    (
+                        COUNT(DISTINCT EA.id)
+                        + (SELECT COUNT(*) FROM employee_ot WHERE employee_id = E.id AND delete_status = 0 $subOT)
+                    ) AS present_count,
+                    COUNT(DISTINCT ELD.id) AS leave_count,
+                    (SELECT COALESCE(SUM(CASE
+                        WHEN ot_type = 'Half Day' THEN 0.25
+                        WHEN ot_type = 'Full Day' THEN 0.5
+                        ELSE 0.5
+                    END), 0) FROM employee_ot WHERE employee_id = E.id AND delete_status = 0 $subOT) AS ot_count
+                    FROM employee E
+                    LEFT JOIN employee_attendance EA ON EA.employee_id = E.id AND EA.delete_status = 0 $wherePresent
+                    LEFT JOIN employee_leave_detail ELD ON ELD.employee_id = E.id AND ELD.delete_status = 0 $whereLeave
+                    INNER JOIN master_designation MD ON MD.id = E.designation
+                    LEFT JOIN master_branch MB ON MB.id = E.branch
+                    WHERE E.delete_status = 0 AND E.id IN ($idsCsv)
+                    GROUP BY E.id
+                    ORDER BY E.employee_name ASC";
+
+            $res = $this->db->query($sql);
+            return $res->result();
+        }
+
+        //Same shape/merge logic as getEmployeeAttendanceGrid(), scoped to an explicit employee id list
+        public function getEmployeeAttendanceGridByIds($year = '', $month = '', $employeeIds = [])
+        {
+            $employees = $this->getEmployeeAttendanceListByIds($year, $month, $employeeIds);
+
+            if (!$year || !$month || empty($employees)) {
+                return $employees;
+            }
+
+            $monthNum = date('m', strtotime("1 $month $year"));
+            $startDate = "$year-$monthNum-01";
+            $endDate = date('Y-m-t', strtotime($startDate));
+
+            $attSql = "SELECT employee_id, present_date, 'P' as status FROM employee_attendance WHERE delete_status = 0 AND present_date BETWEEN ? AND ?";
+            $attendanceData = $this->db->query($attSql, [$startDate, $endDate])->result();
+
+            $leaveSql = "SELECT employee_id, leave_date as present_date, 'A' as status FROM employee_leave_detail WHERE delete_status = 0 AND leave_date BETWEEN ? AND ?";
+            $leaveData = $this->db->query($leaveSql, [$startDate, $endDate])->result();
+
+            $otSql = "SELECT employee_id, ot_date as present_date, CASE WHEN ot_type = 'Half Day' THEN 'Half OT' WHEN ot_type = 'Full Day' THEN 'Full OT' ELSE 'OT' END as status FROM employee_ot WHERE delete_status = 0 AND ot_date BETWEEN ? AND ?";
+            $otData = $this->db->query($otSql, [$startDate, $endDate])->result();
+
+            $mergedData = array_merge($attendanceData, $leaveData, $otData);
+
+            // Collect which statuses landed on each employee/day as a set (not a
+            // concatenated string) so an OT-only day can be reconciled below without
+            // producing duplicate/garbled labels.
+            $dayStatusSets = [];
+            foreach ($mergedData as $att) {
+                $day = date('j', strtotime($att->present_date));
+                $dayStatusSets[$att->employee_id][$day][$att->status] = true;
+            }
+
+            // OT always implies the employee was present that day (the "Total Present"
+            // column already folds OT in - see present_count above), so a day with any
+            // OT shows just the plain OT label ("Half OT"/"Full OT"), never a redundant
+            // "P/Half OT" - whether or not a separate present-day row also exists.
+            $dailyData = [];
+            foreach ($dayStatusSets as $employeeId => $days) {
+                foreach ($days as $day => $statusSet) {
+                    $hasOt = isset($statusSet['Half OT']) || isset($statusSet['Full OT']) || isset($statusSet['OT']);
+                    if ($hasOt) {
+                        unset($statusSet['P']);
+                    }
+
+                    $ordered = [];
+                    foreach (['P', 'A', 'Half OT', 'Full OT', 'OT'] as $label) {
+                        if (isset($statusSet[$label])) {
+                            $ordered[] = $label;
+                        }
+                    }
+
+                    $dailyData[$employeeId][$day] = implode('/', $ordered);
+                }
+            }
+
+            foreach ($employees as &$emp) {
+                $emp->daily_attendance = isset($dailyData[$emp->employee_id]) ? $dailyData[$emp->employee_id] : [];
+            }
+
+            return $employees;
+        }
+
+        //Single combined attendance value per employee for one date - matches the same
+        //'select/present/absent/half_day_ot/full_day_ot' vocabulary as the existing
+        //monthly attendance grid (getMonthlyAttendanceGridData/saveMonthlyAttendanceGrid).
+        //Used to pre-fill the Branch Attendance add form's one-select-per-row control.
+        public function getEmployeeDayStatusByIds($employeeIds, $date)
+        {
+            if (empty($employeeIds)) {
+                return [];
+            }
+
+            $presentRows = $this->db->select('employee_id')->where('present_date', $date)->where('delete_status', 0)->where_in('employee_id', $employeeIds)->get('employee_attendance')->result();
+            $absentRows = $this->db->select('employee_id')->where('leave_date', $date)->where('delete_status', 0)->where_in('employee_id', $employeeIds)->get('employee_leave_detail')->result();
+            $otRows = $this->db->select('employee_id, ot_type')->where('ot_date', $date)->where('delete_status', 0)->where_in('employee_id', $employeeIds)->get('employee_ot')->result();
+
+            $presentIds = array_column($presentRows, 'employee_id');
+            $absentIds = array_column($absentRows, 'employee_id');
+            $otByEmployee = [];
+            foreach ($otRows as $row) {
+                $otByEmployee[$row->employee_id] = $row->ot_type;
+            }
+
+            $valueByEmployee = [];
+            foreach ($employeeIds as $employeeId) {
+                $otType = $otByEmployee[$employeeId] ?? '';
+                if ($otType === 'Half Day') {
+                    $value = 'half_day_ot';
+                } elseif ($otType === 'Full Day') {
+                    $value = 'full_day_ot';
+                } elseif (in_array($employeeId, $presentIds)) {
+                    $value = 'present';
+                } elseif (in_array($employeeId, $absentIds)) {
+                    $value = 'absent';
+                } else {
+                    $value = '';
+                }
+
+                $valueByEmployee[$employeeId] = $value;
+            }
+
+            return $valueByEmployee;
+        }
+
+        //Save a single employee's OT for one date via the existing saveEmployeeOTData(), replacing any
+        //existing OT row for that employee+date first so re-saving the same date never creates duplicates.
+        public function saveEmployeeSingleOT($branchId, $otDate, $employeeId, $otType, $status = 'approved')
+        {
+            $this->db->where('employee_id', (int) $employeeId)->where('ot_date', $otDate)->delete('employee_ot');
+
+            if (empty($otType)) {
+                return;
+            }
+
+            $employeeOTArrayData = [(object) ['employeeId' => $employeeId]];
+            $this->saveEmployeeOTData(0, $branchId, $otDate, 'Office', 'General', $otType, $status, $employeeOTArrayData);
+        }
+
+        //Save one employee's single combined attendance value for one date - the one entry
+        //point both the web form and the mobile API call, so there is exactly one place
+        //that interprets 'present'|'absent'|'half_day_ot'|'full_day_ot'. An empty value
+        //is left alone entirely (no present/absent/OT write of any kind).
+        public function saveEmployeeAttendanceValue($branchId, $date, $employeeId, $value)
+        {
+            if ($value === '') {
+                return;
+            }
+
+            if ($value === 'half_day_ot' || $value === 'full_day_ot') {
+                $this->saveEmployeeAttendanceData(0, $date, $employeeId, 'present');
+                $this->saveEmployeeSingleOT($branchId, $date, $employeeId, $value === 'half_day_ot' ? 'Half Day' : 'Full Day');
+            } elseif ($value === 'present') {
+                $this->saveEmployeeAttendanceData(0, $date, $employeeId, 'present');
+                $this->saveEmployeeSingleOT($branchId, $date, $employeeId, '');
+            } elseif ($value === 'absent') {
+                $this->saveEmployeeAttendanceData(0, $date, $employeeId, 'absent');
+                $this->saveEmployeeSingleOT($branchId, $date, $employeeId, '');
+            }
+        }
+
         //Attendance Month List
         public function getAttendanceMonthList($year='', $employeeId='')
         {

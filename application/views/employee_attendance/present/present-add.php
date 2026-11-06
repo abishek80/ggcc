@@ -3,7 +3,7 @@
         <form id="attendanceGridForm" method="post" class="card px-3 pb-3">
             <div class="d-flex justify-content-between align-items-center border-bottom mb-3 pt-3 pb-3 sticky-head flex-wrap gap-3">
                 <div class="d-flex gap-2 align-items-center">
-                    <a href="<?php echo base_url(); ?>attendance/attendance-employee-list" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
+                    <a href="<?php echo base_url() .'attendance/attendance-list/' . date('Y') . '/' . strtolower(date('F')); ?>" class="fw-bold text-black"><i class="bx bx-chevron-left fs-2 fw-bold text-black"></i></a>
                     <h4 class="fw-bold mb-0 text-black">Monthly Attendance Sheet</h4>
                 </div>
                 <div class="d-flex gap-3 justify-content-end">

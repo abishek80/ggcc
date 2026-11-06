@@ -253,6 +253,9 @@ class Complaint extends CI_Controller {
           $data['createdAt'] = $row->created_at;
         }
 
+        $data['beforeImages'] = $this->complaintmodel->getComplaintImageList($complaintId, 'before');
+        $data['afterImages'] = $this->complaintmodel->getComplaintImageList($complaintId, 'after');
+
         $this->load->view('settings/header', $data);
         $this->load->view('complaint/complaint-edit', $data);
         $this->load->view('settings/footer');
@@ -424,6 +427,54 @@ class Complaint extends CI_Controller {
       }
       
       $this->complaintmodel->saveComplaintEditData($date, $complaintId, $outletId, $token, $zone, $branch, $complainterName, $complainterNumber, $workType, $assignTo, $outletName, $outletLocation, $contactName, $contactNumber, $oldOutletName, $oldOutletLocation, $oldContactName, $oldContactNumber, $description, $alreadyExists, $status, $remarks, $checkingDate, $renewalDate, $jobReport_img, $earthingReport_img, $locationUrl, $oldLocationUrl);
+
+      // Process Before Images Upload
+      if (!empty($_FILES['before_images']['name']) && !empty($_FILES['before_images']['name'][0])) {
+        $beforeUploadDir = './uploads/before_image/';
+        if (!is_dir($beforeUploadDir)) {
+          mkdir($beforeUploadDir, 0777, true);
+        }
+        $filesArry = $_FILES["before_images"]; 
+        foreach ($filesArry['name'] as $key => $val) {
+          $fileName = basename($filesArry['name'][$key]);
+          if (empty($fileName)) { continue; }
+          $fileType = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));  
+          $date = date("dmY-His");
+      
+          if (in_array($fileType, $allowTypes)) {
+            $newFileName = $date . "_" . uniqid() . "_" . $fileName;
+            $targetFilePath = $beforeUploadDir . $newFileName;
+    
+            if (move_uploaded_file($filesArry["tmp_name"][$key], $targetFilePath)) {
+              $this->complaintmodel->insertComplaintImage($complaintId, "uploads/before_image/" . $newFileName, 'before');
+            }
+          }
+        }
+      }
+
+      // Process After Images Upload
+      if (!empty($_FILES['after_images']['name']) && !empty($_FILES['after_images']['name'][0])) {
+        $afterUploadDir = './uploads/after_image/';
+        if (!is_dir($afterUploadDir)) {
+          mkdir($afterUploadDir, 0777, true);
+        }
+        $filesArry = $_FILES["after_images"]; 
+        foreach ($filesArry['name'] as $key => $val) {
+          $fileName = basename($filesArry['name'][$key]);
+          if (empty($fileName)) { continue; }
+          $fileType = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));  
+          $date = date("dmY-His");
+      
+          if (in_array($fileType, $allowTypes)) {
+            $newFileName = $date . "_" . uniqid() . "_" . $fileName;
+            $targetFilePath = $afterUploadDir . $newFileName;
+    
+            if (move_uploaded_file($filesArry["tmp_name"][$key], $targetFilePath)) {
+              $this->complaintmodel->insertComplaintImage($complaintId, "uploads/after_image/" . $newFileName, 'after');
+            }
+          }
+        }
+      }
       
       $data["isError"] = FALSE;
       if ($complaintId > 0) {
@@ -432,6 +483,33 @@ class Complaint extends CI_Controller {
         $data["message"] = "Complaint Created";
       }
 
+      echo json_encode($data);
+      return;
+    }
+
+    // Delete Before or After Image
+    public function deleteComplaintImage()
+    {
+      $userPermission = json_decode($this->session->userdata('permission'), true);
+      if (in_array('admin', $userPermission) || in_array('complaint_management', $userPermission)) {
+        $imageId = $this->input->post('image_id');
+        if (!empty($imageId)) {
+          $deleted = $this->complaintmodel->deleteComplaintImage($imageId);
+          if ($deleted) {
+            $data["isError"] = FALSE;
+            $data["message"] = "Image deleted successfully";
+          } else {
+            $data["isError"] = TRUE;
+            $data["message"] = "Failed to delete image";
+          }
+        } else {
+          $data["isError"] = TRUE;
+          $data["message"] = "Invalid image ID";
+        }
+      } else {
+        $data["isError"] = TRUE;
+        $data["message"] = "Access Denied";
+      }
       echo json_encode($data);
       return;
     }

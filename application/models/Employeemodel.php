@@ -276,7 +276,22 @@ class Employeemodel extends CI_Model
         $this->db->like('E.employee_name', $employeeName);
         $query = $this->db->get();
         return $query->result_array();
-    } 
+    }
+
+    //Same as getEmployeeName(), but excludes admin accounts (is_admin=1)
+    public function getActiveEmployeeName($employeeName)
+    {
+        $this->db->select('E.id, E.employee_name as value, MD.designation');
+        $this->db->from('employee E');
+        $this->db->join('master_designation MD', 'E.designation = MD.id', 'left');
+        $this->db->where('E.status', 'active');
+        $this->db->where('E.delete_status', 0);
+        $this->db->where('E.is_admin', 0);
+        $this->db->order_by('E.employee_name ASC');
+        $this->db->like('E.employee_name', $employeeName);
+        $query = $this->db->get();
+        return $query->result_array();
+    }
 
     public function getAttendanceEmployeeName($employeeName, $zone = '', $branch = '')
     {

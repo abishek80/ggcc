@@ -58,6 +58,20 @@
             text-align: center;
             box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1);
             transition: all 0.2s ease;
+            margin: 6px 4px;
+        }
+        .btn-apk {
+            display: inline-block;
+            background-color: #16a34a;
+            color: #ffffff !important;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 14px 32px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.25);
+            margin: 6px 4px;
         }
         .detail-row {
             display: flex;
@@ -114,10 +128,13 @@
                             </div>
 
                             <p style="font-size: 13.5px; color: #64748b; margin-bottom: 20px; line-height: 20px;">
-                                To download your payslip and view your loans, please log in to the portal by clicking below.
+                                To download your payslip and view your loans, please log in to the portal or open the app below.
                             </p>
 
-                            <a class="btn-cta" target="_blank" href="https://ggcc.org.in/">Go to Portal</a>
+                            <div>
+                                <a class="btn-cta" target="_blank" href="https://ggcc.org.in/">Go to Portal</a>
+                                <a class="btn-apk" target="_blank" href="<?= htmlspecialchars($apkDownloadUrl); ?>">Open in App</a>
+                            </div>
                         </div>
 
                     </div>
