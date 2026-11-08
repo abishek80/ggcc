@@ -3,7 +3,7 @@
     <div class="container">
         <div class="hero-grid">
             <div>
-                <div style="display:inline-flex; align-items:center; gap:8px; background:#00529C; color:#FFF; padding:6px 16px; border-radius:50px; font-weight:700; font-size:0.88rem; margin-bottom:14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                <div style="display:inline-flex; align-items:center; gap:8px; background:#181d50; color:#FFF; border: 1px solid #ffffff38; flex-wrap: wrap; justify-content: center; text-align: center; padding:6px 16px 6px 6px; border-radius:50px; font-weight:700; font-size:0.88rem; margin-bottom:14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
                     <span style="background:#ED1C24; color:#FFF; padding:2px 8px; border-radius:10px; font-size:0.75rem; text-transform:uppercase;">Major Partner</span> HPCL Petrol Pump Electrification & Civil Work
                 </div>
                 <div class="hero-badge">
@@ -86,7 +86,7 @@
                             <strong style="display:block; color:#FFF; font-size:0.95rem; margin-bottom:4px;">Electrical Panel Work</strong>
                             <span style="font-size:0.83rem; color:rgba(255,255,255,0.8);">Main distribution DBs & APFC setup.</span>
                         </div>
-                        <div style="background: rgba(255, 255, 255, 0.1); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid #00529C;">
+                        <div style="background: rgba(255, 255, 255, 0.1); padding: 14px; border-radius: var(--radius-sm); border-left: 3px solid #181d50;">
                             <strong style="display:block; color:#FFF; font-size:0.95rem; margin-bottom:4px;">Earthing Chambers</strong>
                             <span style="font-size:0.83rem; color:rgba(255,255,255,0.8);">Heavy masonry pit & electrode earth.</span>
                         </div>
@@ -153,7 +153,7 @@
             <div style="background:#FFF; border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-md); border:1px solid var(--border-color); display:flex; flex-direction:column;">
                 <div style="height:240px; overflow:hidden; position:relative;">
                     <img src="<?php echo base_url('themes/images/earthing_chamber_construction.jpg'); ?>" alt="Earthing Chamber Pit Construction" loading="lazy" width="600" height="240" style="width:100%; height:100%; object-fit:cover; transition:transform 0.5s ease;">
-                    <span style="position:absolute; top:15px; right:15px; background:#00529C; color:#FFF; font-size:0.75rem; font-weight:700; padding:4px 12px; border-radius:20px;">EARTHING CHAMPER CONSTRUCTION</span>
+                    <span style="position:absolute; top:15px; right:15px; background:#181d50; color:#FFF; font-size:0.75rem; font-weight:700; padding:4px 12px; border-radius:20px;">EARTHING CHAMPER CONSTRUCTION</span>
                 </div>
                 <div style="padding:25px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;">
                     <div>

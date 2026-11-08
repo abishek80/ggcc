@@ -30,7 +30,7 @@
                 <div class="gallery-card">
                     <div style="height: 220px; overflow: hidden; position: relative;">
                         <img src="<?php echo base_url('themes/images/hpcl_petrol_pump_lighting.jpg'); ?>" alt="HPCL Petrol Station LED Canopy Lighting" style="width: 100%; height: 100%; object-fit: cover;">
-                        <span class="gallery-badge-tag" style="background:#00529C; color:#FFF;">HPCL Lighting</span>
+                        <span class="gallery-badge-tag" style="background:#181d50; color:#FFF;">HPCL Lighting</span>
                     </div>
                     <div class="gallery-body">
                         <h3 class="gallery-title">HPCL Petrol Station Canopy & High Mast Lighting</h3>
@@ -106,7 +106,7 @@
                 <div class="gallery-card">
                     <div style="height: 220px; overflow: hidden; position: relative;">
                         <img src="<?php echo base_url('themes/images/service_electrical_contracting.jpg'); ?>" alt="Class-1 Electrical Contractor License" style="width: 100%; height: 100%; object-fit: cover;">
-                        <span class="gallery-badge-tag" style="background:#00529C; color:#FFF;">State License</span>
+                        <span class="gallery-badge-tag" style="background:#181d50; color:#FFF;">State License</span>
                     </div>
                     <div class="gallery-body">
                         <h3 class="gallery-title">State Electrical Inspectorate License</h3>

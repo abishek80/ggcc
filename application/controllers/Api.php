@@ -852,15 +852,38 @@ class Api extends CI_Controller
             ]);
         }
 
+        // Sanitize version strings: remove 'v'/'V' prefix, strip build metadata (+...), and trim
+        $clean_current = preg_replace('/^v/i', '', trim($current_version));
+        $clean_current = explode('+', $clean_current)[0];
+        $clean_current = explode('-', $clean_current)[0];
+        $clean_current = preg_replace('/[^\d\.]/', '', $clean_current);
+        $clean_current = trim($clean_current, '.');
+        if ($clean_current === '') {
+            $clean_current = '0';
+        }
+
+        $clean_latest = preg_replace('/^v/i', '', trim($latest->latest_version));
+        $clean_latest = explode('+', $clean_latest)[0];
+        $clean_latest = explode('-', $clean_latest)[0];
+        $clean_latest = preg_replace('/[^\d\.]/', '', $clean_latest);
+        $clean_latest = trim($clean_latest, '.');
+        if ($clean_latest === '') {
+            $clean_latest = '0';
+        }
+
         // Compare versions using version_compare
-        $update_available = version_compare($current_version, $latest->latest_version, '<');
+        $update_available = (bool)version_compare($clean_current, $clean_latest, '<');
+
+        $update_url = !empty($latest->update_url) 
+            ? $latest->update_url 
+            : 'https://play.google.com/store/apps/details?id=in.org.ggcc.mobile';
 
         $this->respond([
             'isError'          => false,
             'update_available' => $update_available,
             'latest_version'   => $latest->latest_version,
             'is_force'         => (int)$latest->is_force,
-            'update_url'       => $latest->update_url,
+            'update_url'       => $update_url,
             'release_notes'    => $latest->release_notes ? $latest->release_notes : ''
         ]);
     }

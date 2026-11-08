@@ -12,7 +12,7 @@
 <section class="section-padding">
     <div class="container">
         <!-- HPCL Major Partner Spotlight Card -->
-        <div style="background: linear-gradient(135deg, #181d50, #00529C); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); color: #FFF; margin-bottom: 60px;">
+        <div style="background: linear-gradient(135deg, #181d50, #181d50); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg); color: #FFF; margin-bottom: 60px;">
             <div class="grid-2" style="align-items: center;">
                 <div style="padding: 40px;">
                     <div style="display:inline-flex; align-items:center; gap:8px; background:#ED1C24; color:#FFF; padding:6px 16px; border-radius:30px; font-weight:800; font-size:0.82rem; margin-bottom:15px; letter-spacing:0.5px;">

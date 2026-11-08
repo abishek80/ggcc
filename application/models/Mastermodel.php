@@ -1352,7 +1352,7 @@ class Mastermodel extends CI_Model
     {
         $where = "WHERE 1=1";
         if ($status > '') {
-            $where .= " AND status = '" . $status . "'";
+            $where .= " AND AVC.status = '" . $this->db->escape_str($status) . "'";
         }
         $sql = "SELECT AVC.*, LP.employee_name 
                 FROM app_version_control AVC 

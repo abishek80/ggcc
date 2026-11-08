@@ -13,6 +13,29 @@
                     <p style="font-size:0.85rem; color:var(--card-bg);">
                         <strong>Main Office:</strong> Suyog Samuha CHS Ltd, 9, Plot No. 41 to 44, Sector 8, Sanpada, Navi Mumbai, MH 400705
                     </p>
+
+                    <!-- Portals & Apps -->
+                    <div style="margin-top:18px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.1);">
+                        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                            <a href="<?php echo base_url('admin'); ?>" target="_blank" class="footer-app-btn" title="Web Application Portal Login">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                                </svg>
+                                <span>Web App</span>
+                            </a>
+                            <a href="https://play.google.com/store/apps/details?id=in.org.ggcc.mobile" target="_blank" rel="noopener noreferrer" class="footer-app-btn" title="Download GGCC Mobile App on Google Play Store">
+                                <svg width="15" height="15" viewBox="0 0 512 512" fill="none">
+                                    <path d="M48.7 15.1C44.4 19.6 42 26.6 42 35.8v440.4c0 9.2 2.4 16.2 6.7 20.7l1.1 1.1L274 273.8v-5.6L49.8 14l-1.1 1.1z" fill="#00e5ff"/>
+                                    <path d="M350.7 350.5l-76.7-76.7v-5.6l76.7-76.7 1.8 1 90.7 51.5c25.9 14.7 25.9 38.7 0 53.5l-90.7 51.5-1.8 1z" fill="#ffca28"/>
+                                    <path d="M352.5 349.5L274 271 48.7 496.3c8.6 9.1 22.7 10.3 38.7 1.2l265.1-148z" fill="#ff3d00"/>
+                                    <path d="M352.5 162.5L87.4 14.5C71.4 5.4 57.3 6.6 48.7 15.7L274 241l78.5-78.5z" fill="#00e676"/>
+                                </svg>
+                                <span>Play Store</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Col 2: Quick Links -->
@@ -68,7 +91,7 @@
             <!-- Footer Bottom -->
             <div class="footer-bottom">
                 <p>&copy; <?php echo date('Y'); ?> George General Construction Company (GGCC). All Rights Reserved.</p>
-                <p>Professional Electrical Contracting & Infrastructure Services.</p>
+                <p>Developed By <a href="https://abishek80.github.io/portfolio.github.io/" target="_blank" class="author-name" rel="noopener noreferrer">Antony Abishek</a></p>
             </div>
         </div>
     </footer>
