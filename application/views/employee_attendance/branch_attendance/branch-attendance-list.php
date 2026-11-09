@@ -29,7 +29,7 @@
                 <h4 class="fw-bold mb-0 text-black text-capitalize"><?php echo $month; ?> - Branch Attendance</h4>
                 <a href="<?php echo base_url() . 'attendance/branch-attendance-add/' . $branchInchargeId; ?>" class="btn btn-primary px-4 py-2 rounded text-white">Add Attendance</a>
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
                 <table class="table table-bordered text-center align-middle" id="branchAttendanceTable" style="min-width: max-content;">
                     <thead class="table-light sticky-top" style="z-index: 2;">
                         <tr>

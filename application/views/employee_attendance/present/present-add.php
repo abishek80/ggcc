@@ -76,7 +76,7 @@
 <style>
     /* Styling to make it look more like excel */
     #attendanceTable th, #attendanceTable td {
-        min-width: 50px;
+        min-width: 60px;
         padding: 5px;
         border: 1px solid #ddd;
     }

@@ -224,9 +224,21 @@
 
             $this->db->trans_start();
 
+            // Present and Absent are mutually exclusive for a given employee+date,
+            // so always clear BOTH prior representations first - otherwise
+            // switching Absent -> Present (or back) leaves the old row behind
+            // alongside the new one, showing as a bogus combined "P/A" on the grid.
             $this->db->where('employee_id', (int) $employeeId);
             $this->db->where('present_date', $presentDate);
             $this->db->delete('employee_attendance');
+
+            $this->db->where('employee_id', (int) $employeeId);
+            $this->db->where('leave_date', $presentDate);
+            $this->db->delete('employee_leave_detail');
+
+            $this->db->where('employee_id', (int) $employeeId);
+            $this->db->where('leave_date', $presentDate);
+            $this->db->delete('employee_leave');
 
             if($attendanceType == 'present') {
                 $itemPresentData = array(
@@ -244,14 +256,6 @@
 
                 $this->db->insert('employee_attendance', $itemPresentData);
             } elseif($attendanceType == 'absent') {
-
-                $this->db->where('employee_id', (int) $employeeId);
-                $this->db->where('leave_date', $presentDate);
-                $this->db->delete('employee_leave_detail');
-                
-                $this->db->where('employee_id', (int) $employeeId);
-                $this->db->where('leave_date', $presentDate);
-                $this->db->delete('employee_leave');
 
                 // Get branch_id from actual employee master
                 $branchId = '13'; // Default fallback
@@ -290,7 +294,91 @@
 
             $this->db->trans_complete();
 
-            return $this->db->trans_status();
+            $success = $this->db->trans_status();
+
+            // Weekly-off automation: a Saturday/Monday Present/Absent change
+            // recomputes the adjoining Sunday. No-op for any other weekday.
+            if ($success) {
+                $this->autoAdjustSundayAttendance($employeeId, $this->_resolveEmployeeBranchId($employeeId), $presentDate);
+            }
+
+            return $success;
+        }
+
+        /**
+         * "Sandwich" weekly-off rule: Sunday is Absent only when BOTH the
+         * preceding Saturday and following Monday are Absent; otherwise Sunday
+         * is Present. An unmarked neighbour never counts as Absent, so marking
+         * just one side defaults Sunday to Present until the other side is
+         * filled in - recomputed again the moment it is. Only ever sets plain
+         * Present/Absent, never OT - if the employee actually worked that
+         * Sunday, OT must still be added separately.
+         * No-op when $date is not a Saturday or Monday.
+         */
+        public function autoAdjustSundayAttendance($employeeId, $branchId, $date)
+        {
+            $dow = (int) date('w', strtotime($date)); // 0=Sun .. 6=Sat
+
+            if ($dow === 6) { // Saturday
+                $saturdayDate = $date;
+                $sundayDate   = date('Y-m-d', strtotime($date . ' +1 day'));
+                $mondayDate   = date('Y-m-d', strtotime($date . ' +2 day'));
+            } elseif ($dow === 1) { // Monday
+                $mondayDate   = $date;
+                $sundayDate   = date('Y-m-d', strtotime($date . ' -1 day'));
+                $saturdayDate = date('Y-m-d', strtotime($date . ' -2 day'));
+            } else {
+                return; // not adjacent to a Sunday
+            }
+
+            // Don't touch Sunday at all unless at least one neighbouring day has
+            // actually been marked (present/absent/OT) - otherwise every untouched
+            // week would default to "not both absent" = Present for everyone.
+            if (!$this->_hasAnyAttendanceRecord($employeeId, $saturdayDate)
+                && !$this->_hasAnyAttendanceRecord($employeeId, $mondayDate)) {
+                return;
+            }
+
+            $satAbsent = $this->_isMarkedAbsent($employeeId, $saturdayDate);
+            $monAbsent = $this->_isMarkedAbsent($employeeId, $mondayDate);
+
+            $sundayValue = ($satAbsent && $monAbsent) ? 'absent' : 'present';
+            $this->saveEmployeeAttendanceValue($branchId, $sundayDate, $employeeId, $sundayValue);
+        }
+
+        private function _isMarkedAbsent($employeeId, $date)
+        {
+            $row = $this->db->where('employee_id', (int) $employeeId)
+                             ->where('leave_date', $date)
+                             ->where('delete_status', 0)
+                             ->get('employee_leave_detail')->row();
+            return $row !== null;
+        }
+
+        private function _hasAnyAttendanceRecord($employeeId, $date)
+        {
+            $present = $this->db->where('employee_id', (int) $employeeId)
+                                 ->where('present_date', $date)
+                                 ->where('delete_status', 0)
+                                 ->get('employee_attendance')->num_rows() > 0;
+            if ($present) return true;
+
+            if ($this->_isMarkedAbsent($employeeId, $date)) return true;
+
+            return $this->db->where('employee_id', (int) $employeeId)
+                             ->where('ot_date', $date)
+                             ->where('delete_status', 0)
+                             ->get('employee_ot')->num_rows() > 0;
+        }
+
+        private function _resolveEmployeeBranchId($employeeId)
+        {
+            $branchId = '13'; // Default fallback
+            $empQuery = $this->db->select('branch')->where('id', (int) $employeeId)->get('employee')->row();
+            if ($empQuery && !empty($empQuery->branch)) {
+                $branchId = $empQuery->branch;
+            }
+            return $branchId;
         }
 
         // Employee attendance Backup
@@ -983,6 +1071,8 @@
 
             // We iterate through all employees and days.
             foreach ($attendanceData as $empId => $days) {
+                $employeeBranchId = $this->_resolveEmployeeBranchId($empId);
+
                 for ($d = 1; $d <= $daysInMonth; $d++) {
                     $dateStr = sprintf("%04d-%02d-%02d", $year, $month, $d);
                     $status = isset($days[$d]) ? $days[$d] : '';
@@ -1076,6 +1166,10 @@
                             'updated_at' => $currentDateTime
                         ]);
                     }
+
+                    // Weekly-off automation: a Saturday/Monday change recomputes
+                    // the adjoining Sunday (no-op on every other weekday).
+                    $this->autoAdjustSundayAttendance($empId, $employeeBranchId, $dateStr);
                 }
             }
 
